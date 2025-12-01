@@ -33,9 +33,33 @@ export class UserController {
         password,
       });
 
+      // Generate JWT token for automatic login
+      const token = signJwt({
+        sub: result.user.id,
+        id: result.user.id,
+        email: result.user.email,
+      });
+
+      // Set cookies for automatic login (same as login endpoint)
+      res.cookie("token", token, {
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        path: "/",
+      });
+
+      res.cookie("userId", result.user.id, {
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        path: "/",
+      });
+
       return res.status(200).json({
         success: true,
         data: result,
+        token, // Include token in response for frontend
+        user: result.user,
         timestamp: new Date().toISOString(),
       });
     } catch (err: any) {

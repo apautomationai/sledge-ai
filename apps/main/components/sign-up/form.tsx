@@ -115,23 +115,13 @@ export default function SignUpForm() {
   const router = useRouter();
 
   useEffect(() => {
-    if (state?.success && state?.redirectTo) {
-      if (state.requiresPayment) {
-        toast.success("Account created successfully!", {
-          description: "Please sign in to set up your payment and start your trial.",
-        });
-      } else {
-        toast.success("Account created successfully!", {
-          description: "You can now sign in with your new credentials.",
-        });
-      }
-      router.push(state.redirectTo);
-    } else if (state?.message && !state?.success) {
+    // Only show error messages - success redirects are handled by server action
+    if (state?.message && !state?.success) {
       toast.error("Sign Up Failed", {
         description: state.message,
       });
     }
-  }, [state, router]);
+  }, [state]);
 
   return (
     <div className="flex flex-col gap-6">

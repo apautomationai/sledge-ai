@@ -2,7 +2,8 @@
 "use server";
 
 import { signUpSchema } from "@/lib/validators";
-
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export type SignUpFormState = {
   message: string;
@@ -19,12 +20,15 @@ export type SignUpFormState = {
   redirectTo?: string;
   requiresPayment?: boolean;
   userId?: number;
+  timestamp?: number;
 };
 
 export async function signUpAction(
   prevState: SignUpFormState | null,
   formData: FormData
 ): Promise<SignUpFormState> {
+  const timestamp = Date.now();
+
   const validatedFields = signUpSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
@@ -34,6 +38,7 @@ export async function signUpAction(
       message: "Validation failed",
       errors: validatedFields.error.flatten().fieldErrors,
       success: false,
+      timestamp,
     };
   }
 
@@ -66,27 +71,50 @@ export async function signUpAction(
         message: data.message || "Registration failed",
         errors: { _form: [data.message || "Registration failed"] },
         success: false,
+        timestamp,
       };
     }
 
-    // Check if user requires payment setup (not free tier)
-    const requiresPayment = data.subscription?.tier !== 'free' && data.subscription?.requiresPaymentSetup;
+    // Handle successful registration with automatic login
+    if (data.token) {
+      const cookieStore = await cookies();
 
-    // On successful registration
+      // Set the token in an HTTP-only cookie (same as login)
+      cookieStore.set("token", data.token, {
+        path: "/",
+      });
+
+      // Set user ID in a separate cookie for client-side access
+      if (data.user?.id) {
+        cookieStore.set("userId", String(data.user.id), {
+          path: "/",
+        });
+      }
+
+      // Redirect to dashboard - subscription provider will handle payment/onboarding redirect
+      redirect("/dashboard");
+    }
+
+    // Fallback error if the server response is successful but invalid
     return {
-      message: "Registration successful!",
-      success: true,
-      redirectTo: "/sign-in?signup=success",
-      requiresPayment,
-      userId: data.user?.id,
+      message: "Invalid response from server",
+      errors: { _form: ["Invalid response from server"] },
+      success: false,
+      timestamp,
     };
 
-  } catch (error) {
+  } catch (error: any) {
+    // Re-throw redirect errors (Next.js uses these for navigation)
+    if (error.digest?.startsWith("NEXT_REDIRECT")) {
+      throw error;
+    }
+
     console.error("Sign-up error:", error);
     return {
       message: "Could not connect to the server. Please try again.",
       errors: { _form: ["An unexpected error occurred."] },
       success: false,
+      timestamp,
     };
   }
 }
