@@ -31,16 +31,21 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const [isSavingDate, setIsSavingDate] = useState(false);
 
     const gmailIntegration = integrations.find((i) => i.name === "gmail");
-    const microsoftIntegration = integrations.find((i) => i.name === "microsoft");
+    const outlookIntegration = integrations.find((i) => i.name === "outlook");
     const quickbooksIntegration = integrations.find((i) => i.name === "quickbooks");
 
     const isGmailConnected = gmailIntegration?.status === "success";
     const isGmailConfigured = gmailIntegration?.metadata?.startReading;
-    const isMicrosoftConnected = microsoftIntegration?.status === "success";
-    const isEmailConnected = isGmailConnected || isMicrosoftConnected;
+    const isOutlookConnected = outlookIntegration?.status === "success";
+    const isOutlookConfigured = outlookIntegration?.metadata?.startReading;
+    const isEmailConnected = isGmailConnected || isOutlookConnected;
     const isQuickBooksConnected = quickbooksIntegration?.status === "success";
 
     const canComplete = isEmailConnected && isQuickBooksConnected;
+
+    // Determine which email provider needs configuration
+    const connectedEmailProvider = isGmailConnected ? "gmail" : isOutlookConnected ? "outlook" : null;
+    const isEmailConfigured = isGmailConnected ? isGmailConfigured : isOutlookConnected ? isOutlookConfigured : false;
 
     // Handle OAuth callback errors
     useEffect(() => {
@@ -56,12 +61,12 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
         }
     }, [searchParams, router]);
 
-    // Show date configuration dialog after Gmail connection
+    // Show date configuration dialog after email connection (Gmail or Outlook)
     useEffect(() => {
-        if (isGmailConnected && !isGmailConfigured) {
+        if (isEmailConnected && !isEmailConfigured) {
             setShowDateDialog(true);
         }
-    }, [isGmailConnected, isGmailConfigured]);
+    }, [isEmailConnected, isEmailConfigured]);
 
     const handleConnectGmail = async () => {
         try {
@@ -79,8 +84,11 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const handleConnectMicrosoft = async () => {
         try {
             localStorage.setItem("onboarding_mode", "true");
-            // TODO: Implement Microsoft OAuth
-            toast.info("Microsoft integration coming soon!");
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/outlook/auth`;
+            const res: any = await client.get(url);
+            if (res.url) {
+                window.location.href = res.url;
+            }
         } catch (error) {
             toast.error("Failed to connect Microsoft");
         }
@@ -103,9 +111,14 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
         }
     };
 
-    const handleSaveGmailDate = async () => {
+    const handleSaveEmailDate = async () => {
         if (!date) {
             toast.error("Please select a date");
+            return;
+        }
+
+        if (!connectedEmailProvider) {
+            toast.error("No email provider connected");
             return;
         }
 
@@ -113,7 +126,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
         try {
             const dateString = date.toISOString().split("T")[0];
             await client.patch("api/v1/settings/update-start", {
-                name: "gmail",
+                name: connectedEmailProvider,
                 startReading: dateString,
             });
             toast.success("Start date saved successfully!");
@@ -174,10 +187,10 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                                 </div>
                             </button>
 
-                            {/* Microsoft Button */}
+                            {/* Microsoft/Outlook Button */}
                             <button
                                 onClick={handleConnectMicrosoft}
-                                disabled={isMicrosoftConnected}
+                                disabled={isOutlookConnected}
                                 className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
                             >
                                 <div className="flex items-center justify-center">
@@ -253,11 +266,13 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                 </CardContent>
             </Card>
 
-            {/* Gmail Date Configuration Dialog */}
+            {/* Email Date Configuration Dialog */}
             <Dialog open={showDateDialog} onOpenChange={setShowDateDialog}>
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
-                        <DialogTitle>Configure Gmail Start Date</DialogTitle>
+                        <DialogTitle>
+                            Configure {connectedEmailProvider === "gmail" ? "Gmail" : "Outlook"} Start Date
+                        </DialogTitle>
                         <DialogDescription>
                             Select the date from which to start processing emails. We'll only process invoices received on or after this date.
                         </DialogDescription>
@@ -283,7 +298,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                             Cancel
                         </Button>
                         <Button
-                            onClick={handleSaveGmailDate}
+                            onClick={handleSaveEmailDate}
                             disabled={!date || isSavingDate}
                         >
                             {isSavingDate ? (
