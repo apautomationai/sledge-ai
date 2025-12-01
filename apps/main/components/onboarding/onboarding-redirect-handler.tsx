@@ -20,8 +20,18 @@ export function OnboardingRedirectHandler() {
                 console.log("🔄 Onboarding mode detected, redirecting to dashboard");
                 // Clear the flag
                 localStorage.removeItem("onboarding_mode");
-                // Redirect to dashboard
-                router.replace("/dashboard");
+
+                // Preserve error/success messages when redirecting
+                const redirectUrl = new URL("/dashboard", window.location.origin);
+                if (hasType) {
+                    redirectUrl.searchParams.set("type", hasType);
+                }
+                if (hasMessage) {
+                    redirectUrl.searchParams.set("message", hasMessage);
+                }
+
+                // Redirect to dashboard with params
+                router.replace(redirectUrl.pathname + redirectUrl.search);
             }
         }
     }, [searchParams, router]);

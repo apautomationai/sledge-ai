@@ -11,6 +11,7 @@ export default async function DashboardLayout({
 }) {
   let userName = "User";
   let userEmail = "";
+  let isOnboardingComplete = false;
 
   try {
     const userResult = await client.get<ApiResponse<User>>("api/v1/users/me");
@@ -18,13 +19,18 @@ export default async function DashboardLayout({
       const user = userResult.data;
       userName = `${user.firstName} ${user.lastName}`.trim();
       userEmail = user.email;
+      isOnboardingComplete = user.onboardingCompleted || false;
     }
   } catch (error) {
     console.error("Failed to fetch user data in layout", error);
   }
 
   return (
-    <DashboardClientLayout userName={userName} userEmail={userEmail}>
+    <DashboardClientLayout
+      userName={userName}
+      userEmail={userEmail}
+      isOnboardingComplete={isOnboardingComplete}
+    >
       {children}
     </DashboardClientLayout>
   );

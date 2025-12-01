@@ -53,25 +53,29 @@ const NavLink = ({
   children,
   isActive,
   isCollapsed,
+  isDisabled = false,
 }: {
   href: string;
   icon: React.ElementType;
   children: React.ReactNode;
   isActive: boolean;
   isCollapsed: boolean;
+  isDisabled?: boolean;
 }) => (
   <TooltipProvider delayDuration={0}>
     <Tooltip>
       <TooltipTrigger asChild>
         <Link
-          href={href}
+          href={isDisabled ? "#" : href}
+          onClick={(e) => isDisabled && e.preventDefault()}
           className={cn(
             "group relative flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-all duration-200",
-            "hover:bg-accent hover:text-primary hover:shadow-sm",
+            !isDisabled && "hover:bg-accent hover:text-primary hover:shadow-sm",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
             isActive &&
             "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm border-l-4 border-l-primary",
-            isCollapsed ? "justify-center px-2" : "pl-4"
+            isCollapsed ? "justify-center px-2" : "pl-4",
+            isDisabled && "opacity-50 cursor-not-allowed"
           )}
         >
           <div className="flex items-center gap-3">
@@ -124,11 +128,13 @@ export default function SideMenuBar({
   onToggleCollapse,
   userName,
   userEmail,
+  isOnboardingComplete = true,
 }: {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   userName: string;
   userEmail: string;
+  isOnboardingComplete?: boolean;
 }) {
   const pathname = usePathname();
   const { setTheme, theme } = useTheme();
@@ -247,6 +253,7 @@ export default function SideMenuBar({
                 icon={LayoutDashboard}
                 isActive={pathname === "/dashboard"}
                 isCollapsed={isCollapsed}
+                isDisabled={false}
               >
                 Overview
               </NavLink>
@@ -255,6 +262,7 @@ export default function SideMenuBar({
                 icon={FileText}
                 isActive={pathname.startsWith("/jobs")}
                 isCollapsed={isCollapsed}
+                isDisabled={!isOnboardingComplete}
               >
                 Invoices
               </NavLink>
@@ -263,6 +271,7 @@ export default function SideMenuBar({
                 icon={Settings}
                 isActive={pathname.startsWith("/integrations")}
                 isCollapsed={isCollapsed}
+                isDisabled={!isOnboardingComplete}
               >
                 Integrations
               </NavLink>
