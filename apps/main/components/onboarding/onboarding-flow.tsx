@@ -1,13 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
-import { Calendar } from "@workspace/ui/components/calendar";
 import { CheckCircle2, Circle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import client from "@/lib/axios-client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog";
+import { Calendar } from "@workspace/ui/components/calendar";
+import { Label } from "@workspace/ui/components/label";
 
 interface OnboardingFlowProps {
     integrations: Array<{
@@ -19,41 +22,50 @@ interface OnboardingFlowProps {
     }>;
 }
 
-type OnboardingStep = "gmail" | "gmail-config" | "quickbooks" | "complete";
-
 export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const router = useRouter();
-    const [currentStep, setCurrentStep] = useState<OnboardingStep>("gmail");
+    const searchParams = useSearchParams();
     const [isCompleting, setIsCompleting] = useState(false);
-    const [isSavingDate, setIsSavingDate] = useState(false);
+    const [showDateDialog, setShowDateDialog] = useState(false);
     const [date, setDate] = useState<Date | undefined>(new Date());
+    const [isSavingDate, setIsSavingDate] = useState(false);
 
     const gmailIntegration = integrations.find((i) => i.name === "gmail");
+    const microsoftIntegration = integrations.find((i) => i.name === "microsoft");
     const quickbooksIntegration = integrations.find((i) => i.name === "quickbooks");
 
     const isGmailConnected = gmailIntegration?.status === "success";
     const isGmailConfigured = gmailIntegration?.metadata?.startReading;
+    const isMicrosoftConnected = microsoftIntegration?.status === "success";
+    const isEmailConnected = isGmailConnected || isMicrosoftConnected;
     const isQuickBooksConnected = quickbooksIntegration?.status === "success";
 
-    const dateString = useMemo(() => (date ? date.toISOString().split("T")[0] : ""), [date]);
+    const canComplete = isEmailConnected && isQuickBooksConnected;
 
+    // Handle OAuth callback errors
     useEffect(() => {
-        // Auto-advance to next step when integration is connected
-        if (currentStep === "gmail" && isGmailConnected) {
-            setCurrentStep("gmail-config");
-        } else if (currentStep === "gmail-config" && isGmailConfigured) {
-            setCurrentStep("quickbooks");
-        } else if (currentStep === "quickbooks" && isQuickBooksConnected) {
-            setCurrentStep("complete");
+        const errorType = searchParams.get("type");
+        const errorMessage = searchParams.get("message");
+
+        if (errorType === "error" && errorMessage) {
+            toast.error("Connection Failed", {
+                description: decodeURIComponent(errorMessage),
+            });
+            // Clear the error params from URL
+            router.replace("/dashboard");
         }
-    }, [isGmailConnected, isGmailConfigured, isQuickBooksConnected, currentStep]);
+    }, [searchParams, router]);
+
+    // Show date configuration dialog after Gmail connection
+    useEffect(() => {
+        if (isGmailConnected && !isGmailConfigured) {
+            setShowDateDialog(true);
+        }
+    }, [isGmailConnected, isGmailConfigured]);
 
     const handleConnectGmail = async () => {
         try {
-            // Use localStorage to track onboarding mode (persists through OAuth redirects)
             localStorage.setItem("onboarding_mode", "true");
-            console.log("🍪 Set onboarding flag for Gmail");
-
             const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/google/auth`;
             const res: any = await client.get(url);
             if (res.url) {
@@ -61,6 +73,33 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
             }
         } catch (error) {
             toast.error("Failed to connect Gmail");
+        }
+    };
+
+    const handleConnectMicrosoft = async () => {
+        try {
+            localStorage.setItem("onboarding_mode", "true");
+            // TODO: Implement Microsoft OAuth
+            toast.info("Microsoft integration coming soon!");
+        } catch (error) {
+            toast.error("Failed to connect Microsoft");
+        }
+    };
+
+    const handleConnectQuickBooks = async () => {
+        if (!isEmailConnected) {
+            toast.error("Please connect an email provider first");
+            return;
+        }
+        try {
+            localStorage.setItem("onboarding_mode", "true");
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/quickbooks/auth`;
+            const res: any = await client.get(url);
+            if (res.url) {
+                window.location.href = res.url;
+            }
+        } catch (error) {
+            toast.error("Failed to connect QuickBooks");
         }
     };
 
@@ -72,13 +111,14 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
 
         setIsSavingDate(true);
         try {
+            const dateString = date.toISOString().split("T")[0];
             await client.patch("api/v1/settings/update-start", {
                 name: "gmail",
                 startReading: dateString,
             });
             toast.success("Start date saved successfully!");
+            setShowDateDialog(false);
             router.refresh();
-            setCurrentStep("quickbooks");
         } catch (error) {
             toast.error("Failed to save date");
         } finally {
@@ -86,23 +126,11 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
         }
     };
 
-    const handleConnectQuickBooks = async () => {
-        try {
-            // Use localStorage to track onboarding mode (persists through OAuth redirects)
-            localStorage.setItem("onboarding_mode", "true");
-            console.log("🍪 Set onboarding flag for QuickBooks");
-
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/quickbooks/auth`;
-            const res: any = await client.get(url);
-            if (res.url) {
-                window.location.href = res.url;
-            }
-        } catch (error) {
-            toast.error("Failed to connect QuickBooks");
-        }
-    };
-
     const handleCompleteOnboarding = async () => {
+        if (!canComplete) {
+            toast.error("Please complete all integrations first");
+            return;
+        }
         setIsCompleting(true);
         try {
             await client.post("api/v1/users/complete-onboarding");
@@ -116,203 +144,160 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-            <Card className="w-full max-w-2xl">
-                <CardHeader className="text-center">
-                    <CardTitle className="text-3xl font-bold">Welcome! Let's Get Started</CardTitle>
-                    <CardDescription className="text-base mt-2">
-                        Connect your accounts to start processing invoices automatically
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    {/* Progress Steps */}
-                    <div className="flex items-center justify-center gap-2 mb-8">
-                        <StepIndicator
-                            label="Gmail"
-                            isActive={currentStep === "gmail"}
-                            isCompleted={isGmailConnected}
-                        />
-                        <div className="h-0.5 w-12 bg-gray-300 dark:bg-gray-600" />
-                        <StepIndicator
-                            label="Configure"
-                            isActive={currentStep === "gmail-config"}
-                            isCompleted={!!isGmailConfigured}
-                        />
-                        <div className="h-0.5 w-12 bg-gray-300 dark:bg-gray-600" />
-                        <StepIndicator
-                            label="QuickBooks"
-                            isActive={currentStep === "quickbooks"}
-                            isCompleted={isQuickBooksConnected}
-                        />
-                        <div className="h-0.5 w-12 bg-gray-300 dark:bg-gray-600" />
-                        <StepIndicator
-                            label="Done"
-                            isActive={currentStep === "complete"}
-                            isCompleted={false}
-                        />
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+            <Card className="w-full max-w-3xl bg-gray-900/50 border-gray-700/50 backdrop-blur-sm">
+                <CardContent className="p-12">
+                    {/* Header */}
+                    <div className="text-center mb-12">
+                        <h1 className="text-4xl font-bold text-white mb-3">Welcome to Sledge</h1>
+                        <p className="text-gray-400 text-lg">Complete these steps to activate autonomous AP</p>
                     </div>
 
-                    {/* Gmail Step */}
-                    {currentStep === "gmail" && (
-                        <div className="space-y-4">
-                            <div className="text-center space-y-2">
-                                <h3 className="text-xl font-semibold">Connect Your Gmail Account</h3>
-                                <p className="text-muted-foreground">
-                                    We'll automatically process invoices from your email
-                                </p>
-                            </div>
-                            <div className="flex justify-center">
-                                <Button
-                                    size="lg"
-                                    onClick={handleConnectGmail}
-                                    className="w-full max-w-sm"
-                                    disabled={isGmailConnected}
-                                >
-                                    {isGmailConnected ? (
-                                        <>
-                                            <CheckCircle2 className="mr-2 h-5 w-5" />
-                                            Gmail Connected
-                                        </>
-                                    ) : (
-                                        "Connect Gmail"
-                                    )}
-                                </Button>
+                    {/* Email Connection Section */}
+                    <div className="mb-10">
+                        <h2 className="text-gray-300 text-lg mb-6">Connect your email you receive invoices at</h2>
+                        <div className="flex items-center gap-6">
+                            {/* Gmail Button */}
+                            <button
+                                onClick={handleConnectGmail}
+                                disabled={isGmailConnected}
+                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+                            >
+                                <div className="flex items-center justify-center">
+                                    <Image
+                                        src="/images/logos/gmail.png"
+                                        alt="Gmail"
+                                        width={80}
+                                        height={80}
+                                        className="group-hover:scale-110 transition-transform duration-200"
+                                    />
+                                </div>
+                            </button>
+
+                            {/* Microsoft Button */}
+                            <button
+                                onClick={handleConnectMicrosoft}
+                                disabled={isMicrosoftConnected}
+                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+                            >
+                                <div className="flex items-center justify-center">
+                                    <Image
+                                        src="/images/logos/microsoft.png"
+                                        alt="Microsoft"
+                                        width={80}
+                                        height={80}
+                                        className="group-hover:scale-110 transition-transform duration-200"
+                                    />
+                                </div>
+                            </button>
+
+                            {/* Status Indicator */}
+                            <div className="flex-shrink-0">
+                                {isEmailConnected ? (
+                                    <CheckCircle2 className="h-16 w-16 text-green-500" />
+                                ) : (
+                                    <Circle className="h-16 w-16 text-gray-600" strokeWidth={3} />
+                                )}
                             </div>
                         </div>
-                    )}
+                    </div>
 
-                    {/* Gmail Configuration Step */}
-                    {currentStep === "gmail-config" && (
-                        <div className="space-y-4">
-                            <div className="text-center space-y-2">
-                                <h3 className="text-xl font-semibold">Configure Gmail Start Date</h3>
-                                <p className="text-muted-foreground">
-                                    Select the date from which to start processing emails
-                                </p>
-                            </div>
-                            <div className="flex flex-col items-center gap-4">
-                                <Calendar
-                                    mode="single"
-                                    selected={date}
-                                    onSelect={setDate}
-                                    className="rounded-md border"
-                                />
-                                <Button
-                                    size="lg"
-                                    onClick={handleSaveGmailDate}
-                                    className="w-full max-w-sm"
-                                    disabled={!date || isSavingDate}
-                                >
-                                    {isSavingDate ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        "Continue"
-                                    )}
-                                </Button>
+                    {/* QuickBooks Connection Section */}
+                    <div className="mb-10">
+                        <h2 className="text-gray-300 text-lg mb-6">Connect your accounting platform</h2>
+                        <div className="flex items-center gap-6">
+                            {/* QuickBooks Button */}
+                            <button
+                                onClick={handleConnectQuickBooks}
+                                disabled={isQuickBooksConnected || !isEmailConnected}
+                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+                            >
+                                <div className="flex items-center justify-center">
+                                    <Image
+                                        src="/images/logos/quickbooks.png"
+                                        alt="QuickBooks"
+                                        width={80}
+                                        height={80}
+                                        className="group-hover:scale-110 transition-transform duration-200"
+                                    />
+                                </div>
+                            </button>
+
+                            {/* Empty space to match layout */}
+                            <div className="flex-1"></div>
+
+                            {/* Status Indicator */}
+                            <div className="flex-shrink-0">
+                                {isQuickBooksConnected ? (
+                                    <CheckCircle2 className="h-16 w-16 text-green-500" />
+                                ) : (
+                                    <Circle className="h-16 w-16 text-gray-600" strokeWidth={3} />
+                                )}
                             </div>
                         </div>
-                    )}
+                    </div>
 
-                    {/* QuickBooks Step */}
-                    {currentStep === "quickbooks" && (
-                        <div className="space-y-4">
-                            <div className="text-center space-y-2">
-                                <h3 className="text-xl font-semibold">Connect QuickBooks</h3>
-                                <p className="text-muted-foreground">
-                                    Sync your accounting data for better invoice processing
-                                </p>
-                            </div>
-                            <div className="flex justify-center">
-                                <Button
-                                    size="lg"
-                                    onClick={handleConnectQuickBooks}
-                                    className="w-full max-w-sm"
-                                    disabled={isQuickBooksConnected}
-                                >
-                                    {isQuickBooksConnected ? (
-                                        <>
-                                            <CheckCircle2 className="mr-2 h-5 w-5" />
-                                            QuickBooks Connected
-                                        </>
-                                    ) : (
-                                        "Connect QuickBooks"
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Complete Step */}
-                    {currentStep === "complete" && (
-                        <div className="space-y-4">
-                            <div className="text-center space-y-2">
-                                <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto" />
-                                <h3 className="text-xl font-semibold">You're All Set!</h3>
-                                <p className="text-muted-foreground">
-                                    Both Gmail and QuickBooks are connected. You're ready to start processing invoices.
-                                </p>
-                            </div>
-                            <div className="flex justify-center">
-                                <Button
-                                    size="lg"
-                                    onClick={handleCompleteOnboarding}
-                                    className="w-full max-w-sm"
-                                    disabled={isCompleting}
-                                >
-                                    {isCompleting ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                            Setting up...
-                                        </>
-                                    ) : (
-                                        "Go to Dashboard"
-                                    )}
-                                </Button>
-                            </div>
+                    {/* Complete Button - Only show when all integrations are connected */}
+                    {canComplete && (
+                        <div className="mt-12 flex justify-center">
+                            <Button
+                                size="lg"
+                                onClick={handleCompleteOnboarding}
+                                disabled={isCompleting}
+                                className="px-12 py-6 text-lg bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                            >
+                                {isCompleting ? "Setting up..." : "Go to Dashboard"}
+                            </Button>
                         </div>
                     )}
                 </CardContent>
             </Card>
-        </div>
-    );
-}
 
-function StepIndicator({
-    label,
-    isActive,
-    isCompleted,
-}: {
-    label: string;
-    isActive: boolean;
-    isCompleted: boolean;
-}) {
-    return (
-        <div className="flex flex-col items-center gap-2">
-            <div
-                className={`rounded-full p-2 ${isCompleted
-                    ? "bg-green-500 text-white"
-                    : isActive
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-300 dark:bg-gray-600 text-gray-500"
-                    }`}
-            >
-                {isCompleted ? (
-                    <CheckCircle2 className="h-6 w-6" />
-                ) : (
-                    <Circle className="h-6 w-6" />
-                )}
-            </div>
-            <span
-                className={`text-sm font-medium ${isActive || isCompleted
-                    ? "text-foreground"
-                    : "text-muted-foreground"
-                    }`}
-            >
-                {label}
-            </span>
+            {/* Gmail Date Configuration Dialog */}
+            <Dialog open={showDateDialog} onOpenChange={setShowDateDialog}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Configure Gmail Start Date</DialogTitle>
+                        <DialogDescription>
+                            Select the date from which to start processing emails. We'll only process invoices received on or after this date.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <Label className="mb-2 block">Start Date</Label>
+                        <div className="flex justify-center">
+                            <Calendar
+                                mode="single"
+                                selected={date}
+                                onSelect={setDate}
+                                className="rounded-md border"
+                                disabled={(date) => date > new Date()}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowDateDialog(false)}
+                            disabled={isSavingDate}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSaveGmailDate}
+                            disabled={!date || isSavingDate}
+                        >
+                            {isSavingDate ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                "Save & Continue"
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
