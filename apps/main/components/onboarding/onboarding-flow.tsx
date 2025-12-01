@@ -53,35 +53,50 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
         const errorType = searchParams.get("type");
         const errorMessage = searchParams.get("message");
 
-        // Only show toast once per message
+        // Store message in sessionStorage and clear URL immediately
         if (errorMessage && !hasShownToast.current) {
-            console.log("🔔 Showing toast:", { errorType, errorMessage });
+            console.log("� Stowring message for toast:", { errorType, errorMessage });
+
+            sessionStorage.setItem("onboarding_toast_type", errorType || "");
+            sessionStorage.setItem("onboarding_toast_message", errorMessage);
+
+            // Clear URL immediately to prevent re-triggering
+            router.replace("/dashboard", { scroll: false });
+        }
+    }, [searchParams, router]);
+
+    // Show toast after component is stable (separate effect)
+    useEffect(() => {
+        const toastType = sessionStorage.getItem("onboarding_toast_type");
+        const toastMessage = sessionStorage.getItem("onboarding_toast_message");
+
+        if (toastMessage && !hasShownToast.current) {
+            console.log("🔔 Showing toast from storage:", { toastType, toastMessage });
             hasShownToast.current = true;
 
-            if (errorType === "error") {
-                // Show error toast
-                toast.error("Connection Failed", {
-                    description: decodeURIComponent(errorMessage),
-                    duration: 6000,
-                });
-            } else if (errorType?.includes("integration")) {
-                // Show success toast for integrations
-                toast.success("Integration Successful", {
-                    description: decodeURIComponent(errorMessage),
-                    duration: 4000,
-                });
-            }
-
-            // Clear the params from URL after toast is shown
+            // Small delay to ensure component is fully mounted
             const timer = setTimeout(() => {
-                console.log("🧹 Clearing URL params");
-                router.replace("/dashboard", { scroll: false });
-                hasShownToast.current = false; // Reset for next time
-            }, 1000);
+                if (toastType === "error") {
+                    toast.error("Connection Failed", {
+                        description: decodeURIComponent(toastMessage),
+                        duration: 6000,
+                    });
+                } else if (toastType?.includes("integration")) {
+                    toast.success("Integration Successful", {
+                        description: decodeURIComponent(toastMessage),
+                        duration: 4000,
+                    });
+                }
+
+                // Clear from sessionStorage after showing
+                sessionStorage.removeItem("onboarding_toast_type");
+                sessionStorage.removeItem("onboarding_toast_message");
+                hasShownToast.current = false;
+            }, 300);
 
             return () => clearTimeout(timer);
         }
-    }, [searchParams, router]);
+    }, []);
 
     // Show date configuration dialog after email connection (Gmail or Outlook)
     useEffect(() => {
