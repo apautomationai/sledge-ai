@@ -57,20 +57,21 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                 // Show error toast
                 toast.error("Connection Failed", {
                     description: decodeURIComponent(errorMessage),
-                    duration: 5000,
+                    duration: 6000,
                 });
             } else if (errorType?.includes("integration")) {
                 // Show success toast for integrations
                 toast.success("Integration Successful", {
                     description: decodeURIComponent(errorMessage),
-                    duration: 3000,
+                    duration: 4000,
                 });
             }
 
-            // Clear the params from URL after a short delay to ensure toast is shown
+            // Clear the params from URL after toast is shown
+            // Use a longer delay to ensure the toast is visible
             const timer = setTimeout(() => {
                 router.replace("/dashboard", { scroll: false });
-            }, 100);
+            }, 500);
 
             return () => clearTimeout(timer);
         }
