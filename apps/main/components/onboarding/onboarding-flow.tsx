@@ -174,7 +174,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                             <button
                                 onClick={handleConnectGmail}
                                 disabled={isGmailConnected}
-                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group"
                             >
                                 <div className="flex items-center justify-center">
                                     <Image
@@ -191,7 +191,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                             <button
                                 onClick={handleConnectMicrosoft}
                                 disabled={isOutlookConnected}
-                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group"
                             >
                                 <div className="flex items-center justify-center">
                                     <Image
