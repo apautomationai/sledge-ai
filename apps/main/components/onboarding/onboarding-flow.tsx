@@ -47,17 +47,32 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const connectedEmailProvider = isGmailConnected ? "gmail" : isOutlookConnected ? "outlook" : null;
     const isEmailConfigured = isGmailConnected ? isGmailConfigured : isOutlookConnected ? isOutlookConfigured : false;
 
-    // Handle OAuth callback errors
+    // Handle OAuth callback errors and success messages
     useEffect(() => {
         const errorType = searchParams.get("type");
         const errorMessage = searchParams.get("message");
 
-        if (errorType === "error" && errorMessage) {
-            toast.error("Connection Failed", {
-                description: decodeURIComponent(errorMessage),
-            });
-            // Clear the error params from URL
-            router.replace("/dashboard");
+        if (errorMessage) {
+            if (errorType === "error") {
+                // Show error toast
+                toast.error("Connection Failed", {
+                    description: decodeURIComponent(errorMessage),
+                    duration: 5000,
+                });
+            } else if (errorType?.includes("integration")) {
+                // Show success toast for integrations
+                toast.success("Integration Successful", {
+                    description: decodeURIComponent(errorMessage),
+                    duration: 3000,
+                });
+            }
+
+            // Clear the params from URL after a short delay to ensure toast is shown
+            const timer = setTimeout(() => {
+                router.replace("/dashboard", { scroll: false });
+            }, 100);
+
+            return () => clearTimeout(timer);
         }
     }, [searchParams, router]);
 
