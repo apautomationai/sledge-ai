@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { CheckCircle2, Circle, Loader2 } from "lucide-react";
@@ -29,6 +29,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const [showDateDialog, setShowDateDialog] = useState(false);
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [isSavingDate, setIsSavingDate] = useState(false);
+    const hasShownToast = useRef(false);
 
     const gmailIntegration = integrations.find((i) => i.name === "gmail");
     const outlookIntegration = integrations.find((i) => i.name === "outlook");
@@ -52,7 +53,11 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
         const errorType = searchParams.get("type");
         const errorMessage = searchParams.get("message");
 
-        if (errorMessage) {
+        // Only show toast once per message
+        if (errorMessage && !hasShownToast.current) {
+            console.log("🔔 Showing toast:", { errorType, errorMessage });
+            hasShownToast.current = true;
+
             if (errorType === "error") {
                 // Show error toast
                 toast.error("Connection Failed", {
@@ -68,10 +73,11 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
             }
 
             // Clear the params from URL after toast is shown
-            // Use a longer delay to ensure the toast is visible
             const timer = setTimeout(() => {
+                console.log("🧹 Clearing URL params");
                 router.replace("/dashboard", { scroll: false });
-            }, 500);
+                hasShownToast.current = false; // Reset for next time
+            }, 1000);
 
             return () => clearTimeout(timer);
         }
