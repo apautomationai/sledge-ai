@@ -258,6 +258,15 @@ export default function SideMenuBar({
                 Overview
               </NavLink>
               <NavLink
+                href="/projects"
+                icon={Package2}
+                isActive={pathname.startsWith("/projects")}
+                isCollapsed={isCollapsed}
+                isDisabled={!isOnboardingComplete}
+              >
+                Projects
+              </NavLink>
+              <NavLink
                 href="/jobs"
                 icon={FileText}
                 isActive={pathname.startsWith("/jobs")}
