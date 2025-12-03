@@ -30,6 +30,7 @@ router.post("/create-customer", authenticate, requireSubscriptionAccess, quickbo
 router.post("/create-bill", authenticate, requireSubscriptionAccess, quickbooksController.createBill);
 router.post("/sync-products", authenticate, requireSubscriptionAccess, quickbooksController.syncProducts);
 router.post("/sync-accounts", authenticate, requireSubscriptionAccess, quickbooksController.syncAccounts);
+router.post("/sync-vendors", authenticate, requireSubscriptionAccess, quickbooksController.syncVendors);
 router.post("/sync", authenticate, requireSubscriptionAccess, quickbooksController.syncProductsAndAccounts);
 router.delete("/disconnect", authenticate, requireSubscriptionAccess, quickbooksController.disconnect);
 
