@@ -4,6 +4,7 @@ import db, { pool } from "@/lib/db";
 import { integrationsModel } from "@/models/integrations.model";
 import { quickbooksProductsModel } from "@/models/quickbooks-products.model";
 import { quickbooksAccountsModel } from "@/models/quickbooks-accounts.model";
+import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
 import { BadRequestError, InternalServerError } from "@/helpers/errors";
 import { integrationsService } from "./integrations.service";
 import { embeddingsService } from "./embeddings.service";
@@ -24,6 +25,7 @@ interface QuickBooksIntegration {
 
 type QuickBooksProductRecord = typeof quickbooksProductsModel.$inferInsert;
 type QuickBooksAccountRecord = typeof quickbooksAccountsModel.$inferInsert;
+type QuickBooksVendorRecord = typeof quickbooksVendorsModel.$inferInsert;
 
 export class QuickBooksService {
   private clientId: string;
@@ -469,6 +471,26 @@ export class QuickBooksService {
       return validAccounts;
     } catch (error) {
       console.error("Error getting accounts from database:", error);
+      throw error;
+    }
+  }
+
+  // Get vendors from database
+  async getVendorsFromDatabase(userId: number) {
+    try {
+      const vendors = await db
+        .select()
+        .from(quickbooksVendorsModel)
+        .where(
+          and(
+            eq(quickbooksVendorsModel.userId, userId),
+            eq(quickbooksVendorsModel.active, true)
+          )
+        );
+
+      return vendors;
+    } catch (error) {
+      console.error("Error getting vendors from database:", error);
       throw error;
     }
   }
@@ -1158,6 +1180,19 @@ export class QuickBooksService {
     return parts.join("\n").trim();
   }
 
+  private buildVendorEmbeddingText(
+    vendor: Partial<QuickBooksVendorRecord>,
+  ): string {
+    const parts: string[] = [];
+
+    if (vendor.displayName) parts.push(`Name: ${vendor.displayName}`);
+    if (vendor.companyName) parts.push(`Company: ${vendor.companyName}`);
+    if (vendor.primaryEmail) parts.push(`Email: ${vendor.primaryEmail}`);
+    if (vendor.acctNum) parts.push(`Account: ${vendor.acctNum}`);
+
+    return parts.join("\n").trim();
+  }
+
   private async maybeGenerateEmbedding(
     text: string,
     fallback?: number[] | null,
@@ -1548,6 +1583,156 @@ export class QuickBooksService {
       } catch (error) {
         console.error(`Error syncing account ${account.Id}:`, error);
         // Continue with next account
+      }
+    }
+
+    return { inserted, updated, skipped };
+  }
+
+  // Sync vendors to database
+  async syncVendorsToDatabase(
+    userId: number,
+    vendors: any[],
+  ): Promise<{ inserted: number; updated: number; skipped: number }> {
+    let inserted = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    for (const vendor of vendors) {
+      try {
+        const quickbooksId = vendor.Id?.toString() || "";
+        if (!quickbooksId) {
+          continue;
+        }
+
+        // Parse timestamps from QuickBooks MetaData
+        const metaDataCreateTime = vendor.MetaData?.CreateTime
+          ? new Date(vendor.MetaData.CreateTime)
+          : null;
+        const metaDataLastUpdatedTime = vendor.MetaData?.LastUpdatedTime
+          ? new Date(vendor.MetaData.LastUpdatedTime)
+          : null;
+
+        // Transform vendor to flat structure
+        const vendorData = {
+          userId,
+          quickbooksId,
+          // Name fields
+          displayName: vendor.DisplayName || null,
+          companyName: vendor.CompanyName || null,
+          givenName: vendor.GivenName || null,
+          middleName: vendor.MiddleName || null,
+          familyName: vendor.FamilyName || null,
+          title: vendor.Title || null,
+          suffix: vendor.Suffix || null,
+          printOnCheckName: vendor.PrintOnCheckName || null,
+          // Contact information
+          primaryEmail: vendor.PrimaryEmailAddr?.Address || null,
+          primaryPhone: vendor.PrimaryPhone?.FreeFormNumber || null,
+          mobile: vendor.Mobile?.FreeFormNumber || null,
+          alternatePhone: vendor.AlternatePhone?.FreeFormNumber || null,
+          fax: vendor.Fax?.FreeFormNumber || null,
+          website: vendor.WebAddr?.URI || null,
+          // Address fields
+          billAddrLine1: vendor.BillAddr?.Line1 || null,
+          billAddrLine2: vendor.BillAddr?.Line2 || null,
+          billAddrLine3: vendor.BillAddr?.Line3 || null,
+          billAddrLine4: vendor.BillAddr?.Line4 || null,
+          billAddrLine5: vendor.BillAddr?.Line5 || null,
+          billAddrCity: vendor.BillAddr?.City || null,
+          billAddrState: vendor.BillAddr?.CountrySubDivisionCode || null,
+          billAddrPostalCode: vendor.BillAddr?.PostalCode || null,
+          billAddrCountry: vendor.BillAddr?.Country || null,
+          // Business fields
+          acctNum: vendor.AcctNum || null,
+          taxIdentifier: vendor.TaxIdentifier || null,
+          balance: vendor.Balance ? vendor.Balance.toString() : null,
+          active: vendor.Active ?? null,
+          vendor1099: vendor.Vendor1099 ?? null,
+          // Rates
+          billRate: vendor.BillRate ? vendor.BillRate.toString() : null,
+          costRate: vendor.CostRate ? vendor.CostRate.toString() : null,
+          // References
+          termRefValue: vendor.TermRef?.value || null,
+          termRefName: vendor.TermRef?.name || null,
+          currencyRefValue: vendor.CurrencyRef?.value || null,
+          currencyRefName: vendor.CurrencyRef?.name || null,
+          apAccountRefValue: vendor.APAccountRef?.value || null,
+          apAccountRefName: vendor.APAccountRef?.name || null,
+          // Regional/advanced fields
+          gstin: vendor.GSTIN || null,
+          businessNumber: vendor.BusinessNumber || null,
+          gstRegistrationType: vendor.GSTRegistrationType || null,
+          hasTPAR: vendor.HasTPAR ?? null,
+          t4AEligible: vendor.T4AEligible ?? null,
+          t5018Eligible: vendor.T5018Eligible ?? null,
+          taxReportingBasis: vendor.TaxReportingBasis || null,
+          // Sync metadata
+          syncToken: vendor.SyncToken || null,
+          domain: vendor.domain || null,
+          sparse: vendor.sparse ?? null,
+          metaDataCreateTime,
+          metaDataLastUpdatedTime,
+        };
+
+        const embeddingText = this.buildVendorEmbeddingText(vendorData);
+
+        // Check if record exists
+        const [existing] = await db
+          .select()
+          .from(quickbooksVendorsModel)
+          .where(
+            and(
+              eq(quickbooksVendorsModel.userId, userId),
+              eq(quickbooksVendorsModel.quickbooksId, quickbooksId),
+            ),
+          )
+          .limit(1);
+        if (existing) {
+          const existingEmbedding =
+            (existing as { embedding?: number[] | null }).embedding ?? null;
+          // Compare updated_at timestamps
+          const dbUpdatedAt = existing.metaDataLastUpdatedTime
+            ? new Date(existing.metaDataLastUpdatedTime).getTime()
+            : 0;
+          const qbUpdatedAt = metaDataLastUpdatedTime
+            ? metaDataLastUpdatedTime.getTime()
+            : 0;
+          const embeddingMissing =
+            !existingEmbedding || existingEmbedding.length === 0;
+
+          if (dbUpdatedAt !== qbUpdatedAt || embeddingMissing) {
+            const embedding = embeddingText
+              ? await this.maybeGenerateEmbedding(embeddingText, existingEmbedding)
+              : null;
+            await db
+              .update(quickbooksVendorsModel)
+              .set({
+                ...vendorData,
+                embedding,
+                updatedAt: new Date(),
+              })
+              .where(eq(quickbooksVendorsModel.id, existing.id));
+            updated++;
+          } else {
+            // Skip - no changes
+            skipped++;
+          }
+        } else {
+          const embedding = embeddingText
+            ? await this.maybeGenerateEmbedding(embeddingText)
+            : null;
+          await db.insert(quickbooksVendorsModel).values({
+            ...vendorData,
+            embedding,
+            createdAt: metaDataCreateTime || new Date(),
+            updatedAt: metaDataLastUpdatedTime || new Date(),
+          });
+          inserted++;
+        }
+      } catch (error) {
+        console.error(`Error syncing vendor ${vendor.Id}:`, error);
+        // Continue with next vendor
       }
     }
 

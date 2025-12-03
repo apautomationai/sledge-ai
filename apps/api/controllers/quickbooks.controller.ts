@@ -911,6 +911,66 @@ export class QuickBooksController {
     }
   };
 
+  // Sync only QuickBooks vendors
+  syncVendors = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      // @ts-ignore - user is added by auth middleware
+      const userId = req.user?.id;
+
+      if (!userId) {
+        throw new BadRequestError("User not authenticated");
+      }
+
+      const integration = await quickbooksService.getUserIntegration(userId);
+
+      if (!integration) {
+        throw new NotFoundError("QuickBooks integration not found");
+      }
+
+      // Fetch vendors from QuickBooks API
+      const vendorsResponse = await quickbooksService.getVendors(integration);
+
+      // Extract vendors from response
+      const vendors = vendorsResponse?.QueryResponse?.Vendor || [];
+
+      // Sync to database (includes embedding generation)
+      const vendorsResult = await quickbooksService.syncVendorsToDatabase(userId, vendors);
+
+      // Update lastSyncedAt in metadata after successful sync
+      try {
+        const currentMetadata = (integration.metadata as any) || {};
+        await integrationsService.updateIntegration(integration.id, {
+          metadata: {
+            ...currentMetadata,
+            lastSyncedAt: new Date().toISOString(),
+          },
+        });
+      } catch (updateError: any) {
+        console.error("Failed to update lastSyncedAt in metadata:", updateError);
+        // Don't fail the request if metadata update fails
+      }
+
+      res.json({
+        success: true,
+        message: "Vendors sync completed successfully",
+        data: {
+          vendors: {
+            inserted: vendorsResult.inserted,
+            updated: vendorsResult.updated,
+            skipped: vendorsResult.skipped,
+            total: vendors.length,
+          },
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   syncProductsAndAccounts = async (
     req: Request,
     res: Response,

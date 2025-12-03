@@ -1,5 +1,8 @@
 import { relations } from "drizzle-orm/relations";
 import { users, subscriptions } from "./schema";
+import { quickbooksAccountsRelations, quickbooksAccountsModel } from "@/models/quickbooks-accounts.model";
+import { quickbooksProductsRelations, quickbooksProductsModel } from "@/models/quickbooks-products.model";
+import { quickbooksVendorsRelations, quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
 
 export const subscriptionsRelations = relations(subscriptions, ({one}) => ({
 	user: one(users, {
@@ -10,4 +13,10 @@ export const subscriptionsRelations = relations(subscriptions, ({one}) => ({
 
 export const usersRelations = relations(users, ({many}) => ({
 	subscriptions: many(subscriptions),
+	quickbooksAccounts: many(quickbooksAccountsModel),
+	quickbooksProducts: many(quickbooksProductsModel),
+	quickbooksVendors: many(quickbooksVendorsModel),
 }));
+
+// Re-export QuickBooks model relations
+export { quickbooksAccountsRelations, quickbooksProductsRelations, quickbooksVendorsRelations };
