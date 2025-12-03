@@ -108,6 +108,9 @@ importers:
       passport-local:
         specifier: ^1.0.0
         version: 1.0.0
+      passport-microsoft:
+        specifier: ^2.1.0
+        version: 2.1.0
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
@@ -184,6 +187,9 @@ importers:
       '@types/passport-local':
         specifier: ^1.0.38
         version: 1.0.38
+      '@types/passport-microsoft':
+        specifier: ^2.1.1
+        version: 2.1.1
       '@types/pg':
         specifier: ^8.15.5
         version: 8.15.5
@@ -2786,6 +2792,9 @@ packages:
   '@types/passport-local@1.0.38':
     resolution: {integrity: sha512-nsrW4A963lYE7lNTv9cr5WmiUD1ibYJvWrpE13oxApFsRt77b0RdtZvKbCdNIY4v/QZ6TRQWaDDEwV1kCTmcXg==}
 
+  '@types/passport-microsoft@2.1.1':
+    resolution: {integrity: sha512-mtxO0nUt8PSAQd1MPD4JZXacYRx9MXYCTFjKyBEarmCJYyJlKHMwBRYltBEi/zpvC6xYX0LgK1AFXp+hQI+DEw==}
+
   '@types/passport-oauth2@1.8.0':
     resolution: {integrity: sha512-6//z+4orIOy/g3zx17HyQ71GSRK4bs7Sb+zFasRoc2xzlv7ZCJ+vkDBYFci8U6HY+or6Zy7ajf4mz4rK7nsWJQ==}
 
@@ -5095,6 +5104,10 @@ packages:
 
   passport-local@1.0.0:
     resolution: {integrity: sha512-9wCE6qKznvf9mQYYbgJ3sVOHmCWoUNMVFoZzNoznmISbhnNNPhN9xfY3sLmScHMetEJeoY7CXwfhCe7argfQow==}
+    engines: {node: '>= 0.4.0'}
+
+  passport-microsoft@2.1.0:
+    resolution: {integrity: sha512-7bOcjEmZCHg5qD55iHaMD/mgBxPtXLbqAwmKox5IsqOSEU50WJk5nQKK4lxKdBHLZ0hf+gzrFgDsTybJP18/JA==}
     engines: {node: '>= 0.4.0'}
 
   passport-oauth2@1.8.0:
@@ -9124,6 +9137,10 @@ snapshots:
       '@types/passport': 1.0.17
       '@types/passport-strategy': 0.2.38
 
+  '@types/passport-microsoft@2.1.1':
+    dependencies:
+      '@types/passport-oauth2': 1.8.0
+
   '@types/passport-oauth2@1.8.0':
     dependencies:
       '@types/express': 5.0.3
@@ -11709,6 +11726,10 @@ snapshots:
   passport-local@1.0.0:
     dependencies:
       passport-strategy: 1.0.0
+
+  passport-microsoft@2.1.0:
+    dependencies:
+      passport-oauth2: 1.8.0
 
   passport-oauth2@1.8.0:
     dependencies:
