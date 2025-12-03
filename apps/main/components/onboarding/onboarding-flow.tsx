@@ -29,7 +29,9 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const [showDateDialog, setShowDateDialog] = useState(false);
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [isSavingDate, setIsSavingDate] = useState(false);
+    const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
     const hasShownToast = useRef(false);
+    const completionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     const gmailIntegration = integrations.find((i) => i.name === "gmail");
     const outlookIntegration = integrations.find((i) => i.name === "outlook");
@@ -43,6 +45,27 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const isQuickBooksConnected = quickbooksIntegration?.status === "success";
 
     const canComplete = isEmailConnected && isQuickBooksConnected;
+
+    // Auto-complete after 2 minutes when both steps are done
+    useEffect(() => {
+        if (canComplete && !showSuccessAnimation && !isCompleting) {
+            // Clear any existing timer
+            if (completionTimerRef.current) {
+                clearTimeout(completionTimerRef.current);
+            }
+
+            // Start 2-minute countdown
+            completionTimerRef.current = setTimeout(() => {
+                handleAutoComplete();
+            }, 3000); // 2 minutes
+
+            return () => {
+                if (completionTimerRef.current) {
+                    clearTimeout(completionTimerRef.current);
+                }
+            };
+        }
+    }, [canComplete, showSuccessAnimation, isCompleting]);
 
     // Determine which email provider needs configuration
     const connectedEmailProvider = isGmailConnected ? "gmail" : isOutlookConnected ? "outlook" : null;
@@ -176,26 +199,51 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
         }
     };
 
+    const handleAutoComplete = async () => {
+        // Show success animation
+        setShowSuccessAnimation(true);
+
+        // Wait 2-3 seconds then complete onboarding
+        setTimeout(async () => {
+            setIsCompleting(true);
+            try {
+                await client.post("api/v1/users/complete-onboarding");
+                router.push("/dashboard");
+                router.refresh();
+            } catch (error) {
+                toast.error("Failed to complete onboarding");
+                setIsCompleting(false);
+                setShowSuccessAnimation(false);
+            }
+        }, 2500);
+    };
+
     const handleCompleteOnboarding = async () => {
         if (!canComplete) {
             toast.error("Please complete all integrations first");
             return;
         }
-        setIsCompleting(true);
-        try {
-            await client.post("api/v1/users/complete-onboarding");
-            toast.success("Welcome! Your account is all set up.");
-            router.push("/dashboard");
-            router.refresh();
-        } catch (error) {
-            toast.error("Failed to complete onboarding");
-            setIsCompleting(false);
+
+        // Clear the auto-complete timer if user manually completes
+        if (completionTimerRef.current) {
+            clearTimeout(completionTimerRef.current);
         }
+
+        handleAutoComplete();
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
-            <Card className="w-full max-w-3xl bg-gray-900/50 border-gray-700/50 backdrop-blur-sm">
+        <div className="min-h-screen  flex items-center justify-center p-4">
+            {/* Success Animation Overlay */}
+            {showSuccessAnimation && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/95 backdrop-blur-sm">
+                    <div className="animate-in zoom-in-50 duration-500">
+                        <CheckCircle2 className="h-48 w-48 text-green-500 animate-pulse" strokeWidth={2} />
+                    </div>
+                </div>
+            )}
+
+            <Card className="w-full max-w-3xl border-gray-700/50 backdrop-blur-sm">
                 <CardContent className="p-12">
                     {/* Header */}
                     <div className="text-center mb-12">
@@ -211,7 +259,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                             <button
                                 onClick={handleConnectGmail}
                                 disabled={isGmailConnected}
-                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group"
+                                className="flex-1 bg-gray-800/50 h-36 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
                             >
                                 <div className="flex items-center justify-center">
                                     <Image
@@ -219,6 +267,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                                         alt="Gmail"
                                         width={80}
                                         height={80}
+
                                         className="group-hover:scale-110 transition-transform duration-200"
                                     />
                                 </div>
@@ -228,7 +277,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                             <button
                                 onClick={handleConnectMicrosoft}
                                 disabled={isOutlookConnected}
-                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group"
+                                className="flex-1 bg-gray-800/50 h-36 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
                             >
                                 <div className="flex items-center justify-center">
                                     <Image
@@ -260,7 +309,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                             <button
                                 onClick={handleConnectQuickBooks}
                                 disabled={isQuickBooksConnected || !isEmailConnected}
-                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
                             >
                                 <div className="flex items-center justify-center">
                                     <Image
@@ -288,13 +337,13 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                     </div>
 
                     {/* Complete Button - Only show when all integrations are connected */}
-                    {canComplete && (
+                    {canComplete && !showSuccessAnimation && (
                         <div className="mt-12 flex justify-center">
                             <Button
                                 size="lg"
                                 onClick={handleCompleteOnboarding}
                                 disabled={isCompleting}
-                                className="px-12 py-6 text-lg bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                                className="px-12 py-6 text-lg bg-gray-700 hover:bg-gray-600 text-white rounded-xl focus:outline-none focus:ring-0"
                             >
                                 {isCompleting ? "Setting up..." : "Go to Dashboard"}
                             </Button>

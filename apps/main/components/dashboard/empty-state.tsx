@@ -37,8 +37,8 @@ export default function EmptyState({ userName }: EmptyStateProps) {
           You're all set up! Upload your first invoice to get started. It's as easy as 1, 2, 3.
         </p>
         <NewInvoiceButton size="lg" className="mt-6 w-4/5 mx-auto cursor-pointer">
-            <UploadCloud className="h-6 w-6 mr-2" />
-            Upload our first invoice
+          <UploadCloud className="h-6 w-6 mr-2" />
+          Upload our first invoice
         </NewInvoiceButton>
       </motion.div>
     </div>
