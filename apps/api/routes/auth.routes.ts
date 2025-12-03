@@ -5,6 +5,8 @@ const router = Router();
 
 router.get("/google", authController.googleAuth);
 router.get("/google/callback", authController.googleCallback);
+router.get("/microsoft", authController.microsoftAuth);
+router.get("/microsoft/callback", authController.microsoftCallback);
 
 export default router;
 

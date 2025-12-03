@@ -95,6 +95,11 @@ function SignInFormComponent() {
     window.location.href = `${apiUrl}/api/v1/auth/google`;
   };
 
+  const handleMicrosoftSignIn = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    window.location.href = `${apiUrl}/api/v1/auth/microsoft`;
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -245,7 +250,7 @@ function SignInFormComponent() {
             </Button>
             <Button 
               variant="outline" 
-              disabled
+              onClick={handleMicrosoftSignIn}
               className="h-11 bg-gray-800 border-4 border-gray-600 hover:bg-gray-700 hover:border-gray-500 text-gray-200 rounded-none transition-all duration-300 relative overflow-hidden group uppercase"
             >
               <MicrosoftIcon className="mr-2 h-4 w-4 relative z-10" /> 

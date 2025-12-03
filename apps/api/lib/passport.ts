@@ -2,6 +2,7 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as MicrosoftStrategy } from 'passport-microsoft';
 import { eq, or } from 'drizzle-orm';
 
 import db from './db';
@@ -150,6 +151,102 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_AUTH_REDIRECT_URI) {
             });
             // Don't break authentication, but log the error for investigation
             // Note: In production, you might want to add this to a retry queue
+          }
+
+          return done(null, { id: newUser.id, email: newUser.email });
+        } catch (err) {
+          return done(err as Error);
+        }
+      }
+    )
+  );
+}
+
+// Microsoft OAuth strategy for authentication
+const MICROSOFT_CLIENT_ID = process.env.MICROSOFT_CLIENT_ID as string;
+const MICROSOFT_CLIENT_SECRET = process.env.MICROSOFT_CLIENT_SECRET as string;
+const MICROSOFT_AUTH_REDIRECT_URI = process.env.MICROSOFT_AUTH_REDIRECT_URI || process.env.MICROSOFT_REDIRECT_URI as string;
+
+if (MICROSOFT_CLIENT_ID && MICROSOFT_CLIENT_SECRET && MICROSOFT_AUTH_REDIRECT_URI) {
+  passport.use(
+    "microsoft",
+    new MicrosoftStrategy(
+      {
+        clientID: MICROSOFT_CLIENT_ID,
+        clientSecret: MICROSOFT_CLIENT_SECRET,
+        callbackURL: MICROSOFT_AUTH_REDIRECT_URI,
+      },
+      async (_accessToken: string, _refreshToken: string, profile: any, done: any) => {
+        try {
+          const email =
+            profile.emails?.[0]?.value ||          // Personal Microsoft accounts
+            profile._json?.mail ||                 // Azure AD accounts
+            profile._json?.userPrincipalName ||    // ALWAYS present for AAD
+            null;
+          const microsoftId = profile.id;
+          const firstName =
+            profile.name?.givenName ||
+            profile._json?.givenName ||
+            (profile.displayName?.split(" ")[0] || "");
+          const lastName =
+            profile.name?.familyName ||
+            profile._json?.surname ||
+            (profile.displayName?.split(" ")[1] || "");
+          const avatar =
+            profile.photos?.[0]?.value ||
+            profile._json?.photo ||
+            null;
+
+          if (!email || !microsoftId) {
+            return done(new Error('Missing email or Microsoft ID'), null);
+          }
+
+          // Check if user exists by providerId or email
+          const [existingUser] = await db
+            .select()
+            .from(usersModel)
+            .where(
+              or(
+                eq(usersModel.providerId, microsoftId),
+                eq(usersModel.email, email)
+              )
+            )
+            .limit(1);
+
+          if (existingUser) {
+            // User exists, return it
+            return done(null, { id: existingUser.id, email: existingUser.email });
+          }
+
+          // Create new user          
+          const placeholderPassword = 'oauth_user_no_password';
+          const passwordHash = await hashPassword(placeholderPassword);
+
+          const [newUser] = await db
+            .insert(usersModel)
+            .values({
+              email,
+              firstName,
+              lastName,
+              avatar,
+              provider: 'microsoft',
+              providerId: microsoftId,
+              passwordHash,
+              isActive: true,
+              isBanned: false,
+            })
+            .returning();
+
+          // Assign subscription to user (with error handling to not break registration)
+          try {
+            await RegistrationService.assignSubscriptionToUser(newUser.id);
+          } catch (subscriptionError: any) {
+            console.error('Failed to assign subscription to user:', {
+              userId: newUser.id,
+              email: newUser.email,
+              error: subscriptionError.message,
+              stack: subscriptionError.stack
+            });
           }
 
           return done(null, { id: newUser.id, email: newUser.email });
