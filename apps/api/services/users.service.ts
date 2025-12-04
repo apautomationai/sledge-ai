@@ -2,7 +2,7 @@ import db from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/utils/hash";
 import { eq, or, InferSelectModel } from "drizzle-orm";
 import { usersModel } from "@/models/users.model";
-import { signJwt } from "@/lib/utils/jwt";
+import { signJwt, verifyJwt } from "@/lib/utils/jwt";
 import {
   BadRequestError,
   ConflictError,
@@ -10,6 +10,7 @@ import {
   NotFoundError,
 } from "@/helpers/errors";
 import { RegistrationService } from "./registration.service";
+import { emailService } from "./email.service";
 
 type User = InferSelectModel<typeof usersModel>;
 
@@ -318,6 +319,39 @@ export class UserServices {
       throw new BadRequestError(error.message || "Unable to complete onboarding");
     }
   };
+
+  forgotPassword = async (email: string) => {
+      const [user] = await db
+        .select()
+        .from(usersModel)
+        .where(eq(usersModel.email, email));
+
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+      
+      // Generate reset token with email embedded, expires in 24 hours
+      const resetToken = signJwt(
+        { email: user.email, type: "password-reset" },
+        "1m"
+      );
+
+      // Send email with reset password link containing token
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const resetPasswordLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+      await emailService.sendPasswordResetEmail(user.email, resetPasswordLink);
+      return true;
+  };
+
+  verifyResetToken = async (token: string) => {
+    try {
+      const decodedToken = verifyJwt(token);
+      return decodedToken;
+    } catch (error) {
+      throw new BadRequestError("Invalid token");
+    }
+  };
 }
+
 
 export const userServices = new UserServices();

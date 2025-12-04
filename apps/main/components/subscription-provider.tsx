@@ -49,7 +49,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     const pathname = usePathname();
 
     // Routes that don't require subscription check
-    const publicRoutes = ['/', '/sign-in', '/sign-up', '/forgot-password', '/contact-us', '/privacy-policy', '/terms-conditions'];
+    const publicRoutes = ['/', '/sign-in', '/sign-up', '/forget-password', '/reset-password', '/contact-us', '/privacy-policy', '/terms-conditions'];
     const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith('/auth/'));
 
     const hasValidSubscription = (sub: SubscriptionStatus): boolean => {
