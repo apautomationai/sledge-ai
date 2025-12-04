@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
   FileText,
   Settings,
-  Package2,
+  Bug,
   LogOut,
   Mail,
   User,
@@ -53,29 +53,25 @@ const NavLink = ({
   children,
   isActive,
   isCollapsed,
-  isDisabled = false,
 }: {
   href: string;
   icon: React.ElementType;
   children: React.ReactNode;
   isActive: boolean;
   isCollapsed: boolean;
-  isDisabled?: boolean;
 }) => (
   <TooltipProvider delayDuration={0}>
     <Tooltip>
       <TooltipTrigger asChild>
         <Link
-          href={isDisabled ? "#" : href}
-          onClick={(e) => isDisabled && e.preventDefault()}
+          href={href}
           className={cn(
             "group relative flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-all duration-200",
-            !isDisabled && "hover:bg-accent hover:text-primary hover:shadow-sm",
+            "hover:bg-accent hover:text-primary hover:shadow-sm",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
             isActive &&
-            "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm border-l-4 border-l-primary",
-            isCollapsed ? "justify-center px-2" : "pl-4",
-            isDisabled && "opacity-50 cursor-not-allowed"
+              "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm border-l-4 border-l-primary",
+            isCollapsed ? "justify-center px-2" : "pl-4"
           )}
         >
           <div className="flex items-center gap-3">
@@ -124,20 +120,32 @@ const NavLink = ({
 );
 
 export default function SideMenuBar({
-  isCollapsed,
-  onToggleCollapse,
   userName,
   userEmail,
-  isOnboardingComplete = true,
 }: {
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
   userName: string;
   userEmail: string;
-  isOnboardingComplete?: boolean;
 }) {
   const pathname = usePathname();
   const { setTheme, theme } = useTheme();
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Load collapse state from localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem("sidebar-collapsed");
+    if (savedState) {
+      setIsCollapsed(savedState === "true");
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const newState = !prev;
+      localStorage.setItem("sidebar-collapsed", newState.toString());
+      return newState;
+    });
+  };
 
   return (
     <>
@@ -147,14 +155,14 @@ export default function SideMenuBar({
           "fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300",
           !isCollapsed ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
-        onClick={onToggleCollapse}
+        onClick={toggleCollapse}
       />
 
-      {/* Mobile Menu Toggle Button - Top Left */}
+      {/* Mobile Menu Toggle Button */}
       <Button
         variant="secondary"
         size="icon"
-        onClick={onToggleCollapse}
+        onClick={toggleCollapse}
         className={cn(
           "fixed top-4 left-4 z-50 h-10 w-10 rounded-lg shadow-lg md:hidden",
           "transition-all duration-300 hover:scale-105 bg-background border",
@@ -198,7 +206,6 @@ export default function SideMenuBar({
                   width={50}
                   height={50}
                 />
-                {/* <Package2 className="h-7 w-7 text-primary" /> */}
               </div>
               <span
                 className={cn(
@@ -215,7 +222,7 @@ export default function SideMenuBar({
             <Button
               variant="ghost"
               size="icon"
-              onClick={onToggleCollapse}
+              onClick={toggleCollapse}
               className={cn(
                 "h-8 w-8 transition-all duration-300 hover:bg-accent hover:scale-105",
                 "hidden md:flex",
@@ -230,11 +237,11 @@ export default function SideMenuBar({
               <span className="sr-only">Toggle sidebar</span>
             </Button>
 
-            {/* Mobile Close Button - Inside Sidebar */}
+            {/* Mobile Close Button */}
             <Button
               variant="ghost"
               size="icon"
-              onClick={onToggleCollapse}
+              onClick={toggleCollapse}
               className={cn(
                 "h-8 w-8 md:hidden transition-all duration-300",
                 isCollapsed && "hidden"
@@ -253,7 +260,6 @@ export default function SideMenuBar({
                 icon={LayoutDashboard}
                 isActive={pathname === "/dashboard"}
                 isCollapsed={isCollapsed}
-                isDisabled={false}
               >
                 Overview
               </NavLink>
@@ -262,7 +268,6 @@ export default function SideMenuBar({
                 icon={FileText}
                 isActive={pathname.startsWith("/jobs")}
                 isCollapsed={isCollapsed}
-                isDisabled={!isOnboardingComplete}
               >
                 Invoices
               </NavLink>
@@ -271,7 +276,6 @@ export default function SideMenuBar({
                 icon={Settings}
                 isActive={pathname.startsWith("/integrations")}
                 isCollapsed={isCollapsed}
-                isDisabled={!isOnboardingComplete}
               >
                 Integrations
               </NavLink>
@@ -280,6 +284,15 @@ export default function SideMenuBar({
 
           {/* Footer */}
           <div className="mt-auto border-t border-border/40">
+            <NavLink
+              href="/report"
+              icon={Bug}
+              isActive={pathname.startsWith("/report")}
+              isCollapsed={isCollapsed}
+            >
+              Report a Bug
+            </NavLink>
+
             {/* Support Link */}
             <div className={cn("p-3", isCollapsed && "px-2 py-3")}>
               <Link
@@ -351,9 +364,7 @@ export default function SideMenuBar({
                 >
                   <DropdownMenuLabel className="font-normal p-3">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {userName}
-                      </p>
+                      <p className="text-sm font-medium leading-none">{userName}</p>
                       <p className="text-xs leading-none text-muted-foreground truncate">
                         {userEmail}
                       </p>
@@ -408,11 +419,8 @@ export default function SideMenuBar({
                   <DropdownMenuItem
                     className="p-2 cursor-pointer text-destructive focus:text-destructive"
                     onSelect={() =>
-                      (
-                        document.getElementById(
-                          "logout-form"
-                        ) as HTMLFormElement
-                      )?.requestSubmit()
+                      (document.getElementById("logout-form") as HTMLFormElement)
+                        ?.requestSubmit()
                     }
                   >
                     <LogOut className="mr-2 h-4 w-4" />
