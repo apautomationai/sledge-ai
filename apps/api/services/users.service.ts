@@ -333,7 +333,7 @@ export class UserServices {
       // Generate reset token with email embedded, expires in 24 hours
       const resetToken = signJwt(
         { email: user.email, type: "password-reset" },
-        "1m"
+        "24h"
       );
 
       // Send email with reset password link containing token
