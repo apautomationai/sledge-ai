@@ -65,7 +65,7 @@ export default function ReportBugPage() {
     setErrorToast(null);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/report`, {
+      const res = await fetch(`${process.env.BACKEND_URL}/api/v1/report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

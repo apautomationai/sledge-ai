@@ -1,6 +1,13 @@
 import { Request, Response } from "express";
 import axios from "axios";
-import { BugReportInput } from "../types";
+
+interface BugReportInput {
+  category: string;
+  title: string;
+  description: string;
+  priority: "low" | "medium" | "high" | "critical";
+  source?: string;
+}
 
 const {
   JIRA_BASE_URL,
@@ -9,7 +16,6 @@ const {
   JIRA_PROJECT_KEY
 } = process.env;
 
-// Helper to convert plain text to Jira ADF
 const textToADF = (text: string) => ({
   type: "doc",
   version: 1,
