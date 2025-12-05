@@ -1,54 +1,56 @@
 "use server";
 
-import { forgotPasswordSchema } from "@/lib/validators";
+import { resetPasswordSchema } from "@/lib/validators";
 
-export type ForgotPasswordFormState = {
+export type ResetPasswordFormState = {
   message: string;
   errors?: {
-    email?: string[];
+    password?: string[];
+    confirmPassword?: string[];
+    token?: string[];
     _form?: string[];
   };
   success: boolean;
+  timestamp?: number;
 };
 
-export async function forgotPasswordAction(
-  prevState: ForgotPasswordFormState,
+export async function resetPasswordAction(
+  prevState: ResetPasswordFormState,
   formData: FormData
-): Promise<ForgotPasswordFormState> {
-  const validatedFields = forgotPasswordSchema.safeParse(
+): Promise<ResetPasswordFormState> {
+  const validatedFields = resetPasswordSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
 
   if (!validatedFields.success) {
     return {
-      message: "Invalid email address.",
+      message: "Invalid form data.",
       errors: validatedFields.error.flatten().fieldErrors,
       success: false,
     };
   }
 
-  
-  try {
-    const { email } = validatedFields.data;
+  const { password, confirmPassword, token } = validatedFields.data;
 
+  try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/forgot-password`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/reset-password`,
       {
-        method: "POST",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ password, confirmPassword, token }),
       }
     );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const errorMessage =
-        errorData.message ||
-        errorData.error?.message ||
-        "Failed to send password reset link. Please try again.";
+      const errorMessage = 
+        errorData.message || 
+        errorData.error?.message || 
+        "Failed to reset password. Please try again.";
       return {
         message: errorMessage,
         errors: { _form: [errorMessage] },
@@ -71,7 +73,7 @@ export async function forgotPasswordAction(
       success: true,
     };
   } catch (error) {
-    console.error("Forgot password error:", error);
+    console.error("Reset password error:", error);
     return {
       message: "An unexpected error occurred. Please try again.",
       errors: { _form: ["An unexpected error occurred."] },
