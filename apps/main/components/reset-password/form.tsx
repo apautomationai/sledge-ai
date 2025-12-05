@@ -2,13 +2,14 @@
 
 import React, { useEffect, useActionState } from "react";
 import Link from "next/link";
-import { redirect, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import { setCookie } from "cookies-next";
 import { resetPasswordAction, ResetPasswordFormState } from "@/app/(auth)/reset-password/actions";
 
 const initialState: ResetPasswordFormState = {
@@ -39,21 +40,48 @@ function SubmitButton() {
 export default function ResetPasswordForm() {
   const [state, formAction] = useActionState(resetPasswordAction, initialState);
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") || "";
+  const resetToken = searchParams.get("token") || "";
+  const router = useRouter();
 
   useEffect(() => {
-    if (!token) {
+    if (!resetToken) {
       toast.error("Invalid token");
-      redirect("/sign-in");
+      router.push("/sign-in");
+      return;
     }
-    if (state.message) {
-      if (state.success) {
-        toast.success("Password Reset", { description: state.message });
-      } else {
-        toast.error("Reset Failed", { description: state.message });
+
+    // Handle successful password reset with auto-login
+    if (state.success && state.data?.token) {
+      // Set cookies for authentication
+      setCookie("token", state.data.token, {
+        maxAge: 24 * 60 * 60, // 1 day
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      });
+
+      if (state.data.user?.id) {
+        setCookie("userId", String(state.data.user.id), {
+          maxAge: 24 * 60 * 60, // 1 day
+          path: "/",
+          secure: process.env.NODE_ENV === "production",
+        });
       }
+
+      toast.success("Password Reset", {
+        description: "Password reset successfully! Logging you in..."
+      });
+
+      // Redirect to dashboard after a short delay to show the success message
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
+      return;
+    } 
+    else {
+      toast.error("Reset Failed", { description: state.message });
     }
-  }, [state]);
+
+  }, [state, resetToken, router]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -69,9 +97,9 @@ export default function ResetPasswordForm() {
       <form
         action={formAction}
         className="space-y-4"
-        // include token & email as hidden inputs
+      // include token & email as hidden inputs
       >
-        <input type="hidden" name="token" value={token} />
+        <input type="hidden" name="resetToken" value={resetToken} />
 
         <div className="space-y-2">
           <Label htmlFor="password" className="text-gray-300 font-medium text-sm">

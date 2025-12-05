@@ -1,5 +1,4 @@
 import { signJwt } from "@/lib/utils/jwt";
-
 import { userServices } from "@/services/users.service";
 
 import { NextFunction, Request, Response } from "express";
@@ -186,13 +185,13 @@ export class UserController {
     }
   };
   resetPassword = async (req: Request, res: Response) => {
-    const { password, confirmPassword, token } = req.body;
+    const { password, confirmPassword, resetToken } = req.body;
     // const password = req.body;
     let decodedToken: any;
 
     // Verify reset token
     try {
-      decodedToken = await userServices.verifyResetToken(token);
+      decodedToken = await userServices.verifyResetToken(resetToken);
     } catch (error) {
       throw new BadRequestError("Link has been expired");
     }
@@ -208,17 +207,33 @@ export class UserController {
       throw new BadRequestError("Password and confirm password do not match");
     }
 
-    // Reset password
-    try {
-      await userServices.resetPassword(decodedToken.email, password);
-    } catch (error) {
-      throw new BadRequestError("Unable to reset password");
-    }
+    // user email
+    const userEmail = decodedToken?.email;
 
-    // Return success response
+    // Reset password and get user data with token (all handled in service)
+    const result = await userServices.resetPassword(userEmail, password);
+
+    // Set cookies for authentication
+    res.cookie("token", result.token, {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      path: "/",
+    });
+
+    res.cookie("userId", result.user.id.toString(), {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      path: "/",
+    });
+
+    // Return success response with token and user data
     return res.status(200).json({
       success: true,
       message: "Password reset successfully",
+      token: result.token,
+      user: result.user,
     });
 
   };
