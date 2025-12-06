@@ -163,18 +163,43 @@ export class UserServices {
     const passwordHash = await hashPassword(password);
 
     try {
-      const newPassword = await db
+      // Update password
+      const [updatedUser] = await db
         .update(usersModel)
         .set({ passwordHash })
         .where(eq(usersModel.email, email))
         .returning();
 
-      return newPassword;
+      if (!updatedUser) {
+        throw new NotFoundError("User not found");
+      }
+
+      // Update last login timestamp
+      await this.updateLastLogin(email);
+
+      // Generate JWT token for automatic login
+      const token = signJwt({
+        sub: updatedUser.id,
+        id: updatedUser.id,
+        email: updatedUser.email,
+      });
+
+      return {
+        user: {
+          id: updatedUser.id,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          avatar: updatedUser.avatar,
+          email: updatedUser.email,
+          phone: updatedUser.phone,
+        },
+        token,
+      };
     } catch (error: any) {
       if (error.message.includes("users")) {
         throw new InternalServerError("Users table not found in the database");
       }
-      throw error;
+      throw new InternalServerError("Unable to reset password");
     }
   };
 

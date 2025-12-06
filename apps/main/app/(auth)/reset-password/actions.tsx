@@ -4,10 +4,21 @@ import { resetPasswordSchema } from "@/lib/validators";
 
 export type ResetPasswordFormState = {
   message: string;
+  data?: {
+    user: {
+      id: number;
+      firstName: string;
+      lastName: string;
+      avatar: string;
+      email: string;
+      phone: string;
+    };
+    token: string;
+  };
   errors?: {
     password?: string[];
     confirmPassword?: string[];
-    token?: string[];
+    resetToken?: string[];
     _form?: string[];
   };
   success: boolean;
@@ -30,7 +41,7 @@ export async function resetPasswordAction(
     };
   }
 
-  const { password, confirmPassword, token } = validatedFields.data;
+  const { password, confirmPassword, resetToken } = validatedFields.data;
 
   try {
     const response = await fetch(
@@ -41,7 +52,7 @@ export async function resetPasswordAction(
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ password, confirmPassword, token }),
+        body: JSON.stringify({ password, confirmPassword, resetToken }),
       }
     );
 
@@ -71,6 +82,7 @@ export async function resetPasswordAction(
     return {
       message: data.message,
       success: true,
+      data: data,
     };
   } catch (error) {
     console.error("Reset password error:", error);
