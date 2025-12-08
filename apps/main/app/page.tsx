@@ -1,3 +1,5 @@
+"use client";
+
 import { Header } from "@/components/landing/header";
 import { Hero } from "@/components/landing/hero";
 import { Features } from "@/components/landing/features";
@@ -9,21 +11,53 @@ import { About } from "@/components/landing/about";
 import { Founders } from "@/components/landing/founders";
 import { FAQ } from "@/components/landing/faq";
 import { Footer } from "@/components/landing/footer";
+import { useState, useEffect } from "react";
+import { cn } from "@workspace/ui/lib/utils";
 
 export default function Home() {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      setIsCollapsed(mobile);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => !prev);
+  };
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
+    <div
+      className={cn(
+          "grid min-h-screen w-full transition-[grid-template-columns] duration-300 ease-in-out",
+          isMobile
+            ? "grid-cols-1" 
+            : isCollapsed
+            ? "md:grid-cols-[72px_1fr]" 
+            : "md:grid-cols-[280px_1fr]" 
+        )}
+    >
       <Header />
-      <Hero />
-      <Features />
-      <ComingSoon />
-      <SocialProof />
-      <Pricing />
-      <UseCases />
-      <FAQ />
-      <About />
-      <Founders />
+      <main className="flex flex-col gap-12">
+        <Hero />
+        <Features />
+        <ComingSoon />
+        <SocialProof />
+        <Pricing />
+        <UseCases />
+        <FAQ />
+        <About />
+        <Founders />
+      </main>
       <Footer />
-    </main>
+    </div>
   );
 }
