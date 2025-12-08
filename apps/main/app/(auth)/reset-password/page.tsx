@@ -1,7 +1,10 @@
-import React from "react";
+import React, { Suspense } from "react";
 import ResetPasswordForm from "@/components/reset-password/form";
 
-// This is the server component for the page, which renders the interactive form.
 export default function ResetPasswordPage() {
-  return <ResetPasswordForm />;
+  return (
+    <Suspense fallback={<p className="text-white">Loading form...</p>}>
+      <ResetPasswordForm />
+    </Suspense>
+  );
 }
