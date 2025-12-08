@@ -146,32 +146,34 @@ export default function SideMenuBar({
 
         {/* Footer */}
         <div className="flex flex-col border-t border-border/40 p-3">
-          {/* Report a Bug */}
-          <div className={cn("mb-2", isCol && "mx-auto")}>
-            <NavLink href="/report" icon={Bug} isActive={pathname.startsWith("/report")} isCollapsed={isCol}>Report a Bug</NavLink>
-          </div>
+          {/* Footer: Report + Support */}
+          <div className="px-3 mt-4 flex flex-col gap-2">
 
-          {/* Support */}
-          <div className={cn(isCol ? "mx-auto" : "mb-[30px]")}>
-            <TooltipProvider>
-              {isCol ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Link href="mailto:support@getsledge.com" className="flex justify-center p-2 text-muted-foreground">
-                      <Mail className="h-4 w-4" />
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">support@getsledge.com</TooltipContent>
-                </Tooltip>
-              ) : (
-                <Link
-                  href="mailto:support@getsledge.com"
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-primary rounded-lg transition-all"
-                >
-                  <Mail className="h-4 w-4" /> support@getsledge.com
-                </Link>
+            {/* Report a Bug */}
+            <Link
+              href="/report"
+              className={cn(
+                "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-300",
+                pathname.startsWith("/report") &&
+                  "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-normal shadow-sm border-l-4 border-l-primary",
+                isCol && "justify-center px-3" // center icon when collapsed
               )}
-            </TooltipProvider>
+            >
+              <Bug className="h-4 w-4 flex-shrink-0" /> {/* same size as support icon */}
+              {!isCol && <span className="truncate text-sm">Report a Bug</span>} {/* same size as support text */}
+            </Link>
+
+            {/* Support */}
+            <Link
+              href="mailto:support@getsledge.com"
+              className={cn(
+                "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-300",
+                isCol && "justify-center px-3" // center icon when collapsed
+              )}
+            >
+              <Mail className="h-4 w-4 flex-shrink-0" /> {/* same size as report icon */}
+              {!isCol && <span className="truncate text-sm">support@getsledge.com</span>} {/* same size as report text */}
+            </Link>
           </div>
 
           {/* User */}

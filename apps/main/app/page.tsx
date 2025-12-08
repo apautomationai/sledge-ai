@@ -42,7 +42,7 @@ export default function Home() {
             ? "grid-cols-1" 
             : isCollapsed
             ? "md:grid-cols-[72px_1fr]" 
-            : "md:grid-cols-[280px_1fr]" 
+            : "md:grid-cols-[50px_1fr]" 
         )}
     >
       <Header />
