@@ -203,7 +203,8 @@ export class GoogleServices {
       failures: number;
       errorMessage: string | null;
       integrationStatus: string | null;
-    }
+    },
+    integrationMetadata?: any
   ): Promise<{
     success: boolean;
     client?: OAuth2Client;
@@ -270,6 +271,7 @@ export class GoogleServices {
         accessToken,
         expiryDate: expiryDateMs ? new Date(expiryDateMs) : null,
         metadata: {
+          ...integrationMetadata,
           lastErrorMessage: null,
           lastErrorAt: new Date().toISOString(),
         },
@@ -303,7 +305,8 @@ export class GoogleServices {
     tokens: any,
     userId: number,
     integrationId: number,
-    lastRead?: string | null | undefined
+    lastRead?: string | null | undefined,
+    integrationMetadata?: any
   ) => {
     if (!lastRead) {
       return {
@@ -345,7 +348,8 @@ export class GoogleServices {
       const authResult = await this.ensureValidAccessToken(
         tokens,
         integrationId,
-        metadata
+        metadata,
+        integrationMetadata
       );
       if (!authResult.success || !authResult.client) {
         return {

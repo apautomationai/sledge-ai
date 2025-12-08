@@ -213,7 +213,7 @@ export class OutlookController {
           }
 
           // Read lastReadAt from metadata (fallback to lastRead for backward compatibility, then startReading)
-          const metadata = (integration.metadata as any) || {};
+          const metadata = (integration?.metadata as any) || {};
           let lastRead = metadata.lastReadAt || metadata.lastRead;
           if (!lastRead) {
             lastRead = metadata.startReading;
@@ -222,7 +222,8 @@ export class OutlookController {
             tokens,
             integration.userId,
             integration.id,
-            lastRead
+            lastRead,
+            metadata
           );
 
           const emails = attachments.data || [];

@@ -114,24 +114,24 @@ export default function SignUpForm() {
   const [state, formAction] = useActionState(signUpAction, initialState);
   const router = useRouter();
 
+  const handleGoogleSignIn = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    window.location.href = `${apiUrl}/api/v1/auth/google`;
+  };
+
+  const handleMicrosoftSignIn = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    window.location.href = `${apiUrl}/api/v1/auth/microsoft`;
+  };
+
   useEffect(() => {
-    if (state?.success && state?.redirectTo) {
-      if (state.requiresPayment) {
-        toast.success("Account created successfully!", {
-          description: "Please sign in to set up your payment and start your trial.",
-        });
-      } else {
-        toast.success("Account created successfully!", {
-          description: "You can now sign in with your new credentials.",
-        });
-      }
-      router.push(state.redirectTo);
-    } else if (state?.message && !state?.success) {
+    // Only show error messages - success redirects are handled by server action
+    if (state?.message && !state?.success) {
       toast.error("Sign Up Failed", {
         description: state.message,
       });
     }
-  }, [state, router]);
+  }, [state]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -154,15 +154,15 @@ export default function SignUpForm() {
         <div className="grid grid-cols-2 gap-3">
           <Button
             variant="outline"
-            disabled
-            className="h-11 cursor-not-allowed bg-gray-800 border-4 border-gray-600 hover:bg-gray-700 hover:border-gray-500 text-gray-200 rounded-none transition-all duration-300 relative overflow-hidden group uppercase"
+            onClick={handleGoogleSignIn}
+            className="h-11 bg-gray-800 border-4 border-gray-600 hover:bg-gray-700 hover:border-gray-500 text-gray-200 rounded-none transition-all duration-300 relative overflow-hidden group uppercase"
           >
             <GoogleIcon className="mr-2 h-4 w-4 relative z-10" />
             <span className="relative z-10">Google</span>
           </Button>
           <Button
             variant="outline"
-            disabled
+            onClick={handleMicrosoftSignIn}
             className="h-11 bg-gray-800 border-4 border-gray-600 hover:bg-gray-700 hover:border-gray-500 text-gray-200 rounded-none transition-all duration-300 relative overflow-hidden group uppercase"
           >
             <MicrosoftIcon className="mr-2 h-4 w-4 relative z-10" />

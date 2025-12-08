@@ -24,6 +24,7 @@ import quickbooksRoutes from "@/routes/quickbooks.routes";
 import processorRoutes from "@/routes/processor.routes";
 import subscriptionRoutes from "@/routes/subscription.routes";
 import jobsRoutes from "@/routes/jobs.routes";
+import reportRoutes from "@/routes/report.route"
 
 const app = express();
 
@@ -70,6 +71,7 @@ app.use("/api/v1/quickbooks", quickbooksRoutes);
 app.use("/api/v1/processor", processorRoutes);
 app.use("/api/v1/subscription", subscriptionRoutes);
 app.use("/api/v1/jobs", jobsRoutes);
+app.use("/api/v1/report", reportRoutes);
 
 // Apply error handlers
 app.use(notFoundHandler);

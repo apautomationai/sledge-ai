@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
   FileText,
   Settings,
-  Package2,
+  Bug,
   LogOut,
   Mail,
   User,
@@ -70,7 +70,7 @@ const NavLink = ({
             "hover:bg-accent hover:text-primary hover:shadow-sm",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
             isActive &&
-            "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm border-l-4 border-l-primary",
+              "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm border-l-4 border-l-primary",
             isCollapsed ? "justify-center px-2" : "pl-4"
           )}
         >
@@ -82,14 +82,9 @@ const NavLink = ({
                 "group-hover:scale-105"
               )}
             />
-            <span
-              className={cn(
-                "truncate transition-all duration-200",
-                isCollapsed ? "hidden" : "opacity-100 translate-x-0"
-              )}
-            >
-              {children}
-            </span>
+            {!isCollapsed && (
+              <span className="truncate transition-all duration-200">{children}</span>
+            )}
           </div>
 
           {!isCollapsed && isActive && (
@@ -120,18 +115,36 @@ const NavLink = ({
 );
 
 export default function SideMenuBar({
-  isCollapsed,
-  onToggleCollapse,
   userName,
   userEmail,
+  isCollapsed = false,
+  isOnboardingComplete = false,
+  onToggleCollapse,
 }: {
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
   userName: string;
   userEmail: string;
+  isCollapsed?: boolean;
+  isOnboardingComplete?: boolean;
+  onToggleCollapse: () => void;
 }) {
   const pathname = usePathname();
   const { setTheme, theme } = useTheme();
+  const [isCol, setIsCol] = useState(isCollapsed);
+
+  useEffect(() => {
+    const savedState = localStorage.getItem("sidebar-collapsed");
+    if (savedState) {
+      setIsCol(savedState === "true");
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    setIsCol((prev) => {
+      const newState = !prev;
+      localStorage.setItem("sidebar-collapsed", newState.toString());
+      return newState;
+    });
+  };
 
   return (
     <>
@@ -139,20 +152,19 @@ export default function SideMenuBar({
       <div
         className={cn(
           "fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300",
-          !isCollapsed ? "opacity-100" : "opacity-0 pointer-events-none"
+          !isCol ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
-        onClick={onToggleCollapse}
+        onClick={toggleCollapse}
       />
 
-      {/* Mobile Menu Toggle Button - Top Left */}
+      {/* Mobile Menu Toggle */}
       <Button
         variant="secondary"
         size="icon"
-        onClick={onToggleCollapse}
+        onClick={toggleCollapse}
         className={cn(
-          "fixed top-4 left-4 z-50 h-10 w-10 rounded-lg shadow-lg md:hidden",
-          "transition-all duration-300 hover:scale-105 bg-background border",
-          isCollapsed
+          "fixed top-4 left-4 z-50 h-10 w-10 rounded-lg shadow-lg md:hidden transition-all duration-300 hover:scale-105 bg-background border",
+          isCol
             ? "opacity-100 scale-100"
             : "opacity-0 scale-50 pointer-events-none"
         )}
@@ -164,12 +176,8 @@ export default function SideMenuBar({
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed md:relative inset-y-0 left-0 z-40",
-          "bg-gradient-to-b from-background to-muted/20 backdrop-blur-sm",
-          "border-r border-border/40",
-          "transition-all duration-300 ease-in-out",
-          "shadow-lg md:shadow-none",
-          isCollapsed
+          "fixed md:relative inset-y-0 left-0 z-40 bg-gradient-to-b from-background to-muted/20 backdrop-blur-sm border-r border-border/40 transition-all duration-300 ease-in-out shadow-lg md:shadow-none",
+          isCol
             ? "w-16 -translate-x-full md:translate-x-0"
             : "w-72 translate-x-0"
         )}
@@ -180,59 +188,43 @@ export default function SideMenuBar({
             <Link
               href="/dashboard"
               className={cn(
-                "flex items-center gap-2 font-bold text-xl transition-all duration-300",
-                "hover:opacity-80 active:scale-95",
-                isCollapsed && "justify-center w-full"
+                "flex items-center gap-2 font-bold text-xl transition-all duration-300 hover:opacity-80 active:scale-95",
+                isCol && "justify-center w-full"
               )}
             >
-              <div className="relative transition-all duration-300">
-                <Image
-                  src={"/images/logos/sledge.png"}
-                  alt="logo"
-                  width={50}
-                  height={50}
-                />
-                {/* <Package2 className="h-7 w-7 text-primary" /> */}
-              </div>
-              <span
-                className={cn(
-                  "bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent",
-                  "transition-all duration-300 overflow-hidden",
-                  isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                )}
-              >
-                SLEDGE
-              </span>
+              <Image
+                src={"/images/logos/sledge.png"}
+                alt="logo"
+                width={50}
+                height={50}
+              />
+              {!isCol && (
+                <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent transition-all duration-300">
+                  SLEDGE
+                </span>
+              )}
             </Link>
 
-            {/* Desktop Collapse Button */}
+            {/* Collapse Button */}
             <Button
               variant="ghost"
               size="icon"
-              onClick={onToggleCollapse}
+              onClick={toggleCollapse}
               className={cn(
-                "h-8 w-8 transition-all duration-300 hover:bg-accent hover:scale-105",
-                "hidden md:flex",
-                isCollapsed && "mx-auto"
+                "h-8 w-8 transition-all duration-300 hover:bg-accent hover:scale-105 hidden md:flex",
+                isCol && "mx-auto"
               )}
             >
-              {isCollapsed ? (
-                <PanelRightClose className="h-4 w-4" />
-              ) : (
-                <PanelLeftClose className="h-4 w-4" />
-              )}
+              {isCol ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
               <span className="sr-only">Toggle sidebar</span>
             </Button>
 
-            {/* Mobile Close Button - Inside Sidebar */}
+            {/* Mobile Close */}
             <Button
               variant="ghost"
               size="icon"
-              onClick={onToggleCollapse}
-              className={cn(
-                "h-8 w-8 md:hidden transition-all duration-300",
-                isCollapsed && "hidden"
-              )}
+              onClick={toggleCollapse}
+              className={cn("h-8 w-8 md:hidden transition-all duration-300", isCol && "hidden")}
             >
               <PanelLeftClose className="h-4 w-4" />
               <span className="sr-only">Close sidebar</span>
@@ -242,112 +234,85 @@ export default function SideMenuBar({
           {/* Navigation */}
           <div className="flex-1 overflow-y-auto py-4">
             <nav className="grid items-start gap-1 px-3 text-sm font-medium">
-              <NavLink
-                href="/dashboard"
-                icon={LayoutDashboard}
-                isActive={pathname === "/dashboard"}
-                isCollapsed={isCollapsed}
-              >
+              <NavLink href="/dashboard" icon={LayoutDashboard} isActive={pathname === "/dashboard"} isCollapsed={isCol}>
                 Overview
               </NavLink>
-              <NavLink
-                href="/jobs"
-                icon={FileText}
-                isActive={pathname.startsWith("/jobs")}
-                isCollapsed={isCollapsed}
-              >
+              <NavLink href="/jobs" icon={FileText} isActive={pathname.startsWith("/jobs")} isCollapsed={isCol}>
                 Invoices
               </NavLink>
-              <NavLink
-                href="/integrations"
-                icon={Settings}
-                isActive={pathname.startsWith("/integrations")}
-                isCollapsed={isCollapsed}
-              >
+              <NavLink href="/integrations" icon={Settings} isActive={pathname.startsWith("/integrations")} isCollapsed={isCol}>
                 Integrations
+              </NavLink>
+              <NavLink href="/report" icon={Bug} isActive={pathname.startsWith("/report")} isCollapsed={isCol}>
+                Report a Bug
               </NavLink>
             </nav>
           </div>
 
           {/* Footer */}
           <div className="mt-auto border-t border-border/40">
-            {/* Support Link */}
-            <div className={cn("p-3", isCollapsed && "px-2 py-3")}>
-              <Link
-                href="mailto:support@getsledge.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm",
-                  "text-muted-foreground transition-all duration-200",
-                  "hover:bg-accent hover:text-primary hover:shadow-sm",
-                  "group border border-transparent hover:border-border",
-                  isCollapsed && "justify-center"
-                )}
-              >
-                <Mail className="h-4 w-4 transition-transform group-hover:scale-110" />
-                <span
-                  className={cn(
-                    "transition-all duration-300",
-                    isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+            {/* Support */}
+            <div className={cn("p-3", isCol && "px-2 py-3")}>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href="mailto:support@getsledge.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-primary hover:shadow-sm group border border-transparent hover:border-border",
+                        isCol && "justify-center"
+                      )}
+                    >
+                      <Mail className="h-4 w-4 transition-transform group-hover:scale-110" />
+                      {!isCol && <span>support@getsledge.com</span>}
+                    </Link>
+                  </TooltipTrigger>
+                  {isCol && (
+                    <TooltipContent side="right" sideOffset={10} className="bg-popover text-popover-foreground border shadow-lg">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        support@getsledge.com
+                      </div>
+                    </TooltipContent>
                   )}
-                >
-                  support@getsledge.com
-                </span>
-              </Link>
+                </Tooltip>
+              </TooltipProvider>
             </div>
 
-            {/* User Menu */}
+            {/* User */}
             <div className="border-t border-border/40 p-3">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     className={cn(
-                      "w-full justify-start h-auto p-2 transition-all duration-200",
-                      "hover:bg-accent hover:shadow-sm rounded-xl",
-                      "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                      isCollapsed && "w-auto justify-center rounded-full p-2"
+                      "w-full justify-start h-auto p-2 transition-all duration-200 hover:bg-accent hover:shadow-sm rounded-xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                      isCol && "w-auto justify-center rounded-full p-2"
                     )}
                   >
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8 ring-2 ring-border/50 transition-all duration-200 group-hover:ring-primary/50">
                         <AvatarImage src="/images/avatar.png" alt={userName} />
                         <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
-                          <span suppressHydrationWarning>
-                            {userName.charAt(0).toUpperCase()}
-                          </span>
+                          <span suppressHydrationWarning>{userName.charAt(0).toUpperCase()}</span>
                         </AvatarFallback>
                       </Avatar>
-                      <div
-                        className={cn(
-                          "flex flex-col items-start truncate transition-all duration-300",
-                          isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                        )}
-                      >
-                        <span className="text-sm font-semibold leading-tight truncate max-w-[120px]">
-                          {userName}
-                        </span>
-                        <span className="text-xs text-muted-foreground truncate max-w-[120px]">
-                          {userEmail}
-                        </span>
-                      </div>
+                      {!isCol && (
+                        <div className="flex flex-col items-start truncate transition-all duration-300">
+                          <span className="text-sm font-semibold leading-tight truncate max-w-[120px]">{userName}</span>
+                          <span className="text-xs text-muted-foreground truncate max-w-[120px]">{userEmail}</span>
+                        </div>
+                      )}
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-56 mb-2 ml-2 shadow-xl border-border/50"
-                  align="end"
-                  forceMount
-                >
+                <DropdownMenuContent className="w-56 mb-2 ml-2 shadow-xl border-border/50" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal p-3">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {userName}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground truncate">
-                        {userEmail}
-                      </p>
+                      <p className="text-sm font-medium leading-none">{userName}</p>
+                      <p className="text-xs leading-none text-muted-foreground truncate">{userEmail}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -361,53 +326,27 @@ export default function SideMenuBar({
                   <DropdownMenuSub>
                     <DropdownMenuSubTrigger className="p-2 cursor-pointer">
                       <div className="flex items-center">
-                        {theme === "dark" ? (
-                          <Moon className="h-4 w-4 mr-2" />
-                        ) : (
-                          <Sun className="h-4 w-4 mr-2" />
-                        )}
+                        {theme === "dark" ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
                         <span>Theme</span>
                       </div>
                     </DropdownMenuSubTrigger>
                     <DropdownMenuPortal>
                       <DropdownMenuSubContent className="shadow-xl border-border/50">
-                        <DropdownMenuItem
-                          onClick={() => setTheme("light")}
-                          className="p-2 cursor-pointer"
-                        >
-                          <Sun className="h-4 w-4 mr-2" />
-                          <span>Light</span>
+                        <DropdownMenuItem onClick={() => setTheme("light")} className="p-2 cursor-pointer">
+                          <Sun className="h-4 w-4 mr-2" /> Light
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setTheme("dark")}
-                          className="p-2 cursor-pointer"
-                        >
-                          <Moon className="h-4 w-4 mr-2" />
-                          <span>Dark</span>
+                        <DropdownMenuItem onClick={() => setTheme("dark")} className="p-2 cursor-pointer">
+                          <Moon className="h-4 w-4 mr-2" /> Dark
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setTheme("system")}
-                          className="p-2 cursor-pointer"
-                        >
-                          <Settings className="h-4 w-4 mr-2" />
-                          <span>System</span>
+                        <DropdownMenuItem onClick={() => setTheme("system")} className="p-2 cursor-pointer">
+                          <Settings className="h-4 w-4 mr-2" /> System
                         </DropdownMenuItem>
                       </DropdownMenuSubContent>
                     </DropdownMenuPortal>
                   </DropdownMenuSub>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="p-2 cursor-pointer text-destructive focus:text-destructive"
-                    onSelect={() =>
-                      (
-                        document.getElementById(
-                          "logout-form"
-                        ) as HTMLFormElement
-                      )?.requestSubmit()
-                    }
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Logout</span>
+                  <DropdownMenuItem className="p-2 cursor-pointer text-destructive focus:text-destructive" onSelect={() => (document.getElementById("logout-form") as HTMLFormElement)?.requestSubmit()}>
+                    <LogOut className="mr-2 h-4 w-4" /> Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -420,3 +359,4 @@ export default function SideMenuBar({
     </>
   );
 }
+

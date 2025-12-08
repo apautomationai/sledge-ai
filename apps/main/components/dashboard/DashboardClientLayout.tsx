@@ -8,12 +8,14 @@ import { cn } from "@workspace/ui/lib/utils";
 interface DashboardClientLayoutProps {
   userName: string;
   userEmail: string;
+  isOnboardingComplete: boolean;
   children: ReactNode;
 }
 
 export default function DashboardClientLayout({
   userName,
   userEmail,
+  isOnboardingComplete,
   children,
 }: DashboardClientLayoutProps) {
   // On mobile, start with sidebar collapsed (hidden)
@@ -53,6 +55,7 @@ export default function DashboardClientLayout({
         onToggleCollapse={toggleCollapse}
         userName={userName}
         userEmail={userEmail}
+        isOnboardingComplete={isOnboardingComplete}
       />
       <div className="flex flex-col max-h-screen overflow-hidden w-full">
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 w-full">{children}</main>

@@ -267,7 +267,8 @@ export class OutlookServices {
       failures: number;
       errorMessage: string | null;
       integrationStatus: string | null;
-    }
+    },
+    integrationMetadata?: any
   ): Promise<{
     success: boolean;
     client?: Client;
@@ -335,6 +336,7 @@ export class OutlookServices {
         refreshToken: response.data.refresh_token || tokens.refresh_token,
         expiryDate: new Date(expiryDateMs),
         metadata: {
+          ...integrationMetadata,
           lastErrorMessage: null,
           lastErrorAt: new Date().toISOString(),
         },
@@ -368,7 +370,8 @@ export class OutlookServices {
     tokens: any,
     userId: number,
     integrationId: number,
-    lastRead?: string | null | undefined
+    lastRead?: string | null | undefined,
+    integrationMetadata?: any
   ) => {
     if (!lastRead) {
       return {
@@ -410,7 +413,8 @@ export class OutlookServices {
       const authResult = await this.ensureValidAccessToken(
         tokens,
         integrationId,
-        metadata
+        metadata,
+        integrationMetadata
       );
       if (!authResult.success || !authResult.client) {
         return {
