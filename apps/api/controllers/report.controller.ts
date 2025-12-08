@@ -13,21 +13,38 @@ const {
   JIRA_BASE_URL,
   JIRA_EMAIL,
   JIRA_API_TOKEN,
-  JIRA_PROJECT_KEY
+  JIRA_PROJECT_KEY,
 } = process.env;
 
-const textToADF = (text: string) => ({
+// Map your priority to Jira priority names
+const mapPriority = (priority: string) => {
+  switch (priority) {
+    case "critical":
+      return "Highest";
+    case "high":
+      return "High";
+    case "medium":
+      return "Medium";
+    default:
+      return "Low";
+  }
+};
+
+// Convert text → ADF format
+const toADF = (text: string) => ({
   type: "doc",
   version: 1,
-  content: text.split("\n").map((line) => ({
-    type: "paragraph",
-    content: [
-      {
-        type: "text",
-        text: line
-      }
-    ]
-  }))
+  content: [
+    {
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text,
+        },
+      ],
+    },
+  ],
 });
 
 export const createBugReport = async (req: Request, res: Response) => {
@@ -36,11 +53,10 @@ export const createBugReport = async (req: Request, res: Response) => {
       req.body;
 
     if (!category || !title || !description || !priority) {
-      return res.status(400).json({
-        message: "Missing required fields"
-      });
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
+    // Full human-readable description
     const fullDescription = `
 Category: ${category}
 Priority: ${priority}
@@ -48,25 +64,18 @@ Source: ${source || "sledge_in_app_reporter"}
 
 Description:
 ${description}
-    `;
+    `.trim();
 
+    // Jira payload with valid ADF description
     const jiraPayload = {
       fields: {
         project: { key: JIRA_PROJECT_KEY },
         summary: `${category}: ${title}`,
-        description: textToADF(fullDescription),
-        issuetype: { name: "Bug" },
-        priority: {
-          name:
-            priority === "critical"
-              ? "Highest"
-              : priority === "high"
-              ? "High"
-              : priority === "medium"
-              ? "Medium"
-              : "Low"
-        }
-      }
+        description: toADF(fullDescription),
+        issuetype: { name: "Task" }, // change to "Bug" if needed
+        priority: { name: mapPriority(priority) },
+        labels: ["sledge-bug"],
+      },
     };
 
     const response = await axios.post(
@@ -75,22 +84,32 @@ ${description}
       {
         auth: {
           username: JIRA_EMAIL!,
-          password: JIRA_API_TOKEN!
+          password: JIRA_API_TOKEN!,
         },
-        headers: { "Content-Type": "application/json" }
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
     );
 
-    return res.json({
+    console.log("Jira issue created:", response.data);
+
+    return res.status(201).json({
       success: true,
       issueKey: response.data.key,
-      message: "Jira issue created successfully"
+      message: "Jira issue created successfully",
     });
   } catch (err: any) {
-    console.error("Jira error:", err.response?.data || err);
+    console.error("Jira error:", {
+      status: err.response?.status,
+      data: err.response?.data,
+      message: err.message,
+      stack: err.stack,
+    });
+
     return res.status(500).json({
       message: "Failed to create Jira issue",
-      error: err.response?.data || err.message
+      error: err.response?.data || err.message,
     });
   }
 };
