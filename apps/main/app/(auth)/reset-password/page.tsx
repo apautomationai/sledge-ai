@@ -7,4 +7,5 @@ export default function ResetPasswordPage() {
       <ResetPasswordForm />
     </Suspense>
   );
+
 }
