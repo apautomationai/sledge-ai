@@ -42,6 +42,7 @@ class ProcessorController {
     if (isNaN(attachmentIdNumber)) {
       throw new BadRequestError("Invalid attachment ID");
     }
+    // console.log("updateAttachment", attachmentIdNumber, status, updatedData);
     const response = await attachmentServices.updateAttachment(attachmentIdNumber, { status, ...updatedData });
 
     // Emit WebSocket event for attachment status update
@@ -81,6 +82,8 @@ class ProcessorController {
         s3_pdf_key,
         s3_json_key,
       } = req.body;
+
+      console.log("createInvoice", JSON.stringify(req.body, null, 2));
 
       // Validate required fields
       if (!attachment_id) {

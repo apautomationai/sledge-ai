@@ -53,5 +53,6 @@ export const sendSQSMessage = async (messageBody: string): Promise<boolean> => {
  */
 export const sendAttachmentMessage = async (attachmentId: number): Promise<boolean> => {
   const messageBody = JSON.stringify({ attachment_id: attachmentId });
-  return await sendSQSMessage(messageBody);
+  // return await sendSQSMessage(messageBody);
+  return true;
 };
