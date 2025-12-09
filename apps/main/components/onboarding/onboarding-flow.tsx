@@ -131,7 +131,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const handleConnectGmail = async () => {
         try {
             localStorage.setItem("onboarding_mode", "true");
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/google/auth`;
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/gmail`;
             const res: any = await client.get(url);
             if (res.url) {
                 window.location.href = res.url;
@@ -144,7 +144,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const handleConnectMicrosoft = async () => {
         try {
             localStorage.setItem("onboarding_mode", "true");
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/outlook/auth`;
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/outlook`;
             const res: any = await client.get(url);
             if (res.url) {
                 window.location.href = res.url;
