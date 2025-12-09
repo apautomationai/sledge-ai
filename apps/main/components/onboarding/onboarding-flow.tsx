@@ -243,23 +243,23 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                 </div>
             )}
 
-            <Card className="w-full max-w-3xl border-gray-700/50 backdrop-blur-sm">
+            <Card className="w-full max-w-3xl">
                 <CardContent className="p-8">
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-white mb-2">Welcome to Sledge</h1>
-                        <p className="text-gray-400 text-base">Complete these steps to activate autonomous AP</p>
+                        <h1 className="text-3xl font-bold mb-2">Welcome to Sledge</h1>
+                        <p className="text-muted-foreground text-base">Complete these steps to activate autonomous AP</p>
                     </div>
 
                     {/* Email Connection Section */}
                     <div className="mb-6">
-                        <h2 className="text-gray-300 text-base mb-4">Connect your email you receive invoices at</h2>
+                        <h2 className="text-foreground text-base mb-4">Connect your email you receive invoices at</h2>
                         <div className="flex items-center gap-4">
                             {/* Gmail Button */}
                             <button
                                 onClick={handleConnectGmail}
                                 disabled={isGmailConnected || isOutlookConnected}
-                                className="flex-1 bg-gray-800/50 h-28 hover:bg-gray-800 border border-gray-700 rounded-xl p-6 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
+                                className="flex-1 bg-muted/50 h-28 hover:bg-muted border rounded-xl p-6 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
                             >
                                 <div className="flex items-center justify-center">
                                     <Image
@@ -277,7 +277,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                             <button
                                 onClick={handleConnectMicrosoft}
                                 disabled={isOutlookConnected || isGmailConnected}
-                                className="flex-1 bg-gray-800/50 h-28 hover:bg-gray-800 border border-gray-700 rounded-xl p-6 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
+                                className="flex-1 bg-muted/50 h-28 hover:bg-muted border rounded-xl p-6 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
                             >
                                 <div className="flex items-center justify-center">
                                     <Image
@@ -295,7 +295,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                                 {isEmailConnected ? (
                                     <CheckCircle2 className="h-12 w-12 text-green-500" />
                                 ) : (
-                                    <Circle className="h-12 w-12 text-gray-600" strokeWidth={3} />
+                                    <Circle className="h-12 w-12 text-muted-foreground" strokeWidth={3} />
                                 )}
                             </div>
                         </div>
@@ -303,13 +303,13 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
 
                     {/* QuickBooks Connection Section */}
                     <div className="mb-6">
-                        <h2 className="text-gray-300 text-base mb-4">Connect your accounting platform</h2>
+                        <h2 className="text-foreground text-base mb-4">Connect your accounting platform</h2>
                         <div className="flex items-center gap-4">
                             {/* QuickBooks Button */}
                             <button
                                 onClick={handleConnectQuickBooks}
                                 disabled={isQuickBooksConnected || !isEmailConnected}
-                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-xl p-6 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
+                                className="flex-1 bg-muted/50 hover:bg-muted border rounded-xl p-6 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
                             >
                                 <div className="flex items-center justify-center">
                                     <Image
@@ -330,7 +330,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                                 {isQuickBooksConnected ? (
                                     <CheckCircle2 className="h-12 w-12 text-green-500" />
                                 ) : (
-                                    <Circle className="h-12 w-12 text-gray-600" strokeWidth={3} />
+                                    <Circle className="h-12 w-12 text-muted-foreground" strokeWidth={3} />
                                 )}
                             </div>
                         </div>
@@ -343,7 +343,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                                 size="lg"
                                 onClick={handleCompleteOnboarding}
                                 disabled={isCompleting}
-                                className="px-10 py-5 text-base bg-gray-700 hover:bg-gray-600 text-white rounded-xl focus:outline-none focus:ring-0"
+                                className="px-10 py-5 text-base rounded-xl"
                             >
                                 {isCompleting ? "Setting up..." : "Go to Dashboard"}
                             </Button>
