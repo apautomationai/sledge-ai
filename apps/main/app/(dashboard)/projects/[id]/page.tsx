@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { Card, CardContent } from "@workspace/ui/components/card";
-import { ArrowLeft } from "lucide-react";
-import { PLACEHOLDER_PROJECTS } from "@/lib/data/projects";
+import { ArrowLeft, ChevronDown, ChevronRight } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -14,55 +13,70 @@ import {
     TableHeader,
     TableRow,
 } from "@workspace/ui/components/table";
-import { ChevronDown, ChevronRight } from "lucide-react";
-
-// Placeholder vendor data
-const VENDOR_DATA = [
-    {
-        id: 1,
-        vendor: "Camblin Steel Service, Inc.",
-        totalInvoiced: 214000,
-        invoiceCount: 4,
-        lastInvoice: "Jan 23",
-        invoices: [
-            { id: 101, date: "Jan 23", amount: 75000, status: "Paid" },
-            { id: 102, date: "Jan 15", amount: 50000, status: "Paid" },
-            { id: 103, date: "Jan 08", amount: 54000, status: "Pending" },
-            { id: 104, date: "Dec 28", amount: 35000, status: "Paid" },
-        ],
-    },
-    {
-        id: 2,
-        vendor: "Van Marre Lumber Co.",
-        totalInvoiced: 115000,
-        invoiceCount: 3,
-        lastInvoice: "Jan 28",
-        invoices: [
-            { id: 201, date: "Jan 28", amount: 45000, status: "Paid" },
-            { id: 202, date: "Jan 20", amount: 40000, status: "Pending" },
-            { id: 203, date: "Jan 12", amount: 30000, status: "Paid" },
-        ],
-    },
-    {
-        id: 3,
-        vendor: "White Cap",
-        totalInvoiced: 78000,
-        invoiceCount: 2,
-        lastInvoice: "Jan 31",
-        invoices: [
-            { id: 301, date: "Jan 31", amount: 45000, status: "Paid" },
-            { id: 302, date: "Jan 18", amount: 33000, status: "Paid" },
-        ],
-    },
-];
+import { toast } from "sonner";
+import client from "@/lib/axios-client";
+import { Badge } from "@workspace/ui/components/badge";
 
 export default function ProjectDetailsPage() {
     const params = useParams();
     const router = useRouter();
     const projectId = parseInt(params.id as string);
-    const [expandedRow, setExpandedRow] = useState<number | null>(null);
+    const [project, setProject] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [vendors, setVendors] = useState<any[]>([]);
+    const [expandedVendor, setExpandedVendor] = useState<number | null>(null);
 
-    const project = PLACEHOLDER_PROJECTS.find((p) => p.id === projectId);
+    useEffect(() => {
+        fetchProjectDetails();
+    }, [projectId]);
+
+    const fetchProjectDetails = async () => {
+        setIsLoading(true);
+        try {
+            const response = await client.get(`/api/v1/projects/${projectId}`);
+
+            if (response.data) {
+                setProject(response.data);
+                setVendors(response.data.vendors || []);
+            }
+        } catch (error: any) {
+            toast.error("Failed to load project details");
+            console.error("Error fetching project:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const toggleVendorRow = (vendorId: number) => {
+        if (expandedVendor === vendorId) {
+            setExpandedVendor(null);
+        } else {
+            setExpandedVendor(vendorId);
+        }
+    };
+
+    const getStatusBadge = (status: string) => {
+        const statusColors: { [key: string]: string } = {
+            approved: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+            rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+            pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+            failed: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
+        };
+
+        return (
+            <Badge className={statusColors[status] || statusColors.pending}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+            </Badge>
+        );
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[calc(100vh-6rem)]">
+                <p className="text-muted-foreground">Loading project details...</p>
+            </div>
+        );
+    }
 
     if (!project) {
         return (
@@ -76,13 +90,9 @@ export default function ProjectDetailsPage() {
         );
     }
 
-    const totalVendorInvoices = VENDOR_DATA.reduce((sum, v) => sum + v.invoiceCount, 0);
-    const totalVendorAmount = VENDOR_DATA.reduce((sum, v) => sum + v.totalInvoiced, 0);
-    const totalVendors = VENDOR_DATA.length;
-
-    const toggleRow = (id: number) => {
-        setExpandedRow(expandedRow === id ? null : id);
-    };
+    const totalVendors = vendors.length;
+    const totalVendorInvoices = vendors.reduce((sum, v) => sum + (v.invoiceCount || 0), 0);
+    const totalVendorAmount = vendors.reduce((sum, v) => sum + (v.totalInvoiced || 0), 0);
 
     return (
         <div className="space-y-6">
@@ -96,26 +106,34 @@ export default function ProjectDetailsPage() {
             <Card className="overflow-hidden">
                 <div
                     className="h-64 bg-cover bg-center relative"
-                    style={{ backgroundImage: `url(${project.imageUrl})` }}
+                    style={{
+                        backgroundImage: project.imageUrl
+                            ? `url(${project.imageUrl})`
+                            : "url(https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80)",
+                    }}
                 >
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-8">
                         <div className="flex items-end justify-between">
                             <div className="text-white">
-                                <h1 className="text-4xl font-bold mb-2">{project.address}</h1>
+                                <h1 className="text-4xl font-bold mb-2">{project.name}</h1>
                                 <p className="text-lg text-gray-200">
-                                    GC: MCRT SoCal Construction &nbsp;&nbsp; Owner: Marques Oceanside
+                                    {project.city && project.state
+                                        ? `${project.city}, ${project.state}`
+                                        : project.address}
                                 </p>
                             </div>
                             <div className="text-white text-right text-sm space-y-1">
                                 <div>
-                                    <span className="text-gray-300">Project ID:</span> PP-00324
+                                    <span className="text-gray-300">Project ID:</span> #{project.id}
                                 </div>
                                 <div>
-                                    <span className="text-gray-300">Creation date:</span> Feb 1 2024
+                                    <span className="text-gray-300">Creation date:</span>{" "}
+                                    {new Date(project.createdAt).toLocaleDateString()}
                                 </div>
                                 <div>
-                                    <span className="text-gray-300">Last Activity:</span> Feb 18 2024
+                                    <span className="text-gray-300">Last Activity:</span>{" "}
+                                    {new Date(project.updatedAt).toLocaleDateString()}
                                 </div>
                             </div>
                         </div>
@@ -134,7 +152,7 @@ export default function ProjectDetailsPage() {
                 <Card>
                     <CardContent className="pt-6 text-center">
                         <div className="text-4xl font-bold mb-2">
-                            ${(totalVendorAmount / 1000).toFixed(0)},000
+                            ${totalVendorAmount > 0 ? (totalVendorAmount / 1000).toFixed(0) : 0}K
                         </div>
                         <div className="text-sm text-muted-foreground">Total Vendor Invoiced Amount</div>
                     </CardContent>
@@ -151,80 +169,126 @@ export default function ProjectDetailsPage() {
             <Card>
                 <CardContent className="p-6">
                     <h2 className="text-xl font-bold mb-4">Vendor Summary</h2>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-12"></TableHead>
-                                <TableHead>Vendor</TableHead>
-                                <TableHead className="text-right">Total Invoiced</TableHead>
-                                <TableHead className="text-right"># Invoices</TableHead>
-                                <TableHead className="text-right">Last Inv.</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {VENDOR_DATA.map((vendor) => (
-                                <React.Fragment key={vendor.id}>
-                                    <TableRow
-                                        className="cursor-pointer hover:bg-muted/50"
-                                        onClick={() => toggleRow(vendor.id)}
-                                    >
-                                        <TableCell>
-                                            {expandedRow === vendor.id ? (
-                                                <ChevronDown className="h-4 w-4" />
-                                            ) : (
-                                                <ChevronRight className="h-4 w-4" />
+                    {vendors.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                            <p>No vendors found for this project</p>
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-12"></TableHead>
+                                    <TableHead>Vendor</TableHead>
+                                    <TableHead className="text-right">Total Invoiced</TableHead>
+                                    <TableHead className="text-right"># Invoices</TableHead>
+                                    <TableHead className="text-right">Last Invoice</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {vendors.map((vendor) => {
+                                    const vendorName = vendor.displayName || vendor.companyName || "N/A";
+                                    const isExpanded = expandedVendor === vendor.id;
+                                    const invoices = vendor.invoices || [];
+
+                                    return (
+                                        <React.Fragment key={vendor.id}>
+                                            <TableRow
+                                                className="cursor-pointer hover:bg-muted/50"
+                                                onClick={() => toggleVendorRow(vendor.id)}
+                                            >
+                                                <TableCell>
+                                                    {isExpanded ? (
+                                                        <ChevronDown className="h-4 w-4" />
+                                                    ) : (
+                                                        <ChevronRight className="h-4 w-4" />
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="font-medium">{vendorName}</TableCell>
+                                                <TableCell className="text-right">
+                                                    ${(vendor.totalInvoiced || 0).toLocaleString()}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {vendor.invoiceCount || 0}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {vendor.lastInvoiceDate
+                                                        ? new Date(vendor.lastInvoiceDate).toLocaleDateString()
+                                                        : "N/A"}
+                                                </TableCell>
+                                            </TableRow>
+                                            {isExpanded && (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} className="bg-muted/30 p-0">
+                                                        <div className="p-4">
+                                                            {invoices.length === 0 ? (
+                                                                <div className="text-center py-8 text-muted-foreground">
+                                                                    No invoices found for this vendor
+                                                                </div>
+                                                            ) : (
+                                                                <Table>
+                                                                    <TableHeader>
+                                                                        <TableRow>
+                                                                            <TableHead>Invoice #</TableHead>
+                                                                            <TableHead>Date</TableHead>
+                                                                            <TableHead className="text-right">
+                                                                                Amount
+                                                                            </TableHead>
+                                                                            <TableHead>Status</TableHead>
+                                                                            <TableHead>Actions</TableHead>
+                                                                        </TableRow>
+                                                                    </TableHeader>
+                                                                    <TableBody>
+                                                                        {invoices.map((invoice: any) => (
+                                                                            <TableRow key={invoice.id}>
+                                                                                <TableCell>
+                                                                                    {invoice.invoiceNumber || `#${invoice.id}`}
+                                                                                </TableCell>
+                                                                                <TableCell>
+                                                                                    {invoice.invoiceDate
+                                                                                        ? new Date(
+                                                                                            invoice.invoiceDate
+                                                                                        ).toLocaleDateString()
+                                                                                        : "N/A"}
+                                                                                </TableCell>
+                                                                                <TableCell className="text-right">
+                                                                                    {invoice.totalAmount
+                                                                                        ? `$${parseFloat(
+                                                                                            invoice.totalAmount
+                                                                                        ).toLocaleString()}`
+                                                                                        : "$0"}
+                                                                                </TableCell>
+                                                                                <TableCell>
+                                                                                    {getStatusBadge(invoice.status)}
+                                                                                </TableCell>
+                                                                                <TableCell>
+                                                                                    <Button
+                                                                                        size="sm"
+                                                                                        variant="outline"
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation();
+                                                                                            router.push(
+                                                                                                `/jobs/${invoice.attachmentId}?invoiceId=${invoice.id}`
+                                                                                            );
+                                                                                        }}
+                                                                                    >
+                                                                                        Open Details
+                                                                                    </Button>
+                                                                                </TableCell>
+                                                                            </TableRow>
+                                                                        ))}
+                                                                    </TableBody>
+                                                                </Table>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
                                             )}
-                                        </TableCell>
-                                        <TableCell className="font-medium">{vendor.vendor}</TableCell>
-                                        <TableCell className="text-right">
-                                            ${vendor.totalInvoiced.toLocaleString()}
-                                        </TableCell>
-                                        <TableCell className="text-right">{vendor.invoiceCount}</TableCell>
-                                        <TableCell className="text-right">{vendor.lastInvoice}</TableCell>
-                                    </TableRow>
-                                    {expandedRow === vendor.id && (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="bg-muted/30 p-0">
-                                                <div className="p-4">
-                                                    <Table>
-                                                        <TableHeader>
-                                                            <TableRow>
-                                                                <TableHead>Invoice ID</TableHead>
-                                                                <TableHead>Date</TableHead>
-                                                                <TableHead className="text-right">Amount</TableHead>
-                                                                <TableHead>Status</TableHead>
-                                                            </TableRow>
-                                                        </TableHeader>
-                                                        <TableBody>
-                                                            {vendor.invoices.map((invoice) => (
-                                                                <TableRow key={invoice.id}>
-                                                                    <TableCell>#{invoice.id}</TableCell>
-                                                                    <TableCell>{invoice.date}</TableCell>
-                                                                    <TableCell className="text-right">
-                                                                        ${invoice.amount.toLocaleString()}
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <span
-                                                                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${invoice.status === "Paid"
-                                                                                    ? "bg-green-100 text-green-800"
-                                                                                    : "bg-yellow-100 text-yellow-800"
-                                                                                }`}
-                                                                        >
-                                                                            {invoice.status}
-                                                                        </span>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            ))}
-                                                        </TableBody>
-                                                    </Table>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </React.Fragment>
-                            ))}
-                        </TableBody>
-                    </Table>
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    )}
                 </CardContent>
             </Card>
         </div>

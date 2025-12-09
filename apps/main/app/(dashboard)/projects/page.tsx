@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/button";
-import { Plus } from "lucide-react";
+import { Input } from "@workspace/ui/components/input";
+import { Plus, Search } from "lucide-react";
 import {
     ProjectMap,
     ProjectList,
@@ -12,27 +13,74 @@ import {
     DeleteProjectDialog,
     type ProjectMapRef,
 } from "@/components/projects";
-import { PLACEHOLDER_PROJECTS, type Project } from "@/lib/data/projects";
-import { usePagination } from "../../../hooks/use-pagination";
+import { type Project } from "@/lib/data/projects";
+import client from "@/lib/axios-client";
 
 const ITEMS_PER_PAGE = 10;
 
 export default function ProjectsPage() {
-    const [projects, setProjects] = useState<Project[]>(PLACEHOLDER_PROJECTS);
-    const [visibleProjects, setVisibleProjects] = useState<Project[]>(PLACEHOLDER_PROJECTS);
+    const [allProjects, setAllProjects] = useState<Project[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [visibleProjects, setVisibleProjects] = useState<Project[]>([]);
     const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalProjects, setTotalProjects] = useState(0);
     const mapRef = useRef<ProjectMapRef>(null);
     const router = useRouter();
 
-    const {
-        currentPage,
-        totalPages,
-        paginatedItems: currentProjects,
-        setPage,
-    } = usePagination(visibleProjects, ITEMS_PER_PAGE);
+    // Fetch projects from API
+    useEffect(() => {
+        fetchProjects();
+    }, [currentPage, searchQuery]);
+
+    const fetchProjects = async () => {
+        setIsLoading(true);
+        try {
+            const response = await client.get("/api/v1/projects", {
+                params: {
+                    page: currentPage,
+                    limit: ITEMS_PER_PAGE,
+                    search: searchQuery,
+                },
+            });
+
+            if (response.status === "success") {
+                const fetchedProjects = response.data.projects.map((p: any) => ({
+                    id: p.id,
+                    address: p.address,
+                    city: p.city || "",
+                    coordinates: { lat: 0, lng: 0 }, // Will be geocoded if needed
+                    imageUrl: p.imageUrl || "",
+                }));
+
+                setProjects(fetchedProjects);
+                setVisibleProjects(fetchedProjects);
+                setTotalPages(response.data.pagination.totalPages);
+                setTotalProjects(response.data.pagination.total);
+
+                // Fetch all projects for map (without pagination)
+                if (currentPage === 1 && !searchQuery) {
+                    setAllProjects(fetchedProjects);
+                }
+            }
+        } catch (error: any) {
+            toast.error("Failed to load projects");
+            console.error("Error fetching projects:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSearch = (value: string) => {
+        setSearchQuery(value);
+        setCurrentPage(1); // Reset to first page on search
+    };
 
     const handleProjectSelect = (project: Project) => {
         setSelectedProjectId(project.id);
@@ -56,24 +104,40 @@ export default function ProjectsPage() {
         if (!projectToDelete) return;
 
         setIsDeleting(true);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        try {
+            const response = await client.delete(`/api/v1/projects/${projectToDelete.id}`);
 
-        setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
-        setVisibleProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
-        if (selectedProjectId === projectToDelete.id) {
-            setSelectedProjectId(null);
+            if (response.status === "success") {
+                // Remove from local state
+                setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
+                setVisibleProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
+                setAllProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
+
+                if (selectedProjectId === projectToDelete.id) {
+                    setSelectedProjectId(null);
+                }
+
+                // Update total count
+                setTotalProjects((prev) => prev - 1);
+
+                toast.success("Project deleted successfully");
+
+                // Refresh the list to get updated data
+                fetchProjects();
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Failed to delete project");
+            console.error("Error deleting project:", error);
+        } finally {
+            setIsDeleting(false);
+            setShowDeleteDialog(false);
+            setProjectToDelete(null);
         }
-
-        toast.success("Project deleted successfully");
-        setIsDeleting(false);
-        setShowDeleteDialog(false);
-        setProjectToDelete(null);
     };
 
     const handleBoundsChange = (filteredProjects: Project[]) => {
-        setVisibleProjects(filteredProjects);
-        setPage(1); // Reset to first page when bounds change
+        // For now, we'll keep the list synchronized with API pagination
+        // Map bounds filtering can be added later if needed
     };
 
 
@@ -84,7 +148,7 @@ export default function ProjectsPage() {
             <div className="w-1/2 rounded-lg border bg-card overflow-hidden">
                 <ProjectMap
                     ref={mapRef}
-                    projects={projects}
+                    projects={allProjects.length > 0 ? allProjects : projects}
                     onMarkerClick={handleMarkerClick}
                     onBoundsChange={handleBoundsChange}
                 />
@@ -96,7 +160,7 @@ export default function ProjectsPage() {
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
                         <p className="text-muted-foreground">
-                            {visibleProjects.length} of {projects.length} project{projects.length !== 1 ? "s" : ""} in view
+                            {totalProjects} project{totalProjects !== 1 ? "s" : ""} total
                         </p>
                     </div>
                     <Button onClick={() => router.push("/projects/new")}>
@@ -105,20 +169,39 @@ export default function ProjectsPage() {
                     </Button>
                 </div>
 
-                <ProjectList
-                    projects={currentProjects}
-                    selectedProjectId={selectedProjectId}
-                    onProjectSelect={handleProjectSelect}
-                    onProjectDelete={handleProjectDelete}
-                />
+                {/* Search Bar */}
+                <div className="mb-4 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search projects by name, address, city..."
+                        value={searchQuery}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        className="pl-10"
+                    />
+                </div>
 
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalItems={visibleProjects.length}
-                    itemsPerPage={ITEMS_PER_PAGE}
-                    onPageChange={setPage}
-                />
+                {isLoading ? (
+                    <div className="flex-1 flex items-center justify-center">
+                        <p className="text-muted-foreground">Loading projects...</p>
+                    </div>
+                ) : (
+                    <>
+                        <ProjectList
+                            projects={projects}
+                            selectedProjectId={selectedProjectId}
+                            onProjectSelect={handleProjectSelect}
+                            onProjectDelete={handleProjectDelete}
+                        />
+
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={totalProjects}
+                            itemsPerPage={ITEMS_PER_PAGE}
+                            onPageChange={setCurrentPage}
+                        />
+                    </>
+                )}
             </div>
 
             {/* Delete Dialog */}
