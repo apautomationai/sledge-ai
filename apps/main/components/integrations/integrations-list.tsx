@@ -12,13 +12,13 @@ const INITIAL_INTEGRATIONS: Omit<
 >[] = [
     {
       name: "Gmail",
-      path: "google/auth",
+      path: "auth/gmail",
       category: "Email Processing & Automation",
       allowCollection: true,
     },
     {
       name: "Outlook",
-      path: "outlook/auth",
+      path: "auth/outlook",
       category: "Email Processing & Automation",
       allowCollection: true,
     },

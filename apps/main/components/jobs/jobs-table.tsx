@@ -128,7 +128,7 @@ export function JobsTable({ jobs, isLoading, onReviewJob, onJobDeleted, sortBy, 
 
         setIsDeleting(true);
         try {
-            await client.delete(`/api/v1/google/attachments/${deleteDialog.jobId}`);
+            await client.delete(`/api/v1/email/attachments/${deleteDialog.jobId}`);
             toast.success("Job deleted successfully");
             setDeleteDialog({ open: false });
 
