@@ -309,7 +309,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                             <button
                                 onClick={handleConnectQuickBooks}
                                 disabled={isQuickBooksConnected || !isEmailConnected}
-                                className="flex-1 bg-muted/50 hover:bg-muted border rounded-xl p-6 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
+                                className="w-[calc(50%-0.5rem)] bg-muted/50 h-28 hover:bg-muted border rounded-xl p-6 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
                             >
                                 <div className="flex items-center justify-center">
                                     <Image
@@ -323,7 +323,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                             </button>
 
                             {/* Empty space to match layout */}
-                            <div className="flex-1"></div>
+                            <div className="w-[calc(50%-0.5rem)]"></div>
 
                             {/* Status Indicator */}
                             <div className="flex-shrink-0">
