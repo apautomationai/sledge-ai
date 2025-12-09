@@ -18,6 +18,13 @@ export const SignInSchema = z.object({
   password: z.string().min(1, { message: "Password is required." }),
 });
 
+// For Reset Password
+export const resetPasswordSchema = z.object({
+  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  confirmPassword: z.string().min(6, { message: "Confirm password must be at least 6 characters." }),
+  resetToken: z.string().min(1, { message: "Token is required." }),
+});
+
 // For Forgot Password
 export const ForgotPasswordSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),

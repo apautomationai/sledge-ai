@@ -14,8 +14,6 @@ import { notFoundHandler } from "@/helpers/not-found-handler";
 // Route import
 import healthRouter from "@/routes/health.route";
 import usersRoutes from "@/routes/users.route";
-import googleRoutes from "@/routes/google.routes";
-import outlookRoutes from "@/routes/outlook.routes";
 import authRoutes from "@/routes/auth.routes";
 import settingsRoutes from "@/routes/settings.route";
 import uploadRoutes from "@/routes/upload.routes";
@@ -25,6 +23,8 @@ import processorRoutes from "@/routes/processor.routes";
 import subscriptionRoutes from "@/routes/subscription.routes";
 import jobsRoutes from "@/routes/jobs.routes";
 import projectsRoutes from "@/routes/projects.routes";
+import reportRoutes from "@/routes/report.route"
+import emailIntegrationRoutes from "./routes/email-integration.routes";
 
 const app = express();
 
@@ -62,8 +62,7 @@ app.get("/", (_req, res) => {
 app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/users", usersRoutes);
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/google", googleRoutes);
-app.use("/api/v1/outlook", outlookRoutes);
+app.use("/api/v1/email", emailIntegrationRoutes);
 app.use("/api/v1/settings", settingsRoutes);
 app.use("/api/v1/upload", uploadRoutes);
 app.use("/api/v1/invoice", invoiceRoutes);
@@ -72,6 +71,7 @@ app.use("/api/v1/processor", processorRoutes);
 app.use("/api/v1/subscription", subscriptionRoutes);
 app.use("/api/v1/jobs", jobsRoutes);
 app.use("/api/v1/projects", projectsRoutes);
+app.use("/api/v1/report", reportRoutes);
 
 // Apply error handlers
 app.use(notFoundHandler);

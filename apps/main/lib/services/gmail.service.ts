@@ -11,7 +11,7 @@ interface GmailSyncResponse {
 
 export async function syncGmailData(): Promise<GmailSyncResponse> {
   try {
-    const response = await client.post<GmailSyncResponse>("/api/v1/google/sync");
+    const response = await client.post<GmailSyncResponse>("/api/v1/email/gmail/sync");
     return response.data;
   } catch (error) {
     console.error("Error syncing Gmail data:", error);

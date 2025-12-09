@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { uploadBufferToS3 } from "@/helpers/s3upload";
 import db from "@/lib/db";
 import { attachmentsModel } from "@/models/attachments.model";
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, ne } from "drizzle-orm";
 import { BadRequestError } from "@/helpers/errors";
 import { integrationsService } from "./integrations.service";
 import { sendAttachmentMessage } from "@/helpers/sqs";
@@ -203,7 +203,8 @@ export class GoogleServices {
       failures: number;
       errorMessage: string | null;
       integrationStatus: string | null;
-    }
+    },
+    integrationMetadata?: any
   ): Promise<{
     success: boolean;
     client?: OAuth2Client;
@@ -270,6 +271,7 @@ export class GoogleServices {
         accessToken,
         expiryDate: expiryDateMs ? new Date(expiryDateMs) : null,
         metadata: {
+          ...integrationMetadata,
           lastErrorMessage: null,
           lastErrorAt: new Date().toISOString(),
         },
@@ -303,7 +305,8 @@ export class GoogleServices {
     tokens: any,
     userId: number,
     integrationId: number,
-    lastRead?: string | null | undefined
+    lastRead?: string | null | undefined,
+    integrationMetadata?: any
   ) => {
     if (!lastRead) {
       return {
@@ -345,7 +348,8 @@ export class GoogleServices {
       const authResult = await this.ensureValidAccessToken(
         tokens,
         integrationId,
-        metadata
+        metadata,
+        integrationMetadata
       );
       if (!authResult.success || !authResult.client) {
         return {
@@ -605,7 +609,8 @@ export class GoogleServices {
         .where(
           and(
             eq(attachmentsModel.userId, userId),
-            eq(attachmentsModel.isDeleted, false)
+            eq(attachmentsModel.isDeleted, false),
+            ne(attachmentsModel.status, "skipped")
           )
         )
         .orderBy(desc(attachmentsModel.created_at))
@@ -617,7 +622,8 @@ export class GoogleServices {
         .where(
           and(
             eq(attachmentsModel.userId, userId),
-            eq(attachmentsModel.isDeleted, false)
+            eq(attachmentsModel.isDeleted, false),
+            ne(attachmentsModel.status, "skipped")
           )
         );
       const totalAttachments = attachmentCount.count;
@@ -639,7 +645,8 @@ export class GoogleServices {
           and(
             eq(attachmentsModel.hashId, hashId),
             eq(attachmentsModel.userId, userId),
-            eq(attachmentsModel.isDeleted, false)
+            eq(attachmentsModel.isDeleted, false),
+            ne(attachmentsModel.status, "skipped")
           )
         );
       return response;

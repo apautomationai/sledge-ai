@@ -1,5 +1,4 @@
 import { signJwt } from "@/lib/utils/jwt";
-
 import { userServices } from "@/services/users.service";
 
 import { NextFunction, Request, Response } from "express";
@@ -186,17 +185,57 @@ export class UserController {
     }
   };
   resetPassword = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    const { password, confirmPassword, resetToken } = req.body;
     // const password = req.body;
-    if (!email || !password) {
-      throw new BadRequestError("Email, and Password are required");
+    let decodedToken: any;
+
+    // Verify reset token
+    try {
+      decodedToken = await userServices.verifyResetToken(resetToken);
+    } catch (error) {
+      throw new BadRequestError("Link has been expired");
     }
-    if (password?.length < 6) {
+
+    // Validate password and confirm password
+    if (!password || !confirmPassword) {
+      throw new BadRequestError("Password and confirm password are required");
+    }
+    if (password?.length < 6 || confirmPassword?.length < 6) {
       throw new BadRequestError("Password must be at least 6 characters");
     }
-    const newPassword = await userServices.resetPassword(email, password);
+    if (password !== confirmPassword) {
+      throw new BadRequestError("Password and confirm password do not match");
+    }
 
-    res.status(200).send(newPassword);
+    // user email
+    const userEmail = decodedToken?.email;
+
+    // Reset password and get user data with token (all handled in service)
+    const result = await userServices.resetPassword(userEmail, password);
+
+    // Set cookies for authentication
+    res.cookie("token", result.token, {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      path: "/",
+    });
+
+    res.cookie("userId", result.user.id.toString(), {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      path: "/",
+    });
+
+    // Return success response with token and user data
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+      token: result.token,
+      user: result.user,
+    });
+
   };
   changePassword = async (req: Request, res: Response) => {
     //@ts-ignore
@@ -250,6 +289,27 @@ export class UserController {
       return res.status(200).send(result);
     } catch (error: any) {
       throw new BadRequestError(error.message || "Unable to complete onboarding");
+    }
+  };
+
+  forgotPassword = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    if (!email) {
+      throw new BadRequestError("Email is required");
+    }
+
+    try {
+      const response = await userServices.forgotPassword(email);
+      if (!response) {
+        throw new BadRequestError("Unable to send password reset link");
+      }
+      return res.status(200).json({
+        success: true,
+        message: "Password reset link sent to email",
+        data: response,
+      });
+    } catch (error: any) {
+      throw new BadRequestError(error.message || "Unable to send password reset link");
     }
   };
 }
