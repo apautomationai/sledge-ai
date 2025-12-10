@@ -17,7 +17,7 @@ import {
   PanelLeftClose,
   PanelRightClose,
   ChevronRight,
-  Menu,
+  Package2,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar";
 import { Button } from "@workspace/ui/components/button";
@@ -141,6 +141,7 @@ export default function SideMenuBar({
             <NavLink href="/dashboard" icon={LayoutDashboard} isActive={pathname === "/dashboard"} isCollapsed={isCol}>Overview</NavLink>
             <NavLink href="/jobs" icon={FileText} isActive={pathname.startsWith("/jobs")} isCollapsed={isCol}>Invoices</NavLink>
             <NavLink href="/integrations" icon={Settings} isActive={pathname.startsWith("/integrations")} isCollapsed={isCol}>Integrations</NavLink>
+            <NavLink href="/projects" icon={Package2} isActive={pathname.startsWith("/projects")} isCollapsed={isCol}>Projects</NavLink>
           </nav>
         </div>
 
@@ -155,7 +156,7 @@ export default function SideMenuBar({
               className={cn(
                 "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-300",
                 pathname.startsWith("/report") &&
-                  "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-normal shadow-sm border-l-4 border-l-primary",
+                "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-normal shadow-sm border-l-4 border-l-primary",
                 isCol && "justify-center px-3" // center icon when collapsed
               )}
             >
