@@ -80,6 +80,8 @@ export const quickbooksVendorsModel = pgTable(
     metaDataLastUpdatedTime: timestamp("meta_data_last_updated_time"),
     // Vector embedding
     embedding: vector("embedding", { dimensions: QUICKBOOKS_EMBEDDING_DIMENSION }),
+    // Project relationship
+    projectId: integer("project_id"),
     // Timestamps
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -98,3 +100,9 @@ export const quickbooksVendorsRelations = relations(
     }),
   })
 );
+
+// Note: Import projectsModel when needed for the relation
+// project: one(projectsModel, {
+//   fields: [quickbooksVendorsModel.projectId],
+//   references: [projectsModel.id],
+// }),

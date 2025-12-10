@@ -22,6 +22,7 @@ import quickbooksRoutes from "@/routes/quickbooks.routes";
 import processorRoutes from "@/routes/processor.routes";
 import subscriptionRoutes from "@/routes/subscription.routes";
 import jobsRoutes from "@/routes/jobs.routes";
+import projectsRoutes from "@/routes/projects.routes";
 import reportRoutes from "@/routes/report.route"
 import emailIntegrationRoutes from "./routes/email-integration.routes";
 
@@ -69,6 +70,7 @@ app.use("/api/v1/quickbooks", quickbooksRoutes);
 app.use("/api/v1/processor", processorRoutes);
 app.use("/api/v1/subscription", subscriptionRoutes);
 app.use("/api/v1/jobs", jobsRoutes);
+app.use("/api/v1/projects", projectsRoutes);
 app.use("/api/v1/report", reportRoutes);
 
 // Apply error handlers
