@@ -42,7 +42,7 @@ export default function ProjectsPage() {
     const fetchProjects = async () => {
         setIsLoading(true);
         try {
-            const response = await client.get("/api/v1/projects", {
+            const response:any = await client.get("/api/v1/projects", {
                 params: {
                     page: currentPage,
                     limit: ITEMS_PER_PAGE,
@@ -105,7 +105,7 @@ export default function ProjectsPage() {
 
         setIsDeleting(true);
         try {
-            const response = await client.delete(`/api/v1/projects/${projectToDelete.id}`);
+            const response:any = await client.delete(`/api/v1/projects/${projectToDelete.id}`);
 
             if (response.status === "success") {
                 // Remove from local state
