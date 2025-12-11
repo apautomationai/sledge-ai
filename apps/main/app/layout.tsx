@@ -9,11 +9,24 @@ import { Providers } from "@/components/providers";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "SLEDGE - Invoice Management",
+  metadataBase: new URL("https://getsledge.com"),
+  title: "Sledge: The Builder's AI Office",
   description: "A modern dashboard to manage and process invoices with AI-powered data extraction.",
   icons: {
-    icon: '/icon.png',
+    icon: "/images/logos/icon.png",
   },
+  openGraph: {
+    siteName: "SLEDGE AI",
+    type: "website",
+    images: [
+      {
+        url: "/images/logos/icon.png",
+        width: 512,
+        height: 512,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  }
 };
 
 export default function RootLayout({
