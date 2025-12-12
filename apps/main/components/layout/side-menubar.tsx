@@ -18,6 +18,7 @@ import {
   PanelRightClose,
   ChevronRight,
   Package2,
+  FileCheck,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar";
 import { Button } from "@workspace/ui/components/button";
@@ -142,6 +143,7 @@ export default function SideMenuBar({
             <NavLink href="/jobs" icon={FileText} isActive={pathname.startsWith("/jobs")} isCollapsed={isCol}>Invoices</NavLink>
             <NavLink href="/integrations" icon={Settings} isActive={pathname.startsWith("/integrations")} isCollapsed={isCol}>Integrations</NavLink>
             <NavLink href="/projects" icon={Package2} isActive={pathname.startsWith("/projects")} isCollapsed={isCol}>Projects</NavLink>
+            <NavLink href="/lien-waiver" icon={FileCheck} isActive={pathname.startsWith("/lien-waiver")} isCollapsed={isCol}>Lien Waivers</NavLink>
           </nav>
         </div>
 
