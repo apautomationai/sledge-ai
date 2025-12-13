@@ -15,8 +15,10 @@ class ProjectsController {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const search = (req.query.search as string) || "";
+            const sortBy = (req.query.sortBy as string) || "createdAt";
+            const sortOrder = (req.query.sortOrder as string) || "desc";
 
-            const result = await projectsServices.getProjects(userId, page, limit, search);
+            const result = await projectsServices.getProjects(userId, page, limit, search, sortBy, sortOrder);
 
             return res.status(200).json({
                 status: "success",
@@ -91,6 +93,29 @@ class ProjectsController {
             return res.status(error.statusCode || 500).json({
                 success: false,
                 error: error.message || "Failed to delete project",
+            });
+        }
+    }
+
+    async getProjectsForMap(req: Request, res: Response) {
+        try {
+            //@ts-ignore
+            const userId = req.user.id;
+
+            if (!userId) {
+                throw new BadRequestError("Need a valid userId");
+            }
+
+            const projects = await projectsServices.getAllProjectsForMap(userId);
+
+            return res.status(200).json({
+                status: "success",
+                data: projects,
+            });
+        } catch (error: any) {
+            return res.status(error.statusCode || 500).json({
+                success: false,
+                error: error.message || "Failed to get projects for map",
             });
         }
     }

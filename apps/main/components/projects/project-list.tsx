@@ -1,14 +1,7 @@
 import React from "react";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { ProjectCard } from "./project-card";
-
-interface Project {
-    id: number;
-    address: string;
-    city: string;
-    coordinates: { lat: number; lng: number };
-    imageUrl: string;
-}
+import { Project } from "@/lib/data/projects";
 
 interface ProjectListProps {
     projects: Project[];

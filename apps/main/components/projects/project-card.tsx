@@ -3,14 +3,10 @@ import { useRouter } from "next/navigation";
 import { Card } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Trash2, MapPin } from "lucide-react";
+import { Project } from "@/lib/data/projects";
 
 interface ProjectCardProps {
-    project: {
-        id: number;
-        address: string;
-        city: string;
-        imageUrl: string;
-    };
+    project: Project;
     isSelected: boolean;
     onSelect: () => void;
     onDelete: (e: React.MouseEvent) => void;
@@ -47,15 +43,17 @@ export function ProjectCard({ project, isSelected, onSelect, onDelete }: Project
                     <Trash2 className="h-4 w-4" />
                 </Button>
 
-                {/* Address and City */}
+                {/* Project Info */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                     <div className="flex items-start gap-2">
                         <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
-                        <div>
+                        <div className="flex-1">
                             <p className="font-semibold text-lg leading-tight">
-                                {project.address}
+                                {project.name}
                             </p>
-                            <p className="text-sm text-gray-200">{project.city}</p>
+                            <p className="text-sm text-gray-200">
+                                {project.city}, {project.state}
+                            </p>
                         </div>
                     </div>
                 </div>

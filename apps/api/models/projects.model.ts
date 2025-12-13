@@ -7,9 +7,10 @@ import {
     timestamp,
     varchar,
     boolean,
+    decimal,
 } from "drizzle-orm/pg-core";
 import { usersModel } from "./users.model";
-import { quickbooksVendorsModel } from "./quickbooks-vendors.model";
+import { projectVendorsModel } from "./project-vendors.model";
 
 export const projectsModel = pgTable("projects", {
     id: serial("id").primaryKey(),
@@ -24,10 +25,12 @@ export const projectsModel = pgTable("projects", {
     country: varchar("country", { length: 50 }),
     imageUrl: text("image_url"),
 
-    // Billing cycle information
+    // Location coordinates
+    latitude: decimal("latitude", { precision: 10, scale: 8 }), // High precision for coordinates
+    longitude: decimal("longitude", { precision: 11, scale: 8 }), // High precision for coordinates
+
+    // Billing information
     billingCycle: integer("billing_cycle").notNull().default(30), // days
-    totalBillingCycles: integer("total_billing_cycles").notNull().default(1),
-    currentBillingCycle: integer("current_billing_cycle").notNull().default(1),
 
     // Soft delete
     isDeleted: boolean("is_deleted").notNull().default(false),
@@ -43,5 +46,5 @@ export const projectsRelations = relations(projectsModel, ({ one, many }) => ({
         fields: [projectsModel.userId],
         references: [usersModel.id],
     }),
-    vendors: many(quickbooksVendorsModel),
+    projectVendors: many(projectVendorsModel),
 }));

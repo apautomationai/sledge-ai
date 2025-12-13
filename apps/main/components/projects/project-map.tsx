@@ -2,18 +2,12 @@
 
 import React, { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 
-interface Project {
-    id: number;
-    address: string;
-    city: string;
-    coordinates: { lat: number; lng: number };
-    imageUrl: string;
-}
+import { ProjectWithCoordinates } from "@/lib/data/projects";
 
 interface ProjectMapProps {
-    projects: Project[];
+    projects: ProjectWithCoordinates[];
     onMarkerClick: (projectId: number) => void;
-    onBoundsChange?: (visibleProjects: Project[]) => void;
+    onBoundsChange?: (visibleProjects: ProjectWithCoordinates[]) => void;
 }
 
 export interface ProjectMapRef {
@@ -113,7 +107,7 @@ export const ProjectMap = forwardRef<ProjectMapRef, ProjectMapProps>(
                 const marker = new window.google.maps.Marker({
                     position: project.coordinates,
                     map: googleMapRef.current,
-                    title: project.address,
+                    title: `${project.name} - ${project.address}`,
                 });
 
                 marker.addListener("click", () => {
