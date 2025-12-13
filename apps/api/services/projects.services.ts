@@ -88,7 +88,7 @@ class ProjectsServices {
             return null;
         }
     }
-    async getProjects(userId: number, page: number = 1, limit: number = 10, search: string = "", sortBy: string = "createdAt", sortOrder: string = "desc") {
+    async getProjects(userId: number, page: number = 1, limit: number = 10, search: string = "", sortBy: string = "createdAt", sortOrder: string = "desc", bounds?: { north: number, south: number, east: number, west: number }) {
         const offset = (page - 1) * limit;
 
         // Build where conditions - only non-deleted projects
@@ -108,6 +108,22 @@ class ProjectsServices {
                     ilike(projectsModel.city, searchPattern),
                     ilike(projectsModel.state, searchPattern)
                 )
+            ) as any;
+        }
+
+        // Add geographic bounds filter if provided
+        if (bounds) {
+            whereConditions = and(
+                whereConditions,
+                // Only include projects that have coordinates
+                sql`${projectsModel.latitude} IS NOT NULL`,
+                sql`${projectsModel.longitude} IS NOT NULL`,
+                // Latitude bounds
+                sql`CAST(${projectsModel.latitude} AS DECIMAL) >= ${bounds.south}`,
+                sql`CAST(${projectsModel.latitude} AS DECIMAL) <= ${bounds.north}`,
+                // Longitude bounds
+                sql`CAST(${projectsModel.longitude} AS DECIMAL) >= ${bounds.west}`,
+                sql`CAST(${projectsModel.longitude} AS DECIMAL) <= ${bounds.east}`
             ) as any;
         }
 

@@ -4,10 +4,17 @@ import React, { useEffect, useRef, useImperativeHandle, forwardRef } from "react
 
 import { ProjectWithCoordinates } from "@/lib/data/projects";
 
+interface MapBounds {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+}
+
 interface ProjectMapProps {
     projects: ProjectWithCoordinates[];
     onMarkerClick: (projectId: number) => void;
-    onBoundsChange?: (visibleProjects: ProjectWithCoordinates[]) => void;
+    onBoundsChange?: (bounds: MapBounds) => void;
 }
 
 export interface ProjectMapRef {
@@ -70,8 +77,17 @@ export const ProjectMap = forwardRef<ProjectMapRef, ProjectMapProps>(
 
             googleMapRef.current = map;
 
-            // Add bounds change listener
+            // Add bounds change listener with debouncing
+            let boundsTimeout: NodeJS.Timeout;
             map.addListener("bounds_changed", () => {
+                clearTimeout(boundsTimeout);
+                boundsTimeout = setTimeout(() => {
+                    filterProjectsByBounds();
+                }, 300); // 300ms debounce
+            });
+
+            // Call initial bounds after map is loaded
+            map.addListener("idle", () => {
                 filterProjectsByBounds();
             });
 
@@ -84,15 +100,17 @@ export const ProjectMap = forwardRef<ProjectMapRef, ProjectMapProps>(
             const bounds = googleMapRef.current.getBounds();
             if (!bounds) return;
 
-            const visibleProjects = projects.filter((project) => {
-                const position = new window.google.maps.LatLng(
-                    project.coordinates.lat,
-                    project.coordinates.lng
-                );
-                return bounds.contains(position);
-            });
+            const ne = bounds.getNorthEast();
+            const sw = bounds.getSouthWest();
 
-            onBoundsChange(visibleProjects);
+            const mapBounds: MapBounds = {
+                north: ne.lat(),
+                south: sw.lat(),
+                east: ne.lng(),
+                west: sw.lng(),
+            };
+
+            onBoundsChange(mapBounds);
         };
 
         const updateMarkers = () => {

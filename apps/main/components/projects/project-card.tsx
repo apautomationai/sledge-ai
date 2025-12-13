@@ -7,12 +7,10 @@ import { Project } from "@/lib/data/projects";
 
 interface ProjectCardProps {
     project: Project;
-    isSelected: boolean;
-    onSelect: () => void;
     onDelete: (e: React.MouseEvent) => void;
 }
 
-export function ProjectCard({ project, isSelected, onSelect, onDelete }: ProjectCardProps) {
+export function ProjectCard({ project, onDelete }: ProjectCardProps) {
     const router = useRouter();
 
     const handleClick = () => {
@@ -21,8 +19,7 @@ export function ProjectCard({ project, isSelected, onSelect, onDelete }: Project
 
     return (
         <Card
-            className={`cursor-pointer transition-all hover:shadow-lg overflow-hidden group relative ${isSelected ? "ring-2 ring-primary" : ""
-                }`}
+            className="cursor-pointer transition-all hover:shadow-lg overflow-hidden group relative"
             onClick={handleClick}
         >
             {/* Background Image */}

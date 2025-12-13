@@ -5,15 +5,11 @@ import { Project } from "@/lib/data/projects";
 
 interface ProjectListProps {
     projects: Project[];
-    selectedProjectId: number | null;
-    onProjectSelect: (project: Project) => void;
     onProjectDelete: (id: number, e: React.MouseEvent) => void;
 }
 
 export function ProjectList({
     projects,
-    selectedProjectId,
-    onProjectSelect,
     onProjectDelete,
 }: ProjectListProps) {
     return (
@@ -23,8 +19,6 @@ export function ProjectList({
                     <ProjectCard
                         key={project.id}
                         project={project}
-                        isSelected={selectedProjectId === project.id}
-                        onSelect={() => onProjectSelect(project)}
                         onDelete={(e) => onProjectDelete(project.id, e)}
                     />
                 ))}

@@ -18,7 +18,18 @@ class ProjectsController {
             const sortBy = (req.query.sortBy as string) || "createdAt";
             const sortOrder = (req.query.sortOrder as string) || "desc";
 
-            const result = await projectsServices.getProjects(userId, page, limit, search, sortBy, sortOrder);
+            // Parse bounds if provided
+            let bounds;
+            if (req.query.north && req.query.south && req.query.east && req.query.west) {
+                bounds = {
+                    north: parseFloat(req.query.north as string),
+                    south: parseFloat(req.query.south as string),
+                    east: parseFloat(req.query.east as string),
+                    west: parseFloat(req.query.west as string),
+                };
+            }
+
+            const result = await projectsServices.getProjects(userId, page, limit, search, sortBy, sortOrder, bounds);
 
             return res.status(200).json({
                 status: "success",
