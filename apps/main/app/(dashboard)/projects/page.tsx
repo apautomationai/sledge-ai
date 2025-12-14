@@ -203,7 +203,7 @@ export default function ProjectsPage() {
 
         setIsDeleting(true);
         try {
-            const response = await client.delete(`/api/v1/projects/${projectToDelete.id}`);
+            const response: any = await client.delete(`/api/v1/projects/${projectToDelete.id}`);
 
             if ((response as any).status === "success") {
                 // Remove from local state

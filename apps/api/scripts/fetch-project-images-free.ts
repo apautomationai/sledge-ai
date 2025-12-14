@@ -22,7 +22,7 @@ const FREE_IMAGE_SOURCES = [
     'https://images.unsplash.com/photo-1597476374736-e0d7e5c53c7f?w=1200&q=80', // Building under construction
 ];
 
-function getRandomImage(): string {
+export function getRandomImage(): string {
     const randomIndex = Math.floor(Math.random() * FREE_IMAGE_SOURCES.length);
     return FREE_IMAGE_SOURCES[randomIndex];
 }

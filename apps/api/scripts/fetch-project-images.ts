@@ -131,7 +131,7 @@ async function fetchProjectImages() {
                 // If no photos in initial response, try getting place details
                 if (!photos || photos.length === 0) {
                     console.log(`   🔍 Fetching place details for more photos...`);
-                    photos = await getPlaceDetails(place.place_id);
+                    photos = (await getPlaceDetails(place.place_id)) ?? undefined;
                 }
 
                 if (!photos || photos.length === 0) {
