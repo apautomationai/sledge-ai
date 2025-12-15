@@ -772,7 +772,7 @@ export default function InvoiceReviewClient({
   const handleDeleteAttachment = async (attachmentId: string) => {
     try {
       // Check for associated invoice
-      const response = await client.get(`/api/v1/google/attachments/${attachmentId}/invoice`) as any;
+      const response = await client.get(`/api/v1/email/attachments/${attachmentId}/invoice`) as any;
       const associatedInvoice = response?.data?.data || response?.data || response;
 
       setDeleteDialog({
@@ -799,7 +799,7 @@ export default function InvoiceReviewClient({
 
     setIsDeleting(true);
     try {
-      const response = await client.delete(`/api/v1/google/attachments/${deleteDialog.id}`) as any;
+      const response = await client.delete(`/api/v1/email/attachments/${deleteDialog.id}`) as any;
 
       toast.success('Attachment deleted successfully');
 
