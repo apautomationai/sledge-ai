@@ -10,5 +10,7 @@ router.patch("/attachments/:attachmentId", processorController.updateAttachment)
 // Create invoice (may be called with or without auth)
 router.post("/invoices", processorController.createInvoice);
 
+router.get("/projects", processorController.getAllProjects);
+router.post("/projects", processorController.createProject);
 
 export default router;

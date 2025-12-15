@@ -147,7 +147,7 @@ export default function SideMenuBar({
         {/* Footer */}
         <div className="flex flex-col border-t border-border/40 p-3">
           {/* Footer: Report + Support */}
-          <div className="px-3 mt-4 flex flex-col gap-2">
+          <div className="mt-4 flex flex-col gap-2">
 
             {/* Report a Bug */}
             <Link
@@ -156,10 +156,10 @@ export default function SideMenuBar({
                 "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-300",
                 pathname.startsWith("/report") &&
                   "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-normal shadow-sm border-l-4 border-l-primary",
-                isCol && "justify-center px-3" // center icon when collapsed
+                isCol && "justify-center px-3" 
               )}
             >
-              <Bug className="h-4 w-4 flex-shrink-0" /> {/* same size as support icon */}
+              <Bug className="h-4 w-4 flex-shrink-0" /> 
               {!isCol && <span className="truncate text-sm">Report a Bug</span>} {/* same size as support text */}
             </Link>
 
@@ -168,10 +168,10 @@ export default function SideMenuBar({
               href="mailto:support@getsledge.com"
               className={cn(
                 "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-300",
-                isCol && "justify-center px-3" // center icon when collapsed
+                isCol && "justify-center px-3" 
               )}
             >
-              <Mail className="h-4 w-4 flex-shrink-0" /> {/* same size as report icon */}
+              <Mail className="h-4 w-4 flex-shrink-0" /> 
               {!isCol && <span className="truncate text-sm">support@getsledge.com</span>} {/* same size as report text */}
             </Link>
           </div>

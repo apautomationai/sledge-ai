@@ -1,17 +1,14 @@
 import dotenv from "dotenv";
 dotenv.config();
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
-// import middlewares
 import passport from "@/lib/passport";
 
-// import error handlers
 import { errorHandler } from "@/helpers/error-handler";
 import { notFoundHandler } from "@/helpers/not-found-handler";
 
-// Route import
 import healthRouter from "@/routes/health.route";
 import usersRoutes from "@/routes/users.route";
 import googleRoutes from "@/routes/google.routes";
@@ -24,41 +21,36 @@ import quickbooksRoutes from "@/routes/quickbooks.routes";
 import processorRoutes from "@/routes/processor.routes";
 import subscriptionRoutes from "@/routes/subscription.routes";
 import jobsRoutes from "@/routes/jobs.routes";
-import reportRoutes from "@/routes/report.route"
+import reportRoutes from "@/routes/report.route";
 
 const app = express();
+app.use(express.json());
 
-// Apply middleware
-// Configure CORS to allow credentials
+// Configure CORS
 const getCorsOrigins = (): string | string[] => {
-  const originsString = process.env.CORS_ORIGIN || 'http://localhost:3000';
-  // Split by comma and trim whitespace
-  const origins = originsString.split(',').map(origin => origin.trim());
-  // If only one origin, return as string; otherwise return array
+  const originsString = process.env.CORS_ORIGIN || "http://localhost:3000";
+  const origins = originsString.split(",").map((o) => o.trim());
   return origins.length === 1 ? origins[0] : origins;
 };
 
-const corsOptions = {
+app.use(cors({
   origin: getCorsOrigins(),
   credentials: true,
-  optionsSuccessStatus: 200
-};
+  optionsSuccessStatus: 200,
+}));
 
-app.use(cors(corsOptions));
+// Stripe webhooks require raw body
+app.use("/api/v1/subscription/webhook", express.raw({ type: "application/json" }));
 
-// Special handling for Stripe webhooks - must come before express.json()
-app.use('/api/v1/subscription/webhook', express.raw({ type: 'application/json' }));
-
-// Apply JSON parsing for all other routes
-app.use(express.json());
-app.use(cookieParser());
+// Parse URL-encoded data and cookies
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(passport.initialize());
 
-// Apply routes
-app.get("/", (_req, res) => {
-  res.json({ message: "Api is running", version: 0.1 });
-});
+// Health check
+app.get("/", (_req, res) => res.json({ message: "Api is running", version: 0.1 }));
+
+// Routes
 app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/users", usersRoutes);
 app.use("/api/v1/auth", authRoutes);
@@ -68,12 +60,12 @@ app.use("/api/v1/settings", settingsRoutes);
 app.use("/api/v1/upload", uploadRoutes);
 app.use("/api/v1/invoice", invoiceRoutes);
 app.use("/api/v1/quickbooks", quickbooksRoutes);
-app.use("/api/v1/processor", processorRoutes);
+app.use("/api/v1/processor", processorRoutes); 
 app.use("/api/v1/subscription", subscriptionRoutes);
 app.use("/api/v1/jobs", jobsRoutes);
 app.use("/api/v1/report", reportRoutes);
 
-// Apply error handlers
+// Error handlers
 app.use(notFoundHandler);
 app.use(errorHandler);
 
