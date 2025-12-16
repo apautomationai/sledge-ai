@@ -12,5 +12,7 @@ router.post("/invoices", processorController.createInvoice);
 // Create batch invoices (may be called with or without auth)
 router.post("/invoices/batch", processorController.createBatchInvoices.bind(processorController));
 
+router.get("/projects", processorController.getAllProjects);
+router.post("/projects", processorController.createProject);
 
 export default router;
