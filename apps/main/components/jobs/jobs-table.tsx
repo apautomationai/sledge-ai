@@ -59,7 +59,7 @@ export interface Job {
         rejected: number;
         pending: number;
     };
-    vendorData: VendorData
+    vendorData?: VendorData | null
 }
 
 interface JobsTableProps {

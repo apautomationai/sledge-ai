@@ -145,19 +145,7 @@ export function useJobs({ page, status = "all", sortBy = "received", sortOrder =
         },
         onAttachmentStatusUpdated: (attachmentId, status) => {
             console.log("📎 WebSocket: Attachment status updated:", attachmentId, status, "- fetching jobs");
-            if (attachmentId) {
-                // Update the specific job's status in place instead of refetching all jobs
-                setJobs((prevJobs) =>
-                    prevJobs.map((job) =>
-                        job.id === String(attachmentId)
-                            ? { ...job, jobStatus: status as Job["jobStatus"] }
-                            : job
-                    )
-                );
-            } else {
-                // Fallback to refetching if attachmentId is not provided
-                fetchJobs();
-            }
+            fetchJobs();
         },
         enableToasts: false,
         autoConnect: true,
