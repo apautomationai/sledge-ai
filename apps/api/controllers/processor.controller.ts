@@ -30,6 +30,124 @@ class ProcessorController {
     }
   }
 
+  async createBatchInvoices(req: Request, res: Response) {
+    const self = this; // Store reference to 'this' to avoid context issues
+    try {
+      const { invoices } = req.body;
+      // save the json invoices in a json file
+
+      // const jsonFileName = `batch-invoice-${Date.now()}.json`;
+      // fs.writeFileSync(jsonFileName, JSON.stringify(invoices, null, 2));
+
+      // console.log("createBatchInvoices", JSON.stringify(req.body, null, 2));
+
+      // Validate that invoices is an array
+      if (!Array.isArray(invoices)) {
+        throw new BadRequestError("Invoices must be an array");
+      }
+
+      // Validate that invoices array is not empty
+      if (invoices.length === 0) {
+        throw new BadRequestError("Invoices array cannot be empty");
+      }
+
+      // Resolve user ID once if available from auth
+      let userId: number | null = null;
+      //@ts-ignore
+      if (req.user?.id) {
+        //@ts-ignore
+        userId = req.user.id;
+      }
+
+      // Process each invoice and collect results
+      const results: any[] = [];
+      const wsService = getWebSocketService();
+
+      for (const invoice of invoices) {
+        try {
+          // Process the invoice
+          const { result, userId: resolvedUserId } = await self.processSingleInvoice(invoice, userId);
+          const { invoice: createdInvoice, operation } = result;
+
+          // Emit WebSocket events for real-time updates
+          switch (operation) {
+            case 'created':
+              wsService.emitInvoiceCreated(resolvedUserId, createdInvoice);
+              break;
+            case 'updated':
+              wsService.emitInvoiceUpdated(resolvedUserId, createdInvoice);
+              break;
+          }
+
+          // Add successful result
+          results.push({
+            success: true,
+            invoice_number: invoice.invoice_number,
+            data: createdInvoice,
+            operation,
+            message: operation === 'created' 
+              ? "Invoice created successfully" 
+              : operation === 'updated' 
+              ? "Invoice updated successfully" 
+              : "Invoice already exists with same data",
+          });
+        } catch (error: any) {
+          // Add error result
+          let errorMessage = "Internal server error";
+          if (error instanceof BadRequestError) {
+            errorMessage = error.message;
+          } else if (error instanceof NotFoundError) {
+            errorMessage = error.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+
+          results.push({
+            success: false,
+            invoice_number: invoice.invoice_number || "unknown",
+            error: errorMessage,
+          });
+        }
+      }
+
+      // Calculate summary statistics
+      const total = invoices.length;
+      const successful = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success).length;
+
+      // Determine response status code
+      // Use 207 (Multi-Status) if there are any failures, 200 if all succeed
+      const statusCode = failed > 0 ? 207 : 200;
+
+      return res.status(statusCode).json({
+        success: failed === 0,
+        summary: {
+          total,
+          successful,
+          failed,
+        },
+        results,
+      });
+    } catch (error: any) {
+      if (error instanceof BadRequestError) {
+        return res.status(400).json({
+          success: false,
+          error: error.message,
+        });
+      }
+      if (error instanceof NotFoundError) {
+        return res.status(404).json({
+          success: false,
+          error: error.message,
+        });
+      }
+      return res.status(500).json({
+        success: false,
+        error: error.message || "Internal server error",
+      });
+    }
+  }
+
   async getAllProjects(req: Request, res: Response) {
   try {
 
@@ -283,5 +401,7 @@ class ProcessorController {
     }
   }
 }
+
+
 
 export const processorController = new ProcessorController();
