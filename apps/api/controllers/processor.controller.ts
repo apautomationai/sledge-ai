@@ -70,30 +70,33 @@ class ProcessorController {
     if (isNaN(attachmentIdNumber)) {
       throw new BadRequestError("Invalid attachment ID");
     }
-    // console.log("updateAttachment", attachmentIdNumber, status, updatedData);
-    const response = await attachmentServices.updateAttachment(attachmentIdNumber, { status, ...updatedData });
-
-    // Emit WebSocket event for attachment status update
-    if (status && response) {
-      const wsService = getWebSocketService();
-      const userId = response.userId;
-      wsService.emitAttachmentStatusUpdated(userId, attachmentIdNumber, status);
-    }
 
     try {
-      const { status, ...data } = req.body;
-      const updated = await attachmentServices.updateAttachment(attachmentIdNumber, { status, ...data });
+      const { status, processed_at, ...data } = req.body;
 
+      // If processed_at === "now", set it to current timestamp
+      if (processed_at === "now") {
+        data.processed_at = new Date(); // current datetime
+      }
+
+      const updated = await attachmentServices.updateAttachment(
+        attachmentIdNumber,
+        { status, ...data }
+      );
+
+      // Emit WebSocket event
       if (status && updated) {
         const wsService = getWebSocketService();
         wsService.emitAttachmentStatusUpdated(updated.userId, attachmentIdNumber, status);
       }
 
       return res.status(200).json({ success: true, data: updated });
+
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message || "Internal server error" });
     }
   }
+
 
   private async processSingleInvoice(invoiceData: any, userId: number | null = null) {
     // Extract data from invoice object
