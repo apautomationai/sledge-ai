@@ -35,16 +35,7 @@ export default function Home() {
   };
 
   return (
-    <div
-      className={cn(
-          "grid min-h-screen w-full transition-[grid-template-columns] duration-300 ease-in-out",
-          isMobile
-            ? "grid-cols-1" 
-            : isCollapsed
-            ? "md:grid-cols-[72px_1fr]" 
-            : "md:grid-cols-[50px_1fr]" 
-        )}
-    >
+    <div className="min-h-screen w-full">
       <Header />
       <main className="flex flex-col gap-12">
         <Hero />
