@@ -11,9 +11,14 @@ interface MapBounds {
     west: number;
 }
 
+interface MarkerPosition {
+    x: number;
+    y: number;
+}
+
 interface ProjectMapProps {
     projects: ProjectWithCoordinates[];
-    onMarkerClick: (projectId: number) => void;
+    onMarkerClick: (projectId: number, position: MarkerPosition) => void;
     onBoundsChange?: (bounds: MapBounds) => void;
 }
 
@@ -128,8 +133,29 @@ export const ProjectMap = forwardRef<ProjectMapRef, ProjectMapProps>(
                     title: `${project.name} - ${project.address}`,
                 });
 
-                marker.addListener("click", () => {
-                    onMarkerClick(project.id);
+                marker.addListener("click", (event: any) => {
+                    // Get the marker's screen position from the DOM event
+                    let markerPosition: MarkerPosition;
+
+                    if (event.domEvent && mapRef.current) {
+                        // Use the actual click coordinates
+                        markerPosition = {
+                            x: event.domEvent.clientX,
+                            y: event.domEvent.clientY
+                        };
+                    } else if (mapRef.current) {
+                        // Fallback: use map center
+                        const mapRect = mapRef.current.getBoundingClientRect();
+                        markerPosition = {
+                            x: mapRect.left + mapRect.width / 2,
+                            y: mapRect.top + mapRect.height / 2
+                        };
+                    } else {
+                        // Final fallback
+                        markerPosition = { x: 0, y: 0 };
+                    }
+
+                    onMarkerClick(project.id, markerPosition);
                     googleMapRef.current.panTo(project.coordinates);
                     googleMapRef.current.setZoom(15);
                 });

@@ -146,7 +146,7 @@ export class EmailIntegrationController {
           userId,
           "gmail"
         );
-        
+
         const expiryDateValue = tokens.expiry_date
           ? new Date(Number(tokens.expiry_date))
           : null;
@@ -303,7 +303,7 @@ export class EmailIntegrationController {
           userId,
           "outlook"
         );
-        
+
         const expiryDateValue = tokens.expiry_date
           ? new Date(Number(tokens.expiry_date))
           : null;
@@ -454,7 +454,7 @@ export class EmailIntegrationController {
             result.success = Boolean(attachments.success);
             result.error =
               Array.isArray(attachmentMetadata.errors) &&
-              attachmentMetadata.errors.length > 0
+                attachmentMetadata.errors.length > 0
                 ? attachmentMetadata.errors
                 : null;
 
@@ -513,8 +513,8 @@ export class EmailIntegrationController {
           metadata.totalFailed > 0 && metadata.totalSuccess > 0
             ? "Emails synced with partial errors"
             : metadata.totalFailed > 0
-            ? "Unable to sync emails for any integration"
-            : "Emails synced successfully";
+              ? "Unable to sync emails for any integration"
+              : "Emails synced successfully";
 
         return res.status(200).json({
           message: responseMessage,
@@ -692,9 +692,9 @@ export class EmailIntegrationController {
         const s3Key = att.fileUrl!.split(".amazonaws.com/")[1];
         const command = new (require("@aws-sdk/client-s3")
           .GetObjectCommand as any)({
-          Bucket: process.env.S3_BUCKET_NAME!,
-          Key: s3Key,
-        });
+            Bucket: process.env.S3_BUCKET_NAME!,
+            Key: s3Key,
+          });
         const s3Client = require("@/helpers/s3upload").s3Client as any;
         const streamToBuffer =
           require("@/lib/utils/steamToBuffer").streamToBuffer;
@@ -770,7 +770,6 @@ export class EmailIntegrationController {
         data: {
           id: associatedInvoice.id,
           invoiceNumber: associatedInvoice.invoiceNumber,
-          vendorName: associatedInvoice.vendorName,
         },
       });
     } catch (error: any) {
@@ -828,10 +827,9 @@ export class EmailIntegrationController {
         message: "Attachment deleted successfully",
         deletedInvoice: associatedInvoice
           ? {
-              id: associatedInvoice.id,
-              invoiceNumber: associatedInvoice.invoiceNumber,
-              vendorName: associatedInvoice.vendorName,
-            }
+            id: associatedInvoice.id,
+            invoiceNumber: associatedInvoice.invoiceNumber,
+          }
           : null,
       });
     } catch (error: any) {

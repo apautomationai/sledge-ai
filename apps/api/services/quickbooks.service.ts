@@ -399,19 +399,11 @@ export class QuickBooksService {
             accountName.includes('accounts receivable') ||
             accountName.includes('receivable');
 
-          console.log(`🏦 Account "${account.Name}":`, {
-            AccountType: account.AccountType,
-            AccountSubType: account.AccountSubType,
-            isInvalidType,
-            isInvalidSubType,
-            isPayableByName,
-            excluded: isInvalidType || isInvalidSubType || isPayableByName
-          });
+
 
           return !isInvalidType && !isInvalidSubType && !isPayableByName;
         });
 
-        console.log(`🏦 Filtered accounts: ${response.QueryResponse.Account.length} -> ${validAccounts.length}`);
 
         return {
           ...response,
@@ -554,16 +546,9 @@ export class QuickBooksService {
         throw new Error("No expense account found in QuickBooks for fallback");
       }
 
-      console.log(`🏦 Using default expense account for fallback: ${defaultExpenseAccount.Name} (${defaultExpenseAccount.Id})`);
 
       // Create line items array based on itemType and resourceId from database
       const lineItems = billData.lineItems.map((item, index) => {
-        console.log(`🧾 Processing line item "${item.item_name}":`, {
-          itemType: item.itemType,
-          resourceId: item.resourceId,
-          amount: item.amount,
-          quantity: item.quantity
-        });
 
         const baseItem = {
           Amount: parseFloat(item.amount.toString()),
@@ -588,7 +573,6 @@ export class QuickBooksService {
             },
             ...(item.description && { Description: item.description })
           };
-          console.log(`💰 Created account-based line:`, accountLine);
           return accountLine;
         } else if (item.itemType === 'product') {
           // Item-based expense line
@@ -603,7 +587,6 @@ export class QuickBooksService {
             },
             ...(item.description && { Description: item.description })
           };
-          console.log(`🛍️ Created item-based line:`, productLine);
           return productLine;
         } else {
           throw new Error(`Invalid itemType: ${item.itemType} for line item ${item.item_name}`);
@@ -672,7 +655,6 @@ export class QuickBooksService {
 
       // Try to create the bill with item-based lines first
       try {
-        console.log(`📋 Attempting to create bill with ${lineItems.length} line items`);
         return await this.makeApiCall(integration, "bill", "POST", payload);
       } catch (apiError: any) {
         // Check if the error is related to items not having purchase accounts
@@ -682,8 +664,6 @@ export class QuickBooksService {
           errorMessage.includes('has an account associated with it');
 
         if (isItemAccountError) {
-          console.log(`⚠️ Item-based bill creation failed, falling back to account-based lines`);
-
           // Rebuild line items using account-based approach for products
           const fallbackLineItems = billData.lineItems.map((item, index) => {
             const baseItem = {
@@ -705,7 +685,6 @@ export class QuickBooksService {
               };
             } else if (item.itemType === 'product') {
               // Convert product lines to account-based using default expense account
-              console.log(`🔄 Converting product "${item.item_name}" to account-based line using default expense account`);
               return {
                 ...baseItem,
                 DetailType: "AccountBasedExpenseLineDetail",
@@ -760,7 +739,6 @@ export class QuickBooksService {
             ...(billData.invoiceDate && { TxnDate: billData.invoiceDate })
           };
 
-          console.log(`🔄 Retrying bill creation with account-based fallback`);
           return await this.makeApiCall(integration, "bill", "POST", fallbackPayload);
         } else {
           // Re-throw other errors
@@ -1063,8 +1041,6 @@ export class QuickBooksService {
         DisplayName: sanitizedName
       };
 
-      console.log("Creating QuickBooks customer with sanitized name:", sanitizedName);
-      console.log("Full payload:", JSON.stringify(payload, null, 2));
       return this.makeApiCall(integration, "customer", "POST", payload);
     } catch (error) {
       console.error("Error creating QuickBooks customer:", error);
@@ -1120,7 +1096,6 @@ export class QuickBooksService {
         };
       }
 
-      console.log("Creating QuickBooks vendor with data:", payload);
       return this.makeApiCall(integration, "vendor", "POST", payload);
     } catch (error) {
       console.error("Error creating QuickBooks vendor:", error);

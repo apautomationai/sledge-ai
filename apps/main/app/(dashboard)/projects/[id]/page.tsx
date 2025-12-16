@@ -186,7 +186,6 @@ export default function ProjectDetailsPage() {
                             </TableHeader>
                             <TableBody>
                                 {vendors.map((vendor) => {
-                                    const vendorName = vendor.displayName || vendor.companyName || "N/A";
                                     const isExpanded = expandedVendor === vendor.id;
                                     const invoices = vendor.invoices || [];
 
@@ -203,7 +202,7 @@ export default function ProjectDetailsPage() {
                                                         <ChevronRight className="h-4 w-4" />
                                                     )}
                                                 </TableCell>
-                                                <TableCell className="font-medium">{vendorName}</TableCell>
+                                                <TableCell className="font-medium">To do (vendors)</TableCell>
                                                 <TableCell className="text-right">
                                                     ${(vendor.totalInvoiced || 0).toLocaleString()}
                                                 </TableCell>

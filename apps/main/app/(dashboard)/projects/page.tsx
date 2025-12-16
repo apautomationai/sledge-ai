@@ -11,6 +11,7 @@ import {
     ProjectList,
     Pagination,
     DeleteProjectDialog,
+    ProjectPopup,
     type ProjectMapRef,
 } from "@/components/projects";
 import { type Project, type ProjectWithCoordinates } from "@/lib/data/projects";
@@ -49,6 +50,7 @@ export default function ProjectsPage() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
     const [isMapFiltering, setIsMapFiltering] = useState(true);
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
@@ -185,8 +187,15 @@ export default function ProjectsPage() {
         return <Type className="h-4 w-4" />;
     };
 
-    const handleMarkerClick = () => {
-        // Optional: Add any marker click behavior here if needed
+    const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
+
+    const handleMarkerClick = (projectId: number, position: { x: number; y: number }) => {
+        // Find the project from allProjects (which has all the data we need)
+        const project = allProjects.find(p => p.id === projectId);
+        if (project) {
+            setSelectedProject(project);
+            setPopupPosition(position);
+        }
     };
 
     const handleProjectDelete = (id: number, e: React.MouseEvent) => {
@@ -237,6 +246,11 @@ export default function ProjectsPage() {
     const toggleMapFiltering = () => {
         setIsMapFiltering(!isMapFiltering);
         setCurrentPage(1); // Reset to first page when toggling
+    };
+
+    const handleClosePopup = () => {
+        setSelectedProject(null);
+        setPopupPosition(null);
     };
 
 
@@ -354,6 +368,15 @@ export default function ProjectsPage() {
                 projectAddress={projectToDelete?.address}
                 isDeleting={isDeleting}
             />
+
+            {/* Project Popup */}
+            {selectedProject && popupPosition && (
+                <ProjectPopup
+                    project={selectedProject}
+                    position={popupPosition}
+                    onClose={handleClosePopup}
+                />
+            )}
         </div>
     );
 }

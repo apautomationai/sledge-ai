@@ -32,8 +32,6 @@ export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksIte
     const selectedItem = useMemo(() => {
         if (!value) return null;
         const found = items.find((item) => item.Id === value) || null;
-        console.log("🔍 Looking for item with ID:", value, "in", items.length, "items");
-        console.log("🔍 Found item:", found);
         return found;
     }, [items, value]);
 
