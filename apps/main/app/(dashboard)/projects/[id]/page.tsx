@@ -202,7 +202,7 @@ export default function ProjectDetailsPage() {
                                                         <ChevronRight className="h-4 w-4" />
                                                     )}
                                                 </TableCell>
-                                                <TableCell className="font-medium">To do (vendors)</TableCell>
+                                                <TableCell className="font-medium">{vendor?.displayName ?? "-"}</TableCell>
                                                 <TableCell className="text-right">
                                                     ${(vendor.totalInvoiced || 0).toLocaleString()}
                                                 </TableCell>

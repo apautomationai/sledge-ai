@@ -296,11 +296,12 @@ class ProjectsServices {
                     billAddrCity: relation.billAddrCity,
                     billAddrState: relation.billAddrState,
                     billAddrPostalCode: relation.billAddrPostalCode,
-                    // Aggregated data from junction table
-                    totalInvoiced: parseFloat(relation.totalInvoiced || '0'),
-                    invoiceCount: relation.invoiceCount || 0,
-                    firstInvoiceDate: relation.firstInvoiceDate,
-                    lastInvoiceDate: relation.lastInvoiceDate,
+                    // Calculate aggregated data from actual invoices to ensure consistency
+                    // Note: Using dynamic calculation instead of junction table fields to avoid sync issues
+                    totalInvoiced: invoices.reduce((sum, inv) => sum + parseFloat(inv.totalAmount || '0'), 0),
+                    invoiceCount: invoices.length, // Use actual invoice count instead of pre-calculated field
+                    firstInvoiceDate: invoices.length > 0 ? invoices[invoices.length - 1]?.invoiceDate : null,
+                    lastInvoiceDate: invoices.length > 0 ? invoices[0]?.invoiceDate : null,
                     // Invoice details
                     invoices,
                 };
