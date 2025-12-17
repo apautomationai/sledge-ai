@@ -196,9 +196,9 @@ export default function LienWaiversPage() {
     };
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-[calc(100vh-120px)] min-h-0">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 flex-shrink-0">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Lien Waivers</h1>
                     <p className="text-muted-foreground mt-1">
@@ -209,7 +209,7 @@ export default function LienWaiversPage() {
             </div>
 
             {/* Filters */}
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 flex-shrink-0">
                 {/* Search */}
                 <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -287,17 +287,21 @@ export default function LienWaiversPage() {
                 </Popover>
             </div>
 
-            {/* Table */}
-            <LienWaiverTable lienWaivers={paginatedWaivers} isLoading={isLoading} />
+            {/* Table - Scrollable area */}
+            <div className="flex-1 min-h-0">
+                <LienWaiverTable lienWaivers={paginatedWaivers} isLoading={isLoading} />
+            </div>
 
-            {/* Pagination */}
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={filteredWaivers.length}
-                itemsPerPage={ITEMS_PER_PAGE}
-                onPageChange={setCurrentPage}
-            />
+            {/* Pagination - Fixed at bottom */}
+            <div className="flex-shrink-0 pt-4 border-t mt-4">
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredWaivers.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                    onPageChange={setCurrentPage}
+                />
+            </div>
         </div>
     );
 }
