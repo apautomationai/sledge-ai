@@ -59,9 +59,9 @@ export function VendorsTable({ vendors, isLoading, sortBy, sortOrder, onSort }: 
 
     if (isLoading) {
         return (
-            <div className="rounded-lg border bg-card">
+            <div className="rounded-lg border bg-card h-full overflow-auto">
                 <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-card sticky top-0 z-10 shadow-sm">
                         <TableRow className="hover:bg-transparent">
                             <TableHead className="w-[40%]">Vendor</TableHead>
                             <TableHead className="text-center">Projects</TableHead>
@@ -96,9 +96,9 @@ export function VendorsTable({ vendors, isLoading, sortBy, sortOrder, onSort }: 
     }
 
     return (
-        <div className="rounded-lg border bg-card">
+        <div className="rounded-lg border bg-card h-full overflow-auto">
             <Table>
-                <TableHeader>
+                <TableHeader className="bg-card sticky top-0 z-10 shadow-sm">
                     <TableRow className="hover:bg-transparent">
                         <SortableHeader field="name">Vendor</SortableHeader>
                         <SortableHeader field="projectCount">Projects</SortableHeader>

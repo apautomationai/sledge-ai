@@ -108,9 +108,9 @@ export default function VendorsPage() {
     ];
 
     return (
-        <div className="space-y-6">
+        <div className="flex flex-col h-[calc(100vh-120px)] min-h-0">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-6 flex-shrink-0">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Vendors</h1>
                     <p className="text-muted-foreground">
@@ -124,32 +124,38 @@ export default function VendorsPage() {
             </div>
 
             {/* Filters */}
-            <VendorsFilter
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                sortOptions={sortOptions}
-            />
+            <div className="mb-6 flex-shrink-0">
+                <VendorsFilter
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    sortOptions={sortOptions}
+                />
+            </div>
 
-            {/* Table */}
-            <VendorsTable
-                vendors={vendors}
-                isLoading={isLoading}
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-            />
+            {/* Table - Scrollable area */}
+            <div className="flex-1 min-h-0">
+                <VendorsTable
+                    vendors={vendors}
+                    isLoading={isLoading}
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                />
+            </div>
 
-            {/* Pagination */}
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={totalVendors}
-                itemsPerPage={ITEMS_PER_PAGE}
-                onPageChange={setCurrentPage}
-            />
+            {/* Pagination - Fixed at bottom */}
+            <div className="flex-shrink-0 pt-4 border-t mt-4">
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalVendors}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                    onPageChange={setCurrentPage}
+                />
+            </div>
         </div>
     );
 }
