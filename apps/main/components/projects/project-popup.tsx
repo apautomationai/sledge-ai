@@ -9,13 +9,18 @@ interface ProjectPopupProps {
     project: Project;
     position: { x: number; y: number };
     onClose: () => void;
+    onActivate?: (project: Project) => void;
 }
 
-export function ProjectPopup({ project, position, onClose }: ProjectPopupProps) {
+export function ProjectPopup({ project, position, onClose, onActivate }: ProjectPopupProps) {
     const router = useRouter();
 
-    const handleViewDetails = () => {
-        router.push(`/projects/${project.id}`);
+    const handleClick = () => {
+        if (project.status === 'pending' && onActivate) {
+            onActivate(project);
+        } else {
+            router.push(`/projects/${project.id}`);
+        }
         onClose();
     };
 
@@ -82,7 +87,7 @@ export function ProjectPopup({ project, position, onClose }: ProjectPopupProps) 
             <Card
                 className="w-80 overflow-hidden relative shadow-2xl cursor-pointer"
                 style={popupStyle}
-                onClick={handleViewDetails}
+                onClick={handleClick}
             >
                 {/* Arrow pointing to marker (only show if popup is above marker) */}
                 {top < position.y && (
@@ -99,6 +104,21 @@ export function ProjectPopup({ project, position, onClose }: ProjectPopupProps) 
                 >
                     {/* Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+                    {/* Status Badge */}
+                    {project.status !== 'active' && (
+                        <div className="absolute top-2 left-2">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${project.status === 'pending' ? 'bg-red-100 text-red-800' :
+                                project.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                    project.status === 'on_hold' ? 'bg-yellow-100 text-yellow-800' :
+                                        project.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                            'bg-red-100 text-red-800'
+                                }`}>
+                                {project.status === 'pending' ? 'ACTION NEEDED' :
+                                    project.status?.replace('_', ' ').toUpperCase() || 'ACTION NEEDED'}
+                            </span>
+                        </div>
+                    )}
 
                     {/* Project Info */}
                     <div className="absolute bottom-0 left-0 right-0 p-4 text-white">

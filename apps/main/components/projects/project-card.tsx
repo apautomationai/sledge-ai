@@ -8,13 +8,18 @@ import { Project } from "@/lib/data/projects";
 interface ProjectCardProps {
     project: Project;
     onDelete: (e: React.MouseEvent) => void;
+    onActivate?: (project: Project) => void;
 }
 
-export function ProjectCard({ project, onDelete }: ProjectCardProps) {
+export function ProjectCard({ project, onDelete, onActivate }: ProjectCardProps) {
     const router = useRouter();
 
     const handleClick = () => {
-        router.push(`/projects/${project.id}`);
+        if (project.status === 'pending' && onActivate) {
+            onActivate(project);
+        } else {
+            router.push(`/projects/${project.id}`);
+        }
     };
 
     return (
@@ -29,6 +34,21 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
             >
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+                {/* Status Badge */}
+                {project.status !== 'active' && (
+                    <div className="absolute top-2 left-2">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${project.status === 'pending' ? 'bg-red-100 text-red-800' :
+                            project.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                project.status === 'on_hold' ? 'bg-yellow-100 text-yellow-800' :
+                                    project.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                        'bg-red-100 text-red-800'
+                            }`}>
+                            {project.status === 'pending' ? 'ACTION NEEDED' :
+                                project.status?.replace('_', ' ').toUpperCase() || 'ACTION NEEDED'}
+                        </span>
+                    </div>
+                )}
 
                 {/* Delete Button */}
                 <Button

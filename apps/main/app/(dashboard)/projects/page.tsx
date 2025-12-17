@@ -12,6 +12,7 @@ import {
     Pagination,
     DeleteProjectDialog,
     ProjectPopup,
+    ProjectActivationModal,
     type ProjectMapRef,
 } from "@/components/projects";
 import { type Project, type ProjectWithCoordinates } from "@/lib/data/projects";
@@ -55,6 +56,8 @@ export default function ProjectsPage() {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showActivationModal, setShowActivationModal] = useState(false);
+    const [projectToActivate, setProjectToActivate] = useState<Project | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [searchInput, setSearchInput] = useState("");
     const [sortOrder, setSortOrder] = useState<SortOrder>(null);
@@ -122,6 +125,10 @@ export default function ProjectsPage() {
                     imageUrl: p.imageUrl || "",
                     latitude: p.latitude,
                     longitude: p.longitude,
+                    status: p.status,
+                    projectStartDate: p.projectStartDate,
+                    billingCycleStartDate: p.billingCycleStartDate,
+                    billingCycleEndDate: p.billingCycleEndDate,
                     vendorCount: p.vendorCount,
                 }));
 
@@ -153,6 +160,10 @@ export default function ProjectsPage() {
                         imageUrl: p.imageUrl || "",
                         latitude: p.latitude,
                         longitude: p.longitude,
+                        status: p.status,
+                        projectStartDate: p.projectStartDate,
+                        billingCycleStartDate: p.billingCycleStartDate,
+                        billingCycleEndDate: p.billingCycleEndDate,
                         coordinates: {
                             lat: parseFloat(p.latitude),
                             lng: parseFloat(p.longitude),
@@ -204,6 +215,36 @@ export default function ProjectsPage() {
         if (project) {
             setProjectToDelete(project);
             setShowDeleteDialog(true);
+        }
+    };
+
+    const handleProjectActivation = (project: Project) => {
+        setProjectToActivate(project);
+        setShowActivationModal(true);
+    };
+
+    const handleActivateProject = async (projectId: number, data: {
+        projectStartDate: string;
+        billingCycleStartDate: string;
+        billingCycleEndDate: string;
+    }) => {
+        try {
+            const response: any = await client.put(`/api/v1/projects/${projectId}/activate`, data);
+
+            if (response.status === "success") {
+                toast.success("Project activated successfully");
+
+                // Refresh the projects list
+                fetchProjects();
+                fetchMapProjects();
+
+                setShowActivationModal(false);
+                setProjectToActivate(null);
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Failed to activate project");
+            console.error("Error activating project:", error);
+            throw error;
         }
     };
 
@@ -345,6 +386,7 @@ export default function ProjectsPage() {
                         <ProjectList
                             projects={projects}
                             onProjectDelete={handleProjectDelete}
+                            onProjectActivate={handleProjectActivation}
                         />
 
                         {totalPages > 1 && (
@@ -375,8 +417,20 @@ export default function ProjectsPage() {
                     project={selectedProject}
                     position={popupPosition}
                     onClose={handleClosePopup}
+                    onActivate={handleProjectActivation}
                 />
             )}
+
+            {/* Project Activation Modal */}
+            <ProjectActivationModal
+                project={projectToActivate}
+                isOpen={showActivationModal}
+                onClose={() => {
+                    setShowActivationModal(false);
+                    setProjectToActivate(null);
+                }}
+                onActivate={handleActivateProject}
+            />
         </div>
     );
 }

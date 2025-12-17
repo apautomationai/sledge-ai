@@ -7,6 +7,10 @@ export interface Project {
     imageUrl: string;
     latitude: string | null;
     longitude: string | null;
+    status?: string;
+    projectStartDate?: string;
+    billingCycleStartDate?: string;
+    billingCycleEndDate?: string;
     vendorCount?: number;
 }
 

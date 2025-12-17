@@ -8,7 +8,7 @@ import { eq, and, or, ilike, sql, count, asc, desc } from "drizzle-orm";
 
 class ProjectsServices {
     // Fallback image URL for projects without images
-    private readonly FALLBACK_IMAGE_URL = '/images/project-placeholder.svg'; // Professional project placeholder image
+    private readonly FALLBACK_IMAGE_URL = '/images/project-placeholder.jpg'; // Professional project placeholder image
 
     /**
      * Get image URL with fallback
@@ -43,10 +43,8 @@ class ProjectsServices {
                     })
                     .where(eq(projectsModel.id, project.id));
 
-                console.log(`✅ Updated coordinates for project ${project.id}: ${project.name} (${latitude}, ${longitude})`);
                 return { latitude, longitude };
             } else {
-                console.log(`⚠️ No coordinates found for project ${project.id}: ${project.name}`);
                 return { latitude: null, longitude: null };
             }
         } catch (error) {
@@ -76,11 +74,9 @@ class ProjectsServices {
                     })
                     .where(eq(projectsModel.id, project.id));
 
-                console.log(`✅ Updated image for project ${project.id}: ${project.name}`);
                 return imageUrl;
             } else {
                 // No image found, but don't update the database to avoid repeated API calls
-                console.log(`⚠️ No image found for project ${project.id}: ${project.name}`);
                 return null;
             }
         } catch (error) {
@@ -156,7 +152,10 @@ class ProjectsServices {
                 imageUrl: projectsModel.imageUrl,
                 latitude: projectsModel.latitude,
                 longitude: projectsModel.longitude,
-                billingCycle: projectsModel.billingCycle,
+                billingCycleStartDate: projectsModel.billingCycleStartDate,
+                billingCycleEndDate: projectsModel.billingCycleEndDate,
+                status: projectsModel.status,
+                projectStartDate: projectsModel.projectStartDate,
                 createdAt: projectsModel.createdAt,
                 updatedAt: projectsModel.updatedAt,
             })
@@ -222,7 +221,115 @@ class ProjectsServices {
         };
     }
 
-    async getProjectById(projectId: number, userId: number) {
+
+
+    /**
+     * Get all available billing cycles for a project based on billing cycle dates and invoice dates
+     */
+    private async getAvailableBillingCycles(projectId: number, userId: number, billingCycleStartDate: Date | null, billingCycleEndDate: Date | null, projectStartDate: Date | null) {
+        if (!billingCycleStartDate || !billingCycleEndDate) {
+            return [];
+        }
+
+        // Get the earliest and latest invoice dates for this project (after project start date)
+        const invoiceDateRange = await db
+            .select({
+                earliestDate: sql<string>`MIN(${invoiceModel.invoiceDate})`,
+                latestDate: sql<string>`MAX(${invoiceModel.invoiceDate})`
+            })
+            .from(invoiceModel)
+            .leftJoin(projectVendorsModel, eq(invoiceModel.vendorId, projectVendorsModel.vendorId))
+            .where(
+                and(
+                    eq(invoiceModel.userId, userId),
+                    eq(projectVendorsModel.projectId, projectId),
+                    eq(invoiceModel.isDeleted, false),
+                    eq(projectVendorsModel.isDeleted, false),
+                    // Only include invoices after project start date
+                    projectStartDate ? sql`${invoiceModel.invoiceDate} >= ${projectStartDate.toISOString().split('T')[0]}` : undefined
+                )
+            );
+
+        const { earliestDate, latestDate } = invoiceDateRange[0];
+
+        if (!earliestDate || !latestDate) {
+            return [];
+        }
+
+        const cycles = [];
+        const now = new Date();
+
+        // Extract the day of month from the billing cycle dates to determine the pattern
+        const cycleEndDay = billingCycleEndDate.getDate();
+
+        // Calculate the cycle length in days
+        const cycleLengthMs = billingCycleEndDate.getTime() - billingCycleStartDate.getTime();
+        const cycleLengthDays = Math.ceil(cycleLengthMs / (1000 * 60 * 60 * 24));
+
+        // Find the current billing cycle end date based on the pattern
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        let currentCycleEnd = new Date(currentYear, currentMonth, cycleEndDay);
+
+        // If today is past the billing cycle end day, the current cycle ends next month
+        if (now.getDate() > cycleEndDay) {
+            currentCycleEnd = new Date(currentYear, currentMonth + 1, cycleEndDay);
+        }
+
+        // Generate cycles going backwards from current cycle to earliest invoice
+        let cycleEnd = new Date(currentCycleEnd);
+        const earliestInvoiceDate = new Date(earliestDate);
+
+        while (cycleEnd >= earliestInvoiceDate) {
+            // Calculate cycle start based on the pattern
+            const cycleStart = new Date(cycleEnd);
+            cycleStart.setDate(cycleStart.getDate() - cycleLengthDays + 1);
+
+            // Check if this is the current cycle
+            const isCurrent = now >= cycleStart && now <= cycleEnd;
+
+            // Create cycle label
+            const startLabel = cycleStart.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: cycleStart.getFullYear() !== cycleEnd.getFullYear() ? 'numeric' : undefined
+            });
+            const endLabel = cycleEnd.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+
+            cycles.push({
+                id: `${cycleEnd.getFullYear()}-${String(cycleEnd.getMonth() + 1).padStart(2, '0')}-${String(cycleEnd.getDate()).padStart(2, '0')}`,
+                label: `${startLabel} - ${endLabel}`,
+                startDate: cycleStart,
+                endDate: cycleEnd,
+                isCurrent: isCurrent
+            });
+
+            // Move to previous cycle
+            cycleEnd = new Date(cycleStart);
+            cycleEnd.setDate(cycleEnd.getDate() - 1);
+        }
+
+        return cycles; // Already in reverse chronological order (most recent first)
+    }
+
+
+
+    /**
+     * Filter invoices by billing cycle
+     */
+    private filterInvoicesByBillingCycle(invoices: any[], cycleStart: Date, cycleEnd: Date) {
+        return invoices.filter(invoice => {
+            if (!invoice.invoiceDate) return false;
+            const invoiceDate = new Date(invoice.invoiceDate);
+            return invoiceDate >= cycleStart && invoiceDate <= cycleEnd;
+        });
+    }
+
+    async getProjectById(projectId: number, userId: number, billingCycle?: string) {
         const [project] = await db
             .select()
             .from(projectsModel)
@@ -268,11 +375,55 @@ class ProjectsServices {
                 )
             );
 
+        // Get available billing cycles
+        const availableCycles = await this.getAvailableBillingCycles(
+            projectId,
+            userId,
+            project.billingCycleStartDate,
+            project.billingCycleEndDate,
+            project.projectStartDate
+        );
+
+        // Determine which billing cycle to show
+        let selectedCycle = null;
+        let cycleStart: Date | null = null;
+        let cycleEnd: Date | null = null;
+
+        if (availableCycles.length === 0) {
+            // No billing cycles available (project not activated or no invoices)
+            selectedCycle = 'full';
+        } else if (billingCycle === 'full' || !billingCycle) {
+            // Show all invoices (no filtering)
+            selectedCycle = 'full';
+        } else if (billingCycle === 'current') {
+            // Show current billing cycle
+            const currentCycle = availableCycles.find(cycle => cycle.isCurrent);
+            if (currentCycle) {
+                selectedCycle = currentCycle.id;
+                cycleStart = currentCycle.startDate;
+                cycleEnd = currentCycle.endDate;
+            } else {
+                // No current cycle found, default to full
+                selectedCycle = 'full';
+            }
+        } else {
+            // Show specific billing cycle
+            const specificCycle = availableCycles.find(cycle => cycle.id === billingCycle);
+            if (specificCycle) {
+                selectedCycle = specificCycle.id;
+                cycleStart = specificCycle.startDate;
+                cycleEnd = specificCycle.endDate;
+            } else {
+                // Specific cycle not found, default to full
+                selectedCycle = 'full';
+            }
+        }
+
         // Get invoices for each vendor
         const vendorsWithInvoices = await Promise.all(
             projectVendorRelations.map(async (relation) => {
-                // Get invoices for this vendor at this project location
-                const invoices = await db
+                // Get all invoices for this vendor at this project location (after project start date)
+                const allInvoices = await db
                     .select()
                     .from(invoiceModel)
                     .where(
@@ -280,10 +431,18 @@ class ProjectsServices {
                             eq(invoiceModel.userId, userId),
                             relation.vendorId ? eq(invoiceModel.vendorId, relation.vendorId) : sql`1=1`,
                             eq(invoiceModel.deliveryAddress, project.address),
-                            eq(invoiceModel.isDeleted, false)
+                            eq(invoiceModel.isDeleted, false),
+                            // Only include invoices after project start date
+                            project.projectStartDate ? sql`${invoiceModel.invoiceDate} >= ${project.projectStartDate.toISOString().split('T')[0]}` : undefined
                         )
                     )
                     .orderBy(sql`${invoiceModel.invoiceDate} DESC`);
+
+                // Filter invoices by billing cycle if specified
+                let filteredInvoices = allInvoices;
+                if (cycleStart && cycleEnd) {
+                    filteredInvoices = this.filterInvoicesByBillingCycle(allInvoices, cycleStart, cycleEnd);
+                }
 
                 return {
                     // Vendor information
@@ -296,14 +455,14 @@ class ProjectsServices {
                     billAddrCity: relation.billAddrCity,
                     billAddrState: relation.billAddrState,
                     billAddrPostalCode: relation.billAddrPostalCode,
-                    // Calculate aggregated data from actual invoices to ensure consistency
-                    // Note: Using dynamic calculation instead of junction table fields to avoid sync issues
-                    totalInvoiced: invoices.reduce((sum, inv) => sum + parseFloat(inv.totalAmount || '0'), 0),
-                    invoiceCount: invoices.length, // Use actual invoice count instead of pre-calculated field
-                    firstInvoiceDate: invoices.length > 0 ? invoices[invoices.length - 1]?.invoiceDate : null,
-                    lastInvoiceDate: invoices.length > 0 ? invoices[0]?.invoiceDate : null,
-                    // Invoice details
-                    invoices,
+                    // Calculate aggregated data from filtered invoices
+                    totalInvoiced: filteredInvoices.reduce((sum, inv) => sum + parseFloat(inv.totalAmount || '0'), 0),
+                    invoiceCount: filteredInvoices.length,
+                    firstInvoiceDate: filteredInvoices.length > 0 ? filteredInvoices[filteredInvoices.length - 1]?.invoiceDate : null,
+                    lastInvoiceDate: filteredInvoices.length > 0 ? filteredInvoices[0]?.invoiceDate : null,
+                    invoices: filteredInvoices,
+                    totalInvoicesAllTime: allInvoices.length,
+                    totalAmountAllTime: allInvoices.reduce((sum, inv) => sum + parseFloat(inv.totalAmount || '0'), 0),
                 };
             })
         );
@@ -336,7 +495,47 @@ class ProjectsServices {
             latitude: latitude || null,
             longitude: longitude || null,
             vendors: vendorsWithInvoices,
+            billingCycles: {
+                available: availableCycles,
+                selected: selectedCycle,
+                selectedCycleInfo: selectedCycle !== 'full' && cycleStart && cycleEnd ? {
+                    startDate: cycleStart,
+                    endDate: cycleEnd,
+                    label: availableCycles.find(c => c.id === selectedCycle)?.label || ''
+                } : null
+            }
         };
+    }
+
+    async updateProject(projectId: number, userId: number, updateData: {
+        status?: string;
+        projectStartDate?: Date;
+        name?: string;
+        address?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+        country?: string;
+
+        billingCycleStartDate?: Date;
+        billingCycleEndDate?: Date;
+    }) {
+        const [updatedProject] = await db
+            .update(projectsModel)
+            .set({
+                ...updateData,
+                updatedAt: new Date(),
+            })
+            .where(
+                and(
+                    eq(projectsModel.id, projectId),
+                    eq(projectsModel.userId, userId),
+                    eq(projectsModel.isDeleted, false)
+                )
+            )
+            .returning();
+
+        return updatedProject;
     }
 
     async deleteProject(projectId: number, userId: number) {
@@ -371,6 +570,8 @@ class ProjectsServices {
                 imageUrl: projectsModel.imageUrl,
                 latitude: projectsModel.latitude,
                 longitude: projectsModel.longitude,
+                status: projectsModel.status,
+                projectStartDate: projectsModel.projectStartDate,
             })
             .from(projectsModel)
             .where(

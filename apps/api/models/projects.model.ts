@@ -30,7 +30,12 @@ export const projectsModel = pgTable("projects", {
   longitude: decimal("longitude", { precision: 11, scale: 8 }), // High precision for coordinates
 
   // Billing information
-  billingCycle: integer("billing_cycle").notNull().default(30), // days
+  billingCycleStartDate: timestamp("billing_cycle_start_date"), // Billing cycle start
+  billingCycleEndDate: timestamp("billing_cycle_end_date"), // Billing cycle end
+
+  // Project status and timeline
+  status: varchar("status", { length: 50 }).notNull().default("pending"), // pending, active, completed, on_hold, cancelled
+  projectStartDate: timestamp("project_start_date"),
 
   // Soft delete
   isDeleted: boolean("is_deleted").notNull().default(false),
