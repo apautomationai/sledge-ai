@@ -13,6 +13,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { QUICKBOOKS_EMBEDDING_DIMENSION } from "@/lib/vector.constants";
 import { usersModel } from "./users.model";
+import { projectVendorsModel } from "./project-vendors.model";
 
 // quickbooks schema doc https://developer.intuit.com/app/developer/qbo/docs/api/accounting/all-entities/vendor
 
@@ -93,16 +94,13 @@ export const quickbooksVendorsModel = pgTable(
 
 export const quickbooksVendorsRelations = relations(
   quickbooksVendorsModel,
-  ({ one }) => ({
+  ({ one, many }) => ({
     user: one(usersModel, {
       fields: [quickbooksVendorsModel.userId],
       references: [usersModel.id],
     }),
+    projectVendors: many(projectVendorsModel),
   })
 );
 
-// Note: Import projectsModel when needed for the relation
-// project: one(projectsModel, {
-//   fields: [quickbooksVendorsModel.projectId],
-//   references: [projectsModel.id],
-// }),
+

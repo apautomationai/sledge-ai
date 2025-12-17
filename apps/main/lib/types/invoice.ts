@@ -1,5 +1,7 @@
 // @/lib/types/invoice.ts
 
+import { VendorData } from "@/hooks/use-jobs";
+
 export type Attachment = {
   id: string;
   userId: number;
@@ -23,12 +25,12 @@ export type InvoiceStatus = "pending" | "approved" | "rejected" | "failed" | "no
 export type InvoiceListItem = {
   id: number;
   invoiceNumber: string;
-  vendorName: string | null;
   totalAmount: string | null;
   status: InvoiceStatus | null;
   isDeleted?: boolean;
   deletedAt?: string | null;
   createdAt: string;
+  vendorData: VendorData
 };
 
 export interface InvoiceDetails {
@@ -36,7 +38,6 @@ export interface InvoiceDetails {
   userId: number;
   attachmentId: number;
   invoiceNumber: string;
-  vendorName: string | null;
   vendorAddress: string | null;
   vendorPhone: string | null;
   vendorEmail: string | null;
@@ -58,6 +59,7 @@ export interface InvoiceDetails {
   updatedAt: string;
   fileUrl: string;
   sourcePdfUrl: string | null;
+  vendorData?: VendorData | null;
 }
 
 
@@ -81,7 +83,6 @@ export interface LineItem {
 export interface AssociatedInvoiceDetails {
   id: number;
   invoiceNumber: string;
-  vendorName: string;
 }
 
 /**

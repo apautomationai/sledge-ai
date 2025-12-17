@@ -34,14 +34,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
+import { VendorData } from "@/hooks/use-jobs";
 
 interface Invoice {
     id: number;
     invoiceNumber: string;
-    vendorName: string | null;
     totalAmount: string | null;
     status: string | null;
     createdAt: string;
+    vendorData: VendorData
 }
 
 export interface Job {
@@ -53,12 +54,12 @@ export interface Job {
     created_at: string;
     invoiceCount: number;
     jobStatus: "pending" | "processing" | "processed" | "approved" | "rejected" | "failed";
-    vendorName?: string | null;
     invoiceStatusCounts?: {
         approved: number;
         rejected: number;
         pending: number;
     };
+    vendorData?: VendorData | null
 }
 
 interface JobsTableProps {
@@ -379,7 +380,7 @@ export function JobsTable({ jobs, isLoading, onReviewJob, onJobDeleted, sortBy, 
                                                 </span>
                                             </div>
                                         </TableCell>
-                                        <TableCell>{job.vendorName || "—"}</TableCell>
+                                        <TableCell>{job.vendorData ? job?.vendorData?.displayName ?? "-" : "—"}</TableCell>
                                         <TableCell>{getSourceDisplay(job.provider)}</TableCell>
                                         <TableCell className="max-w-[200px] truncate">
                                             {job.sender || "—"}
@@ -517,8 +518,8 @@ export function JobsTable({ jobs, isLoading, onReviewJob, onJobDeleted, sortBy, 
                                                                                     )}
                                                                                 </div>
                                                                                 <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                                                                                    {invoice.vendorName && (
-                                                                                        <span className="truncate">{invoice.vendorName}</span>
+                                                                                    {invoice.vendorData && (
+                                                                                        <span className="truncate">{invoice.vendorData ? invoice?.vendorData?.displayName ?? "" : ""}</span>
                                                                                     )}
                                                                                     {invoice.totalAmount && (
                                                                                         <span className="flex-shrink-0">${invoice.totalAmount}</span>

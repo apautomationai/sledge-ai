@@ -28,9 +28,9 @@ const statusColors: Record<string, string> = {
 
 export function LienWaiverTable({ lienWaivers, isLoading }: LienWaiverTableProps) {
     return (
-        <div className="flex-1 overflow-auto rounded-lg border bg-card">
+        <div className="rounded-lg border bg-card h-full overflow-auto">
             <table className="w-full">
-                <thead className="border-b bg-muted/30 sticky top-0">
+                <thead className="border-b bg-card sticky top-0 z-10 shadow-sm">
                     <tr>
                         <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             Lien Waiver

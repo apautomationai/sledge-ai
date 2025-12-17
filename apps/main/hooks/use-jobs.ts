@@ -4,6 +4,20 @@ import { useState, useEffect, useCallback } from "react";
 import { client } from "@/lib/axios-client";
 import { useRealtimeInvoices } from "@/hooks/use-realtime-invoices";
 
+export interface VendorData {
+    id: number;
+    displayName: string | null;
+    companyName: string | null;
+    primaryEmail: string | null;
+    primaryPhone: string | null;
+    billAddrLine1: string | null;
+    billAddrCity: string | null;
+    billAddrState: string | null;
+    billAddrPostalCode: string | null;
+    active: boolean | null;
+    quickbooksId: string;
+}
+
 export interface Job {
     id: string;
     filename: string;
@@ -13,7 +27,7 @@ export interface Job {
     created_at: string;
     invoiceCount: number;
     jobStatus: "pending" | "processing" | "processed" | "approved" | "rejected" | "failed";
-    vendorName?: string | null;
+    vendorData?: VendorData | null;
     invoiceStatusCounts?: {
         approved: number;
         rejected: number;
@@ -131,19 +145,7 @@ export function useJobs({ page, status = "all", sortBy = "received", sortOrder =
         },
         onAttachmentStatusUpdated: (attachmentId, status) => {
             console.log("📎 WebSocket: Attachment status updated:", attachmentId, status, "- fetching jobs");
-            if (attachmentId) {
-                // Update the specific job's status in place instead of refetching all jobs
-                setJobs((prevJobs) =>
-                    prevJobs.map((job) =>
-                        job.id === String(attachmentId)
-                            ? { ...job, jobStatus: status as Job["jobStatus"] }
-                            : job
-                    )
-                );
-            } else {
-                // Fallback to refetching if attachmentId is not provided
-                fetchJobs();
-            }
+            fetchJobs();
         },
         enableToasts: false,
         autoConnect: true,

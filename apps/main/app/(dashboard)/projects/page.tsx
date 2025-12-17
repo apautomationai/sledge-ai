@@ -5,69 +5,136 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, ArrowUpAZ, ArrowDownZA, Type, Map, List } from "lucide-react";
 import {
     ProjectMap,
     ProjectList,
     Pagination,
     DeleteProjectDialog,
+    ProjectPopup,
+    ProjectActivationModal,
     type ProjectMapRef,
 } from "@/components/projects";
-import { type Project } from "@/lib/data/projects";
+import { type Project, type ProjectWithCoordinates } from "@/lib/data/projects";
 import client from "@/lib/axios-client";
 
 const ITEMS_PER_PAGE = 10;
 
+// Custom hook for debounce
+function useDebounce<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+
+    return debouncedValue;
+}
+
+type SortOrder = 'asc' | 'desc' | null;
+
+interface MapBounds {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+}
+
 export default function ProjectsPage() {
-    const [allProjects, setAllProjects] = useState<Project[]>([]);
+    const [allProjects, setAllProjects] = useState<ProjectWithCoordinates[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [visibleProjects, setVisibleProjects] = useState<Project[]>([]);
-    const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+    const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
+    const [isMapFiltering, setIsMapFiltering] = useState(true);
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showActivationModal, setShowActivationModal] = useState(false);
+    const [projectToActivate, setProjectToActivate] = useState<Project | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState("");
+    const [searchInput, setSearchInput] = useState("");
+    const [sortOrder, setSortOrder] = useState<SortOrder>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalProjects, setTotalProjects] = useState(0);
     const mapRef = useRef<ProjectMapRef>(null);
     const router = useRouter();
 
+    // Debounce search input and map bounds
+    const debouncedSearchQuery = useDebounce(searchInput, 500);
+    const debouncedMapBounds = useDebounce(mapBounds, 1000); // 1 second debounce for map bounds
+
+
+
     // Fetch projects from API
     useEffect(() => {
         fetchProjects();
-    }, [currentPage, searchQuery]);
+    }, [currentPage, debouncedSearchQuery, sortOrder, debouncedMapBounds, isMapFiltering]);
+
+    // Fetch map projects (for markers)
+    useEffect(() => {
+        fetchMapProjects();
+    }, []);
+
+    // Reset to first page when search changes
+    useEffect(() => {
+        if (debouncedSearchQuery !== searchInput) return; // Only reset when debounced value changes
+        setCurrentPage(1);
+    }, [debouncedSearchQuery]);
+
+    // Reset to first page when switching between filtering modes or map bounds change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [isMapFiltering, debouncedMapBounds]);
 
     const fetchProjects = async () => {
         setIsLoading(true);
         try {
-            const response:any = await client.get("/api/v1/projects", {
-                params: {
-                    page: currentPage,
-                    limit: ITEMS_PER_PAGE,
-                    search: searchQuery,
-                },
-            });
+            const params: any = {
+                page: currentPage,
+                limit: ITEMS_PER_PAGE,
+                search: debouncedSearchQuery,
+                sortBy: sortOrder ? "name" : "createdAt",
+                sortOrder: sortOrder || "desc",
+            };
 
-            if (response.status === "success") {
-                const fetchedProjects = response.data.projects.map((p: any) => ({
+            // Add bounds parameters if map filtering is enabled and bounds are available
+            if (isMapFiltering && debouncedMapBounds) {
+                params.north = debouncedMapBounds.north;
+                params.south = debouncedMapBounds.south;
+                params.east = debouncedMapBounds.east;
+                params.west = debouncedMapBounds.west;
+            }
+
+            const response = await client.get("/api/v1/projects", { params });
+
+            if ((response as any).status === "success") {
+                const fetchedProjects: Project[] = response.data.projects.map((p: any) => ({
                     id: p.id,
+                    name: p.name,
                     address: p.address,
                     city: p.city || "",
-                    coordinates: { lat: 0, lng: 0 }, // Will be geocoded if needed
+                    state: p.state || "",
                     imageUrl: p.imageUrl || "",
+                    latitude: p.latitude,
+                    longitude: p.longitude,
+                    status: p.status,
+                    projectStartDate: p.projectStartDate,
+                    billingCycleStartDate: p.billingCycleStartDate,
+                    billingCycleEndDate: p.billingCycleEndDate,
+                    vendorCount: p.vendorCount,
                 }));
 
                 setProjects(fetchedProjects);
-                setVisibleProjects(fetchedProjects);
                 setTotalPages(response.data.pagination.totalPages);
                 setTotalProjects(response.data.pagination.total);
-
-                // Fetch all projects for map (without pagination)
-                if (currentPage === 1 && !searchQuery) {
-                    setAllProjects(fetchedProjects);
-                }
             }
         } catch (error: any) {
             toast.error("Failed to load projects");
@@ -77,18 +144,69 @@ export default function ProjectsPage() {
         }
     };
 
+    const fetchMapProjects = async () => {
+        try {
+            const response = await client.get("/api/v1/projects/map");
+
+            if ((response as any).status === "success") {
+                const mapProjects: ProjectWithCoordinates[] = response.data
+                    .filter((p: any) => p.latitude && p.longitude) // Only projects with coordinates
+                    .map((p: any) => ({
+                        id: p.id,
+                        name: p.name,
+                        address: p.address,
+                        city: p.city || "",
+                        state: p.state || "",
+                        imageUrl: p.imageUrl || "",
+                        latitude: p.latitude,
+                        longitude: p.longitude,
+                        status: p.status,
+                        projectStartDate: p.projectStartDate,
+                        billingCycleStartDate: p.billingCycleStartDate,
+                        billingCycleEndDate: p.billingCycleEndDate,
+                        coordinates: {
+                            lat: parseFloat(p.latitude),
+                            lng: parseFloat(p.longitude),
+                        },
+                    }));
+
+                setAllProjects(mapProjects);
+            }
+        } catch (error: any) {
+            console.error("Error fetching map projects:", error);
+        }
+    };
+
     const handleSearch = (value: string) => {
-        setSearchQuery(value);
-        setCurrentPage(1); // Reset to first page on search
+        setSearchInput(value);
     };
 
-    const handleProjectSelect = (project: Project) => {
-        setSelectedProjectId(project.id);
-        mapRef.current?.panToProject(project.coordinates);
+    const handleSort = () => {
+        if (sortOrder === null) {
+            setSortOrder('asc');
+        } else if (sortOrder === 'asc') {
+            setSortOrder('desc');
+        } else {
+            setSortOrder(null);
+        }
+        setCurrentPage(1); // Reset to first page on sort change
     };
 
-    const handleMarkerClick = (projectId: number) => {
-        setSelectedProjectId(projectId);
+    const getSortIcon = () => {
+        if (sortOrder === 'asc') return <ArrowUpAZ className="h-4 w-4" />;
+        if (sortOrder === 'desc') return <ArrowDownZA className="h-4 w-4" />;
+        return <Type className="h-4 w-4" />;
+    };
+
+    const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
+
+    const handleMarkerClick = (projectId: number, position: { x: number; y: number }) => {
+        // Find the project from allProjects (which has all the data we need)
+        const project = allProjects.find(p => p.id === projectId);
+        if (project) {
+            setSelectedProject(project);
+            setPopupPosition(position);
+        }
     };
 
     const handleProjectDelete = (id: number, e: React.MouseEvent) => {
@@ -100,22 +218,47 @@ export default function ProjectsPage() {
         }
     };
 
+    const handleProjectActivation = (project: Project) => {
+        setProjectToActivate(project);
+        setShowActivationModal(true);
+    };
+
+    const handleActivateProject = async (projectId: number, data: {
+        projectStartDate: string;
+        billingCycleStartDate: string;
+        billingCycleEndDate: string;
+    }) => {
+        try {
+            const response: any = await client.put(`/api/v1/projects/${projectId}/activate`, data);
+
+            if (response.status === "success") {
+                toast.success("Project activated successfully");
+
+                // Refresh the projects list
+                fetchProjects();
+                fetchMapProjects();
+
+                setShowActivationModal(false);
+                setProjectToActivate(null);
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Failed to activate project");
+            console.error("Error activating project:", error);
+            throw error;
+        }
+    };
+
     const confirmDelete = async () => {
         if (!projectToDelete) return;
 
         setIsDeleting(true);
         try {
-            const response:any = await client.delete(`/api/v1/projects/${projectToDelete.id}`);
+            const response: any = await client.delete(`/api/v1/projects/${projectToDelete.id}`);
 
-            if (response.status === "success") {
+            if ((response as any).status === "success") {
                 // Remove from local state
                 setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
-                setVisibleProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
                 setAllProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
-
-                if (selectedProjectId === projectToDelete.id) {
-                    setSelectedProjectId(null);
-                }
 
                 // Update total count
                 setTotalProjects((prev) => prev - 1);
@@ -135,9 +278,20 @@ export default function ProjectsPage() {
         }
     };
 
-    const handleBoundsChange = (filteredProjects: Project[]) => {
-        // For now, we'll keep the list synchronized with API pagination
-        // Map bounds filtering can be added later if needed
+
+
+    const handleMapBoundsChange = (bounds: MapBounds) => {
+        setMapBounds(bounds);
+    };
+
+    const toggleMapFiltering = () => {
+        setIsMapFiltering(!isMapFiltering);
+        setCurrentPage(1); // Reset to first page when toggling
+    };
+
+    const handleClosePopup = () => {
+        setSelectedProject(null);
+        setPopupPosition(null);
     };
 
 
@@ -148,9 +302,9 @@ export default function ProjectsPage() {
             <div className="w-1/2 rounded-lg border bg-card overflow-hidden">
                 <ProjectMap
                     ref={mapRef}
-                    projects={allProjects.length > 0 ? allProjects : projects}
+                    projects={allProjects}
                     onMarkerClick={handleMarkerClick}
-                    onBoundsChange={handleBoundsChange}
+                    onBoundsChange={handleMapBoundsChange}
                 />
             </div>
 
@@ -160,7 +314,10 @@ export default function ProjectsPage() {
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
                         <p className="text-muted-foreground">
-                            {totalProjects} project{totalProjects !== 1 ? "s" : ""} total
+                            {isMapFiltering
+                                ? `${totalProjects} project${Number(totalProjects) !== 1 ? "s" : ""} in map area`
+                                : `${totalProjects} project${Number(totalProjects) !== 1 ? "s" : ""} total`
+                            }
                         </p>
                     </div>
                     <Button onClick={() => router.push("/projects/new")}>
@@ -169,37 +326,78 @@ export default function ProjectsPage() {
                     </Button>
                 </div>
 
-                {/* Search Bar */}
-                <div className="mb-4 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search projects by name, address, city..."
-                        value={searchQuery}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        className="pl-10"
-                    />
+                {/* Search Bar, Sort, and Map Filter */}
+                <div className="mb-4 flex gap-2">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search projects by name, address, city..."
+                            value={searchInput}
+                            onChange={(e) => handleSearch(e.target.value)}
+                            className="pl-10"
+                        />
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleSort}
+                        title={
+                            sortOrder === 'asc'
+                                ? 'Sort A-Z (click for Z-A)'
+                                : sortOrder === 'desc'
+                                    ? 'Sort Z-A (click to reset)'
+                                    : 'Sort by date (click for A-Z)'
+                        }
+                    >
+                        {getSortIcon()}
+                    </Button>
+                    <Button
+                        variant={isMapFiltering ? "default" : "outline"}
+                        size="icon"
+                        onClick={toggleMapFiltering}
+                        title={isMapFiltering ? "Show all projects" : "Filter by map area"}
+                    >
+                        {isMapFiltering ? <Map className="h-4 w-4" /> : <List className="h-4 w-4" />}
+                    </Button>
                 </div>
 
                 {isLoading ? (
                     <div className="flex-1 flex items-center justify-center">
                         <p className="text-muted-foreground">Loading projects...</p>
                     </div>
+                ) : projects.length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center">
+                        <div className="text-center">
+                            <p className="text-muted-foreground mb-2">
+                                {isMapFiltering
+                                    ? "No projects visible in current map area"
+                                    : "No projects found"
+                                }
+                            </p>
+                            {isMapFiltering && (
+                                <p className="text-sm text-muted-foreground">
+                                    Try zooming out or panning the map to see more projects
+                                </p>
+                            )}
+                        </div>
+                    </div>
                 ) : (
                     <>
                         <ProjectList
                             projects={projects}
-                            selectedProjectId={selectedProjectId}
-                            onProjectSelect={handleProjectSelect}
                             onProjectDelete={handleProjectDelete}
+                            onProjectActivate={handleProjectActivation}
                         />
 
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            totalItems={totalProjects}
-                            itemsPerPage={ITEMS_PER_PAGE}
-                            onPageChange={setCurrentPage}
-                        />
+                        {totalPages > 1 && (
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalItems={totalProjects}
+                                itemsPerPage={ITEMS_PER_PAGE}
+                                onPageChange={setCurrentPage}
+                            />
+                        )}
                     </>
                 )}
             </div>
@@ -211,6 +409,27 @@ export default function ProjectsPage() {
                 onConfirm={confirmDelete}
                 projectAddress={projectToDelete?.address}
                 isDeleting={isDeleting}
+            />
+
+            {/* Project Popup */}
+            {selectedProject && popupPosition && (
+                <ProjectPopup
+                    project={selectedProject}
+                    position={popupPosition}
+                    onClose={handleClosePopup}
+                    onActivate={handleProjectActivation}
+                />
+            )}
+
+            {/* Project Activation Modal */}
+            <ProjectActivationModal
+                project={projectToActivate}
+                isOpen={showActivationModal}
+                onClose={() => {
+                    setShowActivationModal(false);
+                    setProjectToActivate(null);
+                }}
+                onActivate={handleActivateProject}
             />
         </div>
     );

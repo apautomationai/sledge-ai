@@ -151,45 +151,33 @@ export async function fetchQuickBooksItems(): Promise<QuickBooksItem[]> {
  */
 export async function fetchQuickBooksCustomers(): Promise<QuickBooksCustomer[]> {
   try {
-    console.log('🔍 Fetching customers from API...');
     const response = await client.get<QuickBooksCustomersResponse>("/api/v1/quickbooks/customers");
-
-    console.log('📦 Raw API response:', response);
-    console.log('📦 Response data:', response.data);
 
     // Handle { data: { QueryResponse: { Customer: [...] } } } structure (what we're getting)
     if ((response.data as any)?.QueryResponse?.Customer) {
-      console.log('✅ Found customers in data.QueryResponse structure');
       const customers = (response.data as any).QueryResponse.Customer;
-      console.log('📋 Returning customers:', customers.length, customers);
       return customers;
     }
 
     // Handle nested response structure: { success: true, data: { QueryResponse: { Customer: [...] } } }
     if (response.data?.success && response.data?.data?.QueryResponse?.Customer) {
-      console.log('✅ Found customers in nested structure');
       return response.data.data.QueryResponse.Customer;
     }
 
     // Handle { success: true, data: [...] } structure
     if (response.data?.success && Array.isArray(response.data?.data)) {
-      console.log('✅ Found customers in data array');
       return response.data.data as QuickBooksCustomer[];
     }
 
     // Fallback: try direct array access
     if (Array.isArray(response.data?.data)) {
-      console.log('✅ Found customers in direct data array');
       return response.data.data as QuickBooksCustomer[];
     }
 
     if (Array.isArray(response.data)) {
-      console.log('✅ Found customers in direct response array');
       return response.data as QuickBooksCustomer[];
     }
 
-    console.warn('⚠️ No customers found in any expected structure');
-    console.log('Response structure:', JSON.stringify(response.data, null, 2));
     return [];
   } catch (error) {
     console.error("❌ Error fetching QuickBooks customers:", error);

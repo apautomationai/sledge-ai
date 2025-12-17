@@ -85,11 +85,11 @@ class ProcessorController {
             invoice_number: invoice.invoice_number,
             data: createdInvoice,
             operation,
-            message: operation === 'created' 
-              ? "Invoice created successfully" 
-              : operation === 'updated' 
-              ? "Invoice updated successfully" 
-              : "Invoice already exists with same data",
+            message: operation === 'created'
+              ? "Invoice created successfully"
+              : operation === 'updated'
+                ? "Invoice updated successfully"
+                : "Invoice already exists with same data",
           });
         } catch (error: any) {
           // Add error result
@@ -149,36 +149,36 @@ class ProcessorController {
   }
 
   async getAllProjects(req: Request, res: Response) {
-  try {
+    try {
 
-    // Fetch projects from service
-    const { projects, totalCount } = await projectServices.getAllProjects();
+      // Fetch projects from service
+      const { projects, totalCount } = await projectServices.getAllProjects();
 
-    // Safe check for empty array
-    if (!projects || projects.length === 0) {
-      return res.status(404).json({
+      // Safe check for empty array
+      if (!projects || projects.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No projects found",
+        });
+      }
+
+      const addresses = projects.map(p => p.address);
+
+      return res.json({
+        success: true,
+        data: {
+          addresses,
+          totalCount,
+        },
+      });
+    } catch (error: any) {
+      console.error(error);
+      return res.status(error.statusCode || 500).json({
         success: false,
-        message: "No projects found",
+        error: error.message,
       });
     }
-
-    const addresses = projects.map(p => p.address);
-
-    return res.json({
-      success: true,
-      data: {
-        addresses,
-        totalCount,
-      },
-    });
-  } catch (error: any) {
-    console.error(error);
-    return res.status(error.statusCode || 500).json({
-      success: false,
-      error: error.message,
-    });
   }
-}
 
 
   async updateAttachment(req: Request, res: Response) {
@@ -221,7 +221,7 @@ class ProcessorController {
     const {
       invoice_number,
       customer_name,
-      vendor_name,
+      vendor_id,
       vendor_address,
       vendor_phone,
       vendor_email,
@@ -242,8 +242,8 @@ class ProcessorController {
       throw new BadRequestError("Attachment ID is required");
     }
 
-    if (!invoice_number || !vendor_name || !customer_name) {
-      throw new BadRequestError("Invoice number, vendor name, and customer name are required");
+    if (!invoice_number || !vendor_id || !customer_name) {
+      throw new BadRequestError("Invoice number, vendor id, and customer name are required");
     }
 
     if (!invoice_date) {
@@ -284,7 +284,7 @@ class ProcessorController {
       userId: resolvedUserId,
       attachmentId: attachment_id,
       invoiceNumber: invoice_number,
-      vendorName: vendor_name,
+      vendorId: vendor_id,
       vendorAddress: vendor_address,
       vendorPhone: vendor_phone,
       vendorEmail: vendor_email,

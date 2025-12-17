@@ -22,6 +22,7 @@ import jobsRoutes from "@/routes/jobs.routes";
 import projectsRoutes from "@/routes/projects.routes";
 import reportRoutes from "@/routes/report.route"
 import emailIntegrationRoutes from "./routes/email-integration.routes";
+import vendorsRoutes from "./routes/vendors.routes";
 
 const app = express();
 app.use(express.json());
@@ -63,6 +64,7 @@ app.use("/api/v1/processor", processorRoutes);
 app.use("/api/v1/subscription", subscriptionRoutes);
 app.use("/api/v1/jobs", jobsRoutes);
 app.use("/api/v1/projects", projectsRoutes);
+app.use("/api/v1/vendors", vendorsRoutes);
 app.use("/api/v1/report", reportRoutes);
 
 // Error handlers

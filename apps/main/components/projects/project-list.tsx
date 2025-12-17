@@ -1,27 +1,18 @@
 import React from "react";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { ProjectCard } from "./project-card";
-
-interface Project {
-    id: number;
-    address: string;
-    city: string;
-    coordinates: { lat: number; lng: number };
-    imageUrl: string;
-}
+import { Project } from "@/lib/data/projects";
 
 interface ProjectListProps {
     projects: Project[];
-    selectedProjectId: number | null;
-    onProjectSelect: (project: Project) => void;
     onProjectDelete: (id: number, e: React.MouseEvent) => void;
+    onProjectActivate?: (project: Project) => void;
 }
 
 export function ProjectList({
     projects,
-    selectedProjectId,
-    onProjectSelect,
     onProjectDelete,
+    onProjectActivate,
 }: ProjectListProps) {
     return (
         <ScrollArea className="flex-1 pr-4 mb-4">
@@ -30,9 +21,8 @@ export function ProjectList({
                     <ProjectCard
                         key={project.id}
                         project={project}
-                        isSelected={selectedProjectId === project.id}
-                        onSelect={() => onProjectSelect(project)}
                         onDelete={(e) => onProjectDelete(project.id, e)}
+                        onActivate={onProjectActivate}
                     />
                 ))}
             </div>

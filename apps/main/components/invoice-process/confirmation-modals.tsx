@@ -40,18 +40,11 @@ interface ConfirmationModalsProps {
 }
 
 export default function ConfirmationModals({
-  isEditing,
-  setIsEditing,
   invoiceDetails,
-  originalInvoiceDetails,
   selectedFields,
   onSave,
-  onReject,
-  onApprove,
-  onCancel,
   onApprovalSuccess,
   onInvoiceDetailsUpdate,
-  onFieldChange,
 }: ConfirmationModalsProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
@@ -181,41 +174,8 @@ export default function ConfirmationModals({
 
         // // Step 4: Hierarchical vendor search (email → phone → address → name)
         // Step 2: Hierarchical vendor search (email → phone → address → name)
-        const vendorSearchResponse: any = await client.get("/api/v1/quickbooks/hierarchical-vendor-search", {
-          params: {
-            email: invoiceDetails.vendorEmail,
-            phone: invoiceDetails.vendorPhone,
-            address: invoiceDetails.vendorAddress,
-            name: invoiceDetails.vendorName
-          }
-        });
 
-        let vendor = null;
-        if (vendorSearchResponse.success && vendorSearchResponse.data.found) {
-          // Found vendor using hierarchical search
-          vendor = vendorSearchResponse.data.vendor;
-          console.log(`Vendor found by ${vendorSearchResponse.data.matchType}:`, vendor.DisplayName || vendor.Name);
-        } else {
-          // No vendor found, create new vendor with all available information
-          const vendorName = invoiceDetails.vendorName;
-          if (vendorName) {
-            const createVendorResponse: any = await client.post("/api/v1/quickbooks/create-vendor", {
-              name: vendorName,
-              email: invoiceDetails.vendorEmail,
-              phone: invoiceDetails.vendorPhone,
-              address: invoiceDetails.vendorAddress
-            });
-            // Handle create vendor response format: data.Vendor
-            vendor = createVendorResponse.data?.Vendor || createVendorResponse.data;
-            console.log("Created new vendor with full details:", vendor.DisplayName || vendor.Name);
-          } else {
-            throw new Error("No vendor information available to create vendor");
-          }
-        }
 
-        if (!vendor) {
-          throw new Error("Failed to find or create vendor in QuickBooks");
-        }
 
         // Step 4: Create bill in QuickBooks using line items from database
         const lineItems = dbLineItemsResponse.data;
@@ -226,7 +186,7 @@ export default function ConfirmationModals({
         const discountAmount = lineItemsSum - totalAmountFromPopup;
 
         // Extract vendor ID (handle both search and create response formats)
-        const vendorId = vendor.Id || vendor.id;
+        const vendorId = invoiceDetails?.vendorData?.quickbooksId;
 
         // Extract tax amount if available
         const totalTaxAmount = parseFloat(invoiceDetails?.totalTax ?? "0") || 0;
@@ -234,7 +194,7 @@ export default function ConfirmationModals({
         try {
           await client.post("/api/v1/quickbooks/create-bill", {
             vendorId: vendorId,
-            lineItems: lineItems, // Pass the line items directly from database with itemType and resourceId
+            lineItems: lineItems,
             totalAmount: totalAmountFromPopup,
             ...(totalTaxAmount > 0 && { totalTax: totalTaxAmount }),
             dueDate: invoiceDetails.dueDate,
@@ -440,7 +400,6 @@ export default function ConfirmationModals({
                 <div className="grid gap-2 text-sm">
                   {selectedFields
                     .filter((key) => {
-                      // Hide internal/system fields from the approval popup
                       const hiddenFields = [
                         'id',
                         'userId',
@@ -450,7 +409,11 @@ export default function ConfirmationModals({
                         's3JsonKey',
                         'createdAt',
                         'updatedAt',
-                        'sourcePdfUrl'
+                        'sourcePdfUrl',
+                        'vendorData',
+                        'isDeleted',
+                        'deletedAt',
+                        'vendorId'
                       ];
                       return !hiddenFields.includes(key);
                     })
@@ -467,6 +430,7 @@ export default function ConfirmationModals({
                             ? capitalizeStatus(invoiceDetails[key as keyof InvoiceDetails] as string)
                             : (key === 'invoiceDate' || key === 'dueDate')
                               ? formatDate(invoiceDetails[key as keyof InvoiceDetails] as string)
+                              // @ts-ignore
                               : renderValue(invoiceDetails[key as keyof InvoiceDetails])
                           }
                         </span>

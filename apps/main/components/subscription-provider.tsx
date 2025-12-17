@@ -78,7 +78,6 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
             // Check if user changed (different userId)
             const currentUserId = getCookie('userId');
             if (currentUserId && lastUserId && currentUserId !== lastUserId) {
-                console.log('🔄 User changed, resetting state');
                 setIsChecked(false);
                 setSubscription(null);
             }
@@ -109,7 +108,6 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     const createCheckoutAndRedirect = async () => {
         try {
             setRedirectingToPayment(true);
-            console.log('🚀 Creating Stripe checkout session...');
             const baseUrl = window.location.origin;
             const successUrl = `${baseUrl}/dashboard?payment_success=true`;
             // When user clicks back on payment page, logout and redirect to login
@@ -122,7 +120,6 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
             const checkoutData = (response as any)?.data;
 
             if (checkoutData?.url) {
-                console.log('✅ Redirecting to Stripe checkout...');
                 window.location.href = checkoutData.url;
             } else {
                 console.error('❌ No checkout URL received');
@@ -151,18 +148,15 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
 
         // Reset check if pathname changed
         if (pathname !== lastPathname) {
-            console.log('📍 Pathname changed:', lastPathname, '→', pathname);
             setIsChecked(false);
             setLastPathname(pathname);
         }
 
         // Skip if already checked for this pathname
         if (isChecked) {
-            console.log('✓ Already checked for', pathname);
             return;
         }
 
-        console.log('🔄 Starting subscription check for', pathname);
 
         // Show loading indicator immediately for protected routes
         setShowLoading(true);
@@ -175,32 +169,19 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
                 if (subscriptionData) {
                     const hasAccess = hasValidSubscription(subscriptionData);
 
-                    console.log('🔍 Subscription check:', {
-                        tier: subscriptionData.tier,
-                        status: subscriptionData.status,
-                        hasAccess,
-                        requiresPaymentSetup: subscriptionData.requiresPaymentSetup,
-                        hasPaymentMethod: subscriptionData.hasPaymentMethod,
-                        pathname
-                    });
-
                     // If user has valid subscription
                     if (hasAccess) {
                         // If on profile subscription tab, redirect to dashboard
                         if (pathname.startsWith('/profile') && pathname.includes('tab=subscription')) {
-                            console.log('✅ Valid subscription, redirecting from profile to dashboard');
                             router.replace('/dashboard');
                         } else {
-                            console.log('✅ Valid subscription, allowing access');
                             // User has access, just render the page
                         }
                     } else {
                         // User doesn't have valid subscription
                         if (pathname.startsWith('/profile')) {
-                            console.log('⚠️ No valid subscription, but on profile page - allowing access');
                             // Allow access to profile page so they can set up payment manually
                         } else {
-                            console.log('❌ No valid subscription, redirecting to payment...');
 
                             // Check if user needs payment setup (non-free tier without payment)
                             if (subscriptionData.tier !== 'free' &&
@@ -208,12 +189,9 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
                                 !subscriptionData.hasPaymentMethod) {
 
                                 // Don't auto-redirect if user just canceled payment
-                                console.log('💳 Payment setup required. Payment canceled flag:', paymentCanceled);
                                 if (paymentCanceled) {
-                                    console.log('⚠️ Payment was canceled, redirecting to profile instead');
                                     router.replace('/profile?tab=subscription&setup=required');
                                 } else {
-                                    console.log('🚀 Auto-redirecting to Stripe checkout');
                                     // Directly create and redirect to Stripe checkout
                                     setLoading(false);
                                     setShowLoading(false);
