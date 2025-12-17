@@ -152,7 +152,6 @@ export default function InvoiceDetailsForm({
   setIsEditing,
   onDetailsChange,
   selectedFields,
-  setSelectedFields,
   onSave,
   onReject,
   onApprove,
@@ -160,11 +159,6 @@ export default function InvoiceDetailsForm({
   onApprovalSuccess,
   onInvoiceDetailsUpdate,
   onFieldChange,
-  setInvoicesList,
-  setSelectedInvoiceId,
-  setInvoiceDetails: setInvoiceDetailsFromParent,
-  setOriginalInvoiceDetails: setOriginalInvoiceDetailsFromParent,
-  setInvoiceDetailsCache,
   lineItemChangesRef,
 }: InvoiceDetailsFormProps) {
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
@@ -522,6 +516,7 @@ export default function InvoiceDetailsForm({
   };
 
   const allFields = Object.keys(invoiceDetails || {});
+
   const hiddenFields = [
     "id",
     "userId",
@@ -534,11 +529,14 @@ export default function InvoiceDetailsForm({
     "sourcePdfUrl",
     "s3JsonKey",
     "isDeleted",
-    "deletedAt"
+    "deletedAt",
+    'vendorId',
+    'vendorData',
+    'vendorAddress',
+    'vendorPhone',
+    'vendorEmail'
   ];
   const fieldsToDisplay = allFields.filter(key => !hiddenFields.includes(key));
-
-
 
   return (
     <div className="h-full flex flex-col gap-2">
@@ -553,17 +551,91 @@ export default function InvoiceDetailsForm({
             <AccordionContent className="px-4 pb-3 flex-1 min-h-0 overflow-hidden data-[state=open]:flex data-[state=open]:flex-col h-full">
               <ScrollArea className="flex-1 pr-2 h-full">
                 <div className="space-y-2.5 py-2">
-                  {fieldsToDisplay.map((key) => (
-                    <FormField
-                      key={key}
-                      fieldKey={key}
-                      label={formatLabel(key)}
-                      value={localInvoiceDetails[key as keyof InvoiceDetails] ?? null}
-                      isEditing={true}
-                      onChange={onDetailsChange}
-                      onDateChange={handleDateChange}
+                  {/* Custom Vendor Fields - Read Only */}
+                  <div className="space-y-1">
+                    <Label htmlFor="vendorName" className="text-xs font-medium">
+                      Vendor Name
+                    </Label>
+                    <Input
+                      id="vendorName"
+                      value={
+                        localInvoiceDetails.vendorData?.displayName ||
+                        localInvoiceDetails.vendorData?.companyName ||
+                        'No vendor assigned'
+                      }
+                      readOnly
+                      className="!bg-muted/90 cursor-not-allowed"
                     />
-                  ))}
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="vendorEmail" className="text-xs font-medium">
+                      Vendor Email
+                    </Label>
+                    <Input
+                      id="vendorEmail"
+                      value={localInvoiceDetails.vendorData?.primaryEmail || 'No email available'}
+                      readOnly
+                      className="!bg-muted/90 cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="vendorPhone" className="text-xs font-medium">
+                      Vendor Phone
+                    </Label>
+                    <Input
+                      id="vendorPhone"
+                      value={localInvoiceDetails.vendorData?.primaryPhone || 'No phone available'}
+                      readOnly
+                      className="!bg-muted/90 cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="vendorAddress" className="text-xs font-medium">
+                      Vendor Address
+                    </Label>
+                    <Input
+                      id="vendorAddress"
+                      value={
+                        localInvoiceDetails.vendorData?.billAddrLine1
+                          ? `${localInvoiceDetails.vendorData.billAddrLine1}${localInvoiceDetails.vendorData.billAddrCity
+                            ? `, ${localInvoiceDetails.vendorData.billAddrCity}`
+                            : ''
+                          }${localInvoiceDetails.vendorData.billAddrState
+                            ? `, ${localInvoiceDetails.vendorData.billAddrState}`
+                            : ''
+                          }${localInvoiceDetails.vendorData.billAddrPostalCode
+                            ? ` ${localInvoiceDetails.vendorData.billAddrPostalCode}`
+                            : ''
+                          }`
+                          : 'No address available'
+                      }
+                      readOnly
+                      className="!bg-muted/90 cursor-not-allowed"
+                    />
+                  </div>
+
+                  {fieldsToDisplay.map((key) => {
+                    const value = localInvoiceDetails[key as keyof InvoiceDetails];
+                    // Skip if the value is an object (like vendorData)
+                    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                      return null;
+                    }
+
+                    return (
+                      <FormField
+                        key={key}
+                        fieldKey={key}
+                        label={formatLabel(key)}
+                        value={value ?? null}
+                        isEditing={true}
+                        onChange={onDetailsChange}
+                        onDateChange={handleDateChange}
+                      />
+                    );
+                  })}
                 </div>
               </ScrollArea>
             </AccordionContent>
@@ -577,62 +649,6 @@ export default function InvoiceDetailsForm({
                 {selectedLineItems.size > 0 && (
                   <div className="flex items-center gap-2 ml-4">
                     <span className="text-xs text-muted-foreground">({selectedLineItems.size} selected)</span>
-                    {/* <Button
-                      size="sm"
-                      className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={async () => {
-                        if (selectedLineItems.size === 0) return;
-
-                        try {
-                          const response: any = await client.post(
-                            `/api/v1/invoice/invoices/${invoiceDetails.id}/split`,
-                            { lineItemIds: Array.from(selectedLineItems) }
-                          );
-
-                          if (response.success) {
-                            toast.success("Invoice split successfully");
-                            setSelectedLineItems(new Set());
-
-                            // Refresh the invoices list filtered by attachmentId
-                            const attachmentId = invoiceDetails.attachmentId;
-                            const refreshResponse = await client.get(`/api/v1/invoice/invoices?attachmentId=${attachmentId}`);
-                            const invoiceData = refreshResponse.data?.data?.invoices || refreshResponse.data?.invoices || [];
-
-                            if (setInvoicesList) {
-                              setInvoicesList(invoiceData);
-                            }
-
-                            // Find and select the new split invoice (first one in the list)
-                            if (invoiceData.length > 0 && setSelectedInvoiceId) {
-                              const firstInvoice = invoiceData[0];
-                              setSelectedInvoiceId(firstInvoice.id);
-
-                              // Fetch details for the first invoice
-                              const detailsResponse = await client.get(`/api/v1/invoice/invoices/${firstInvoice.id}`);
-                              const newDetails = detailsResponse.data;
-
-                              if (setInvoiceDetailsFromParent) {
-                                setInvoiceDetailsFromParent(newDetails);
-                              }
-                              if (setOriginalInvoiceDetailsFromParent) {
-                                setOriginalInvoiceDetailsFromParent(newDetails);
-                              }
-                              if (setInvoiceDetailsCache) {
-                                setInvoiceDetailsCache((prev: any) => ({
-                                  ...prev,
-                                  [newDetails.id]: newDetails
-                                }));
-                              }
-                            }
-                          }
-                        } catch (error) {
-                          console.error("Error splitting invoice:", error);
-                          toast.error("Failed to split invoice");
-                        }
-                      }}
-                    >
-                      Split
-                    </Button> */}
                     <Button
                       size="sm"
                       className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
@@ -729,10 +745,7 @@ export default function InvoiceDetailsForm({
         onOpenChange={(open) => {
           setShowChangeTypeDialog(open);
           if (open) {
-            // Load customers when dialog opens (from context - will skip if already loaded)
             loadCustomers();
-
-            // Load data when dialog opens based on current type
             if (bulkItemType) {
               if (bulkItemType === 'account' && bulkAccounts.length === 0) {
                 loadBulkAccounts();
@@ -759,9 +772,7 @@ export default function InvoiceDetailsForm({
                 onValueChange={(value) => {
                   const newType = value as 'account' | 'product';
                   setBulkItemType(newType);
-                  setBulkResourceId(null); // Reset resource when type changes
-
-                  // Load data for the selected type
+                  setBulkResourceId(null);
                   if (newType === 'account' && bulkAccounts.length === 0) {
                     loadBulkAccounts();
                   } else if (newType === 'product' && bulkItems.length === 0) {

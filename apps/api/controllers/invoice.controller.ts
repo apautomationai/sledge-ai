@@ -11,7 +11,7 @@ class InvoiceController {
       const {
         attachmentId,
         invoiceNumber,
-        vendorName,
+        vendorId,
         customerName,
         invoiceDate,
         dueDate,
@@ -29,7 +29,7 @@ class InvoiceController {
         userId,
         attachmentId,
         invoiceNumber,
-        vendorName,
+        vendorId,
         customerName,
         invoiceDate: new Date(invoiceDate),
         dueDate: new Date(dueDate),
@@ -167,9 +167,7 @@ class InvoiceController {
       }
 
       //@ts-ignore
-
       const invoiceInfo = req.body;
-
 
       // delete
       delete invoiceInfo.createdAt;

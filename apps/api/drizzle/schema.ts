@@ -79,7 +79,7 @@ export const invoices = pgTable("invoices", {
 	userId: integer("user_id").notNull(),
 	attachmentId: integer("attachment_id").notNull(),
 	invoiceNumber: varchar("invoice_number", { length: 50 }),
-	vendorName: varchar("vendor_name", { length: 255 }),
+	vendorId: varchar("vendor_id", { length: 255 }),
 	vendorAddress: text("vendor_address"),
 	vendorPhone: varchar("vendor_phone", { length: 50 }),
 	vendorEmail: varchar("vendor_email", { length: 255 }),

@@ -2,6 +2,7 @@ import { BadRequestError, NotFoundError } from "@/helpers/errors";
 import db from "@/lib/db";
 import { attachmentsModel } from "@/models/attachments.model";
 import { invoiceModel, lineItemsModel } from "@/models/invoice.model";
+import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
 import { count, desc, eq, getTableColumns, and, sql, gte, lt, inArray } from "drizzle-orm";
 import { PDFDocument } from "pdf-lib";
 import { s3Client, uploadBufferToS3 } from "@/helpers/s3upload";
@@ -53,7 +54,6 @@ export class InvoiceServices {
         if (existingInvoice) {
           // Check if data is different from existing invoice
           const hasChanges =
-            existingInvoice.vendorName !== invoiceData.vendorName ||
             existingInvoice.vendorAddress !== invoiceData.vendorAddress ||
             existingInvoice.vendorPhone !== invoiceData.vendorPhone ||
             existingInvoice.vendorEmail !== invoiceData.vendorEmail ||
@@ -73,7 +73,6 @@ export class InvoiceServices {
             const [updatedInvoice] = await tx
               .update(invoiceModel)
               .set({
-                vendorName: invoiceData.vendorName,
                 vendorAddress: invoiceData.vendorAddress,
                 vendorPhone: invoiceData.vendorPhone,
                 vendorEmail: invoiceData.vendorEmail,
@@ -188,19 +187,37 @@ export class InvoiceServices {
         id: invoiceModel.id,
         userId: invoiceModel.userId,
         invoiceNumber: invoiceModel.invoiceNumber,
+        vendorId: invoiceModel.vendorId,
         totalAmount: invoiceModel.totalAmount,
         attachmentId: invoiceModel.attachmentId,
         attachmentUrl: attachmentsModel.fileUrl,
         fileUrl: invoiceModel.fileUrl,
         createdAt: invoiceModel.createdAt,
-        vendorName: invoiceModel.vendorName,
         invoiceDate: invoiceModel.invoiceDate,
         status: invoiceModel.status,
+        // Vendor data from quickbooks_vendors table
+        vendorData: {
+          id: quickbooksVendorsModel.id,
+          displayName: quickbooksVendorsModel.displayName,
+          companyName: quickbooksVendorsModel.companyName,
+          primaryEmail: quickbooksVendorsModel.primaryEmail,
+          primaryPhone: quickbooksVendorsModel.primaryPhone,
+          billAddrLine1: quickbooksVendorsModel.billAddrLine1,
+          billAddrCity: quickbooksVendorsModel.billAddrCity,
+          billAddrState: quickbooksVendorsModel.billAddrState,
+          billAddrPostalCode: quickbooksVendorsModel.billAddrPostalCode,
+          active: quickbooksVendorsModel.active,
+          quickbooksId: quickbooksVendorsModel.quickbooksId,
+        },
       })
       .from(invoiceModel)
       .leftJoin(
         attachmentsModel,
         eq(invoiceModel.attachmentId, attachmentsModel.id),
+      )
+      .leftJoin(
+        quickbooksVendorsModel,
+        eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
       )
       .where(and(...whereConditions))
       .orderBy(desc(invoiceModel.createdAt))
@@ -245,11 +262,29 @@ export class InvoiceServices {
       .select({
         ...getTableColumns(invoiceModel),
         sourcePdfUrl: attachmentsModel.fileUrl,
+        // Vendor data from quickbooks_vendors table
+        vendorData: {
+          id: quickbooksVendorsModel.id,
+          displayName: quickbooksVendorsModel.displayName,
+          companyName: quickbooksVendorsModel.companyName,
+          primaryEmail: quickbooksVendorsModel.primaryEmail,
+          primaryPhone: quickbooksVendorsModel.primaryPhone,
+          billAddrLine1: quickbooksVendorsModel.billAddrLine1,
+          billAddrCity: quickbooksVendorsModel.billAddrCity,
+          billAddrState: quickbooksVendorsModel.billAddrState,
+          billAddrPostalCode: quickbooksVendorsModel.billAddrPostalCode,
+          active: quickbooksVendorsModel.active,
+          quickbooksId: quickbooksVendorsModel.quickbooksId,
+        },
       })
       .from(invoiceModel)
       .leftJoin(
         attachmentsModel,
         eq(invoiceModel.attachmentId, attachmentsModel.id),
+      )
+      .leftJoin(
+        quickbooksVendorsModel,
+        eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
       )
       .where(
         and(
@@ -271,7 +306,7 @@ export class InvoiceServices {
         id: invoiceModel.id,
         status: invoiceModel.status,
         invoiceNumber: invoiceModel.invoiceNumber,
-        vendorName: invoiceModel.vendorName,
+        vendorId: invoiceModel.vendorId,
         totalAmount: invoiceModel.totalAmount,
       })
       .from(invoiceModel)
@@ -296,13 +331,53 @@ export class InvoiceServices {
 
 
     try {
-      const [response] = await db
+      // Update the invoice
+      await db
         .update(invoiceModel)
         .set({ ...updatedData, updatedAt: new Date() })
-        .where(eq(invoiceModel.id, invoiceId))
-        .returning();
+        .where(eq(invoiceModel.id, invoiceId));
 
-      return response;
+      // Fetch the updated invoice with vendor data using JOIN
+      const [updatedInvoiceWithVendor] = await db
+        .select({
+          ...getTableColumns(invoiceModel),
+          sourcePdfUrl: attachmentsModel.fileUrl,
+          // Vendor data from quickbooks_vendors table
+          vendorData: {
+            id: quickbooksVendorsModel.id,
+            displayName: quickbooksVendorsModel.displayName,
+            companyName: quickbooksVendorsModel.companyName,
+            primaryEmail: quickbooksVendorsModel.primaryEmail,
+            primaryPhone: quickbooksVendorsModel.primaryPhone,
+            billAddrLine1: quickbooksVendorsModel.billAddrLine1,
+            billAddrCity: quickbooksVendorsModel.billAddrCity,
+            billAddrState: quickbooksVendorsModel.billAddrState,
+            billAddrPostalCode: quickbooksVendorsModel.billAddrPostalCode,
+            active: quickbooksVendorsModel.active,
+            quickbooksId: quickbooksVendorsModel.quickbooksId,
+          },
+        })
+        .from(invoiceModel)
+        .leftJoin(
+          attachmentsModel,
+          eq(invoiceModel.attachmentId, attachmentsModel.id),
+        )
+        .leftJoin(
+          quickbooksVendorsModel,
+          eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
+        )
+        .where(
+          and(
+            eq(invoiceModel.id, invoiceId),
+            eq(invoiceModel.isDeleted, false)
+          )
+        );
+
+      if (!updatedInvoiceWithVendor) {
+        throw new NotFoundError("Invoice not found after update");
+      }
+
+      return updatedInvoiceWithVendor;
     } catch (error) {
       console.log(error);
       throw new BadRequestError("Unable to update invoice");
@@ -687,16 +762,56 @@ export class InvoiceServices {
 
   async updateInvoiceStatus(invoiceId: number, status: string) {
     try {
-      const [updatedInvoice] = await db
+      // Update the invoice status
+      await db
         .update(invoiceModel)
         .set({
           status: status as any,
           updatedAt: new Date()
         })
-        .where(eq(invoiceModel.id, invoiceId))
-        .returning();
+        .where(eq(invoiceModel.id, invoiceId));
 
-      return updatedInvoice;
+      // Fetch the updated invoice with vendor data using JOIN
+      const [updatedInvoiceWithVendor] = await db
+        .select({
+          ...getTableColumns(invoiceModel),
+          sourcePdfUrl: attachmentsModel.fileUrl,
+          // Vendor data from quickbooks_vendors table
+          vendorData: {
+            id: quickbooksVendorsModel.id,
+            displayName: quickbooksVendorsModel.displayName,
+            companyName: quickbooksVendorsModel.companyName,
+            primaryEmail: quickbooksVendorsModel.primaryEmail,
+            primaryPhone: quickbooksVendorsModel.primaryPhone,
+            billAddrLine1: quickbooksVendorsModel.billAddrLine1,
+            billAddrCity: quickbooksVendorsModel.billAddrCity,
+            billAddrState: quickbooksVendorsModel.billAddrState,
+            billAddrPostalCode: quickbooksVendorsModel.billAddrPostalCode,
+            active: quickbooksVendorsModel.active,
+            quickbooksId: quickbooksVendorsModel.quickbooksId,
+          },
+        })
+        .from(invoiceModel)
+        .leftJoin(
+          attachmentsModel,
+          eq(invoiceModel.attachmentId, attachmentsModel.id),
+        )
+        .leftJoin(
+          quickbooksVendorsModel,
+          eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
+        )
+        .where(
+          and(
+            eq(invoiceModel.id, invoiceId),
+            eq(invoiceModel.isDeleted, false)
+          )
+        );
+
+      if (!updatedInvoiceWithVendor) {
+        throw new NotFoundError("Invoice not found after update");
+      }
+
+      return updatedInvoiceWithVendor;
     } catch (error) {
       console.error("Error updating invoice status:", error);
       throw error;
@@ -761,7 +876,6 @@ export class InvoiceServices {
           userId: originalInvoice.userId,
           attachmentId: originalInvoice.attachmentId,
           invoiceNumber: newInvoiceNumber,
-          vendorName: originalInvoice.vendorName,
           vendorAddress: originalInvoice.vendorAddress,
           vendorPhone: originalInvoice.vendorPhone,
           vendorEmail: originalInvoice.vendorEmail,
@@ -866,7 +980,6 @@ export class InvoiceServices {
           userId: originalInvoice.userId,
           attachmentId: originalInvoice.attachmentId,
           invoiceNumber: newInvoiceNumber,
-          vendorName: originalInvoice.vendorName,
           vendorAddress: originalInvoice.vendorAddress,
           vendorPhone: originalInvoice.vendorPhone,
           vendorEmail: originalInvoice.vendorEmail,
@@ -1200,6 +1313,28 @@ export class InvoiceServices {
       console.error("Error fetching dashboard metrics:", error);
       throw error;
     }
+  }
+
+  async getQuickBooksVendorById(vendorId: number) {
+    const vendor = await db
+      .select({
+        id: quickbooksVendorsModel.id,
+        displayName: quickbooksVendorsModel.displayName,
+        companyName: quickbooksVendorsModel.companyName,
+        primaryEmail: quickbooksVendorsModel.primaryEmail,
+        primaryPhone: quickbooksVendorsModel.primaryPhone,
+        billAddrLine1: quickbooksVendorsModel.billAddrLine1,
+        billAddrCity: quickbooksVendorsModel.billAddrCity,
+        billAddrState: quickbooksVendorsModel.billAddrState,
+        billAddrPostalCode: quickbooksVendorsModel.billAddrPostalCode,
+        active: quickbooksVendorsModel.active,
+        quickbooksId: quickbooksVendorsModel.quickbooksId,
+      })
+      .from(quickbooksVendorsModel)
+      .where(eq(quickbooksVendorsModel.id, vendorId))
+      .limit(1);
+
+    return vendor.length > 0 ? vendor[0] : null;
   }
 }
 export const invoiceServices = new InvoiceServices();
