@@ -1,72 +1,26 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import { Input } from "@workspace/ui/components/input";
-import { Search, ArrowUpDown } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { RefreshCw } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
-import { VendorsTable, Pagination, type Vendor } from "@/components/vendors";
+import { VendorsTable, Pagination, VendorsFilter, type Vendor } from "@/components/vendors";
+import client from "@/lib/axios-client";
+import { syncQuickBooksData } from "@/lib/services/quickbooks.service";
 
 const ITEMS_PER_PAGE = 10;
 
-const DUMMY_VENDORS: Vendor[] = [
-  {
-    id: 1,
-    name: "Acme Construction",
-    projectCount: 5,
-    invoiceCount: 12,
-    lienWaiverCount: 6,
-  },
-  {
-    id: 2,
-    name: "BuildCorp",
-    projectCount: 6,
-    invoiceCount: 8,
-    lienWaiverCount: 2,
-  },
-  {
-    id: 3,
-    name: "Stoneworks",
-    projectCount: 4,
-    invoiceCount: 0,
-    lienWaiverCount: 0,
-  },
-  {
-    id: 4,
-    name: "ProElectric",
-    projectCount: 8,
-    invoiceCount: 14,
-    lienWaiverCount: 0,
-  },
-  {
-    id: 5,
-    name: "SupplyPro",
-    projectCount: 5,
-    invoiceCount: 5,
-    lienWaiverCount: 0,
-  },
-  {
-    id: 6,
-    name: "MetroEnergy",
-    projectCount: 6,
-    invoiceCount: 9,
-    lienWaiverCount: 0,
-  },
-];
-
-
 export default function VendorsPage() {
+    const [vendors, setVendors] = useState<Vendor[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [sortBy, setSortBy] = useState<string>("name");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalVendors, setTotalVendors] = useState(0);
+    const [isSyncing, setIsSyncing] = useState(false);
 
     // Debounce search query
     useEffect(() => {
@@ -78,48 +32,63 @@ export default function VendorsPage() {
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    // Simulate initial loading
+    // Fetch vendors from API
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 500);
-        return () => clearTimeout(timer);
-    }, []);
+        fetchVendors();
+    }, [currentPage, debouncedSearch, sortBy, sortOrder]);
 
-    // Filter, sort, and paginate vendors
-    const { paginatedVendors, totalPages, totalVendors } = useMemo(() => {
-        // Filter by search
-        let filtered = DUMMY_VENDORS.filter((vendor) =>
-            vendor.name.toLowerCase().includes(debouncedSearch.toLowerCase())
-        );
+    const fetchVendors = async () => {
+        setIsLoading(true);
+        try {
+            const response: any = await client.get("/api/v1/vendors", {
+                params: {
+                    page: currentPage,
+                    limit: ITEMS_PER_PAGE,
+                    search: debouncedSearch,
+                    sortBy,
+                    sortOrder,
+                },
+            });
 
-        // Sort
-        filtered = [...filtered].sort((a, b) => {
-            let aValue: string | number = a[sortBy as keyof Vendor];
-            let bValue: string | number = b[sortBy as keyof Vendor];
+            console.log("Vendors API Response:", response);
 
-            if (typeof aValue === "string") {
-                aValue = aValue.toLowerCase();
-                bValue = (bValue as string).toLowerCase();
+            if (response.status === "success") {
+                const fetchedVendors = response.data.vendors.map((v: any) => ({
+                    id: v.id,
+                    name: v.name,
+                    projectCount: v.projectCount || 0,
+                    invoiceCount: v.invoiceCount || 0,
+                    lienWaiverCount: v.lienWaiverCount || 0,
+                }));
+
+                setVendors(fetchedVendors);
+                setTotalPages(response.data.pagination.totalPages);
+                setTotalVendors(response.data.pagination.total);
             }
+        } catch (error: any) {
+            toast.error("Failed to load vendors");
+            console.error("Error fetching vendors:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-            if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-            if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-            return 0;
-        });
+    const syncVendors = async () => {
+        setIsSyncing(true);
+        try {
+            await syncQuickBooksData();
+            toast.success("Sync completed successfully");
 
-        // Calculate pagination
-        const total = filtered.length;
-        const pages = Math.ceil(total / ITEMS_PER_PAGE);
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        const paginated = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-        return {
-            paginatedVendors: paginated,
-            totalPages: pages,
-            totalVendors: total,
-        };
-    }, [debouncedSearch, sortBy, sortOrder, currentPage]);
+            // Refresh vendor list after sync
+            fetchVendors();
+        } catch (error: any) {
+            toast.error("Failed to sync vendors");
+            console.error("Error syncing vendors:", error);
+        } finally {
+            console.log("Finally block reached");
+            setIsSyncing(false);
+        }
+    };
 
     const handleSort = (field: string) => {
         if (sortBy === field) {
@@ -128,6 +97,7 @@ export default function VendorsPage() {
             setSortBy(field);
             setSortOrder("asc");
         }
+        setCurrentPage(1); // Reset to first page on sort change
     };
 
     const sortOptions = [
@@ -140,57 +110,32 @@ export default function VendorsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold tracking-tight">Vendors</h1>
-                <p className="text-muted-foreground">
-                    Manage all vendors across your projects in one place.
-                </p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight">Vendors</h1>
+                    <p className="text-muted-foreground">
+                        Manage all vendors across your projects in one place.
+                    </p>
+                </div>
+                <Button onClick={syncVendors} disabled={isSyncing}>
+                    <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? "animate-spin" : ""}`} />
+                    {isSyncing ? "Syncing..." : "Sync"}
+                </Button>
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-                {/* Search */}
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search vendors..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10"
-                    />
-                </div>
-
-                {/* Sort Dropdown */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="min-w-[150px]">
-                            <ArrowUpDown className="h-4 w-4 mr-2" />
-                            Sort: {sortOptions.find(o => o.value === sortBy)?.label}
-                            {sortOrder === "asc" ? " (A-Z)" : " (Z-A)"}
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {sortOptions.map((option) => (
-                            <DropdownMenuItem
-                                key={option.value}
-                                onClick={() => handleSort(option.value)}
-                                className="cursor-pointer"
-                            >
-                                {option.label}
-                                {sortBy === option.value && (
-                                    <span className="ml-2 text-muted-foreground">
-                                        ({sortOrder === "asc" ? "A-Z" : "Z-A"})
-                                    </span>
-                                )}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
+            <VendorsFilter
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                sortOptions={sortOptions}
+            />
 
             {/* Table */}
             <VendorsTable
-                vendors={paginatedVendors}
+                vendors={vendors}
                 isLoading={isLoading}
                 sortBy={sortBy}
                 sortOrder={sortOrder}
