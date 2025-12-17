@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full">
       <Header />
-      <main className="flex flex-col gap-12">
+      <main className="flex flex-col">
         <Hero />
         <Features />
         <ComingSoon />

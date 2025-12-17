@@ -31,7 +31,7 @@ const featuresData = [
 
 export function Features() {
   return (
-     <section id="features" className="py-24 sm:py-32 relative overflow-hidden bg-gradient-to-b from-black via-gray-900 to-gray-800">
+     
         <div
           className="min-h-screen bg-cover bg-center p-10 flex flex-col items-center text-white"
           style={{ backgroundImage: "url('/images/dark-diamond-plate.jpg')" }}
@@ -40,10 +40,10 @@ export function Features() {
             className="text-5xl font-extrabold text-center mb-3 tracking-wide drop-shadow-lg"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.5 }} // animate once when 50% visible
+            viewport={{ once: true, amount: 0.5 }} 
             transition={{ duration: 0.4 }}
           >
-            POWERFUL FEATURES FOR <br /> MODERN AP TEAMS
+            POWERFUL FEATURES FOR <br /> MODERN APP TEAMS
           </motion.h1>
 
           <motion.p
@@ -306,6 +306,5 @@ export function Features() {
 
 
         </div>
-      </section>
   );
 }
