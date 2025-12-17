@@ -16,7 +16,12 @@ const {
   JIRA_PROJECT_KEY,
 } = process.env;
 
-// Map your priority to Jira priority names
+// 🚨 FAIL FAST – prevents silent OAuth fallback
+if (!JIRA_BASE_URL || !JIRA_EMAIL || !JIRA_API_TOKEN || !JIRA_PROJECT_KEY) {
+  throw new Error("❌ Jira API Token env variables missing");
+}
+
+// Priority mapping
 const mapPriority = (priority: string) => {
   switch (priority) {
     case "critical":
@@ -30,21 +35,30 @@ const mapPriority = (priority: string) => {
   }
 };
 
-// Convert text → ADF format
+// Convert text → ADF
 const toADF = (text: string) => ({
   type: "doc",
   version: 1,
   content: [
     {
       type: "paragraph",
-      content: [
-        {
-          type: "text",
-          text,
-        },
-      ],
+      content: [{ type: "text", text }],
     },
   ],
+});
+
+const JIRA_AUTH_HEADER =
+  "Basic " +
+  Buffer.from(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`).toString("base64");
+
+// Dedicated axios instance (prevents overrides)
+const jiraClient = axios.create({
+  baseURL: JIRA_BASE_URL,
+  timeout: 10000,
+  headers: {
+    Authorization: JIRA_AUTH_HEADER,
+    "Content-Type": "application/json",
+  },
 });
 
 export const createBugReport = async (req: Request, res: Response) => {
@@ -56,7 +70,6 @@ export const createBugReport = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Full human-readable description
     const fullDescription = `
 Category: ${category}
 Priority: ${priority}
@@ -66,33 +79,18 @@ Description:
 ${description}
     `.trim();
 
-    // Jira payload with valid ADF description
     const jiraPayload = {
       fields: {
         project: { key: JIRA_PROJECT_KEY },
         summary: `${category}: ${title}`,
         description: toADF(fullDescription),
-        issuetype: { name: "Task" }, // change to "Bug" if needed
+        issuetype: { name: "Task" }, // or "Bug"
         priority: { name: mapPriority(priority) },
         labels: ["sledge-bug"],
       },
     };
 
-    const response = await axios.post(
-      `${JIRA_BASE_URL}/rest/api/3/issue`,
-      jiraPayload,
-      {
-        auth: {
-          username: JIRA_EMAIL!,
-          password: JIRA_API_TOKEN!,
-        },
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("Jira issue created:", response.data);
+    const response = await jiraClient.post("/rest/api/3/issue", jiraPayload);
 
     return res.status(201).json({
       success: true,
@@ -104,7 +102,6 @@ ${description}
       status: err.response?.status,
       data: err.response?.data,
       message: err.message,
-      stack: err.stack,
     });
 
     return res.status(500).json({
@@ -113,4 +110,3 @@ ${description}
     });
   }
 };
-
