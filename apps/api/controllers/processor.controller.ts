@@ -386,7 +386,11 @@ class ProcessorController {
       const result = await projectServices.createProjectFromAddress(
         userId,
         reqData.address,
-        reqData.vendor_name
+        reqData.vendor_name,
+        reqData.postal_code,
+        reqData.state,
+        reqData.country,
+        reqData.city
       );
 
       return res.status(201).json({

@@ -57,16 +57,17 @@ export class ProjectServices {
   }
 
   async createProjectFromAddress(
-    userId: number,
-    address: string,
-    vendorName?: string
-  ) {
+userId: number, address: string, vendorName?: string, postal_code?: any, state?: any, country?: any, city?: any  ) {
     return await db.transaction(async (tx) => {
       const [project] = await tx
         .insert(projectsModel)
         .values({
           userId,
           name: address,
+          postalCode: postal_code,
+          city: city,
+          country: country,
+          state: state,
           address,
         })
         .returning({ id: projectsModel.id });
@@ -80,7 +81,7 @@ export class ProjectServices {
       if (vendor) {
         await tx.insert(projectVendorsModel).values({
           projectId: project.id,
-          vendorId: vendor.id,
+          vendorId: vendor.id
         });
       }
 
