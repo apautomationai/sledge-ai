@@ -34,7 +34,7 @@ export function Hero() {
     verifySession();
   }, []);
   return (
-    <section className="relative overflow-hidden pt-16 pb-32 sm:pt-24 sm:pb-40 bg-gradient-to-br from-gray-900 via-black to-gray-800">
+    <section className="relative overflow-hidden pt-24 pb-16 md:pt-28 md:pb-40 bg-gradient-to-br from-gray-900 via-black to-gray-800">
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-900/10 via-transparent to-orange-900/10 opacity-60" />
@@ -53,29 +53,31 @@ export function Hero() {
           backgroundSize: '200px 200px, 150px 150px'
         }} />
 
-        {/* Professional floating elements */}
-        <FloatingElements />
-        <ProfessionalIcons />
+        {/* Professional floating elements - hidden on mobile */}
+        <div className="hidden md:block">
+          <FloatingElements />
+          <ProfessionalIcons />
+        </div>
 
-        {/* Animated Background Elements */}
-        <div className="absolute top-20 left-10 opacity-30">
-          <PulsingOrb color="#FDB022" size={80} />
+        {/* Animated Background Elements - scaled down or hidden on mobile */}
+        <div className="absolute top-20 left-4 sm:left-10 opacity-20 sm:opacity-30">
+          <PulsingOrb color="#FDB022" size={40} />
         </div>
-        <div className="absolute top-40 right-20 opacity-20">
-          <PulsingOrb color="#F59E0B" size={120} />
+        <div className="absolute top-40 right-4 sm:right-20 opacity-15 sm:opacity-20 hidden sm:block">
+          <PulsingOrb color="#F59E0B" size={80} />
         </div>
-        <div className="absolute bottom-32 left-1/4 opacity-25">
-          <PulsingOrb color="#FF6B35" size={60} />
+        <div className="absolute bottom-32 left-1/4 opacity-20 sm:opacity-25 hidden sm:block">
+          <PulsingOrb color="#FF6B35" size={40} />
         </div>
 
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-yellow-500 rounded-full mix-blend-screen filter blur-xl opacity-10 animate-blob" />
-          <div className="absolute top-40 right-20 w-72 h-72 bg-orange-500 rounded-full mix-blend-screen filter blur-xl opacity-10 animate-blob animation-delay-2000" />
-          <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-amber-500 rounded-full mix-blend-screen filter blur-xl opacity-10 animate-blob animation-delay-4000" />
+          <div className="absolute top-10 sm:top-20 left-4 sm:left-20 w-32 sm:w-48 md:w-72 h-32 sm:h-48 md:h-72 bg-yellow-500 rounded-full mix-blend-screen filter blur-xl opacity-10 animate-blob" />
+          <div className="absolute top-20 sm:top-40 right-4 sm:right-20 w-32 sm:w-48 md:w-72 h-32 sm:h-48 md:h-72 bg-orange-500 rounded-full mix-blend-screen filter blur-xl opacity-10 animate-blob animation-delay-2000" />
+          <div className="absolute bottom-10 sm:bottom-20 left-1/4 sm:left-1/3 w-32 sm:w-48 md:w-72 h-32 sm:h-48 md:h-72 bg-amber-500 rounded-full mix-blend-screen filter blur-xl opacity-10 animate-blob animation-delay-4000" />
         </div>
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           {/* <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -95,7 +97,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl font-bold tracking-tight text-white sm:text-7xl lg:text-8xl uppercase"
+            className="text-3xl font-bold tracking-tight text-white xs:text-4xl sm:text-5xl md:text-7xl lg:text-8xl uppercase"
           >
             AI-Powered
             <span className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 bg-clip-text text-transparent">
@@ -108,7 +110,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-8 text-xl leading-8 text-gray-300 max-w-3xl mx-auto font-medium"
+            className="mt-4 sm:mt-6 md:mt-8 text-base sm:text-lg md:text-xl leading-7 sm:leading-8 text-gray-300 max-w-3xl mx-auto font-medium px-2 sm:px-0"
           >
             Sledge automates invoices, releases, and approvals built tough for contractors, subs, and crews that move fast.
           </motion.p>
@@ -117,17 +119,17 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="mt-6 sm:mt-8 md:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4 sm:px-0"
           >
             {isLoggedIn ? (
               <Button
                 asChild
                 variant="outline"
                 size="lg"
-                className="px-8 py-4 text-lg font-medium rounded-lg text-gray-900 bg-white hover:bg-gray-100 border-2 border-yellow-500 hover:border-yellow-400 transition-all duration-300 group shadow-lg shadow-yellow-500/20"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base md:text-lg font-medium rounded-lg text-gray-900 bg-white hover:bg-gray-100 border-2 border-yellow-500 hover:border-yellow-400 transition-all duration-300 group shadow-lg shadow-yellow-500/20"
               >
                 <Link href="#demo">
-                  <Play className="mr-2 w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
+                  <Play className="mr-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" />
                   WATCH PRODUCT DEMO
                 </Link>
               </Button>
@@ -136,21 +138,21 @@ export function Hero() {
                 <Button
                   asChild
                   size="lg"
-                  className="bg-gradient-to-r from-yellow-500 via-yellow-400 to-amber-500 hover:from-yellow-400 hover:via-yellow-300 hover:to-amber-400 text-gray-900 px-8 py-4 text-lg font-bold rounded-lg shadow-2xl shadow-yellow-500/50 hover:shadow-yellow-400/60 transition-all duration-300 group uppercase border-2 border-yellow-600"
+                  className="w-full sm:w-auto bg-gradient-to-r from-yellow-500 via-yellow-400 to-amber-500 hover:from-yellow-400 hover:via-yellow-300 hover:to-amber-400 text-gray-900 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base md:text-lg font-bold rounded-lg shadow-2xl shadow-yellow-500/50 hover:shadow-yellow-400/60 transition-all duration-300 group uppercase border-2 border-yellow-600"
                 >
                   <Link href="/sign-up">
                     START FREE TRIAL
-                    <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                    <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" />
                   </Link>
                 </Button>
                 <Button
                   asChild
                   variant="outline"
                   size="lg"
-                  className="px-8 py-4 text-lg font-medium rounded-lg text-white bg-transparent hover:bg-gray-800 border-2 border-gray-600 hover:border-gray-500 transition-all duration-300 group uppercase"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base md:text-lg font-medium rounded-lg text-white bg-transparent hover:bg-gray-800 border-2 border-gray-600 hover:border-gray-500 transition-all duration-300 group uppercase"
                 >
                   <Link href="#demo">
-                    <Play className="mr-2 w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
+                    <Play className="mr-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" />
                     WATCH PRODUCT DEMO
                   </Link>
                 </Button>
@@ -184,47 +186,47 @@ export function Hero() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-20 mx-auto max-w-6xl"
+          className="mt-10 sm:mt-16 md:mt-20 mx-auto max-w-6xl px-2 sm:px-0"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10" />
 
-            {/* Floating animated elements around the preview */}
-            <div className="absolute -top-20 -left-8 z-20">
+            {/* Floating animated elements around the preview - hidden on mobile */}
+            <div className="absolute -top-20 -left-8 z-20 hidden md:block">
               <AnimatedRocket />
             </div>
-            <div className="absolute -bottom-5 -right-20 z-20">
+            <div className="absolute -bottom-5 -right-20 z-20 hidden md:block">
               <AnimatedChart />
             </div>
 
-            <div className="relative rounded-none bg-gray-900/90 backdrop-blur-none border-8 border-yellow-600/60 shadow-[0_0_30px_rgba(253,176,34,0.4),inset_0_0_20px_rgba(0,0,0,0.5)] p-4 sm:p-3">
-              {/* Corner screws/rivets - LARGER AND ROUGHER */}
-              <div className="absolute -top-3 -left-3 w-6 h-6 bg-gray-800 rounded-full border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.8),0_2px_4px_rgba(0,0,0,0.9)] z-20">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-gray-400 rounded-full"></div>
+            <div className="relative rounded-none bg-gray-900/90 backdrop-blur-none border-4 sm:border-6 md:border-8 border-yellow-600/60 shadow-[0_0_30px_rgba(253,176,34,0.4),inset_0_0_20px_rgba(0,0,0,0.5)] p-2 sm:p-3 md:p-4">
+              {/* Corner screws/rivets - hidden on mobile */}
+              <div className="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-gray-800 rounded-full border-2 sm:border-3 md:border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.8),0_2px_4px_rgba(0,0,0,0.9)] z-20 hidden sm:flex items-center justify-center">
+                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
               </div>
-              <div className="absolute -top-3 -right-3 w-6 h-6 bg-gray-800 rounded-full border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.8),0_2px_4px_rgba(0,0,0,0.9)] z-20">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-gray-400 rounded-full"></div>
+              <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-gray-800 rounded-full border-2 sm:border-3 md:border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.8),0_2px_4px_rgba(0,0,0,0.9)] z-20 hidden sm:flex items-center justify-center">
+                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
               </div>
-              <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-gray-800 rounded-full border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.8),0_2px_4px_rgba(0,0,0,0.9)] z-20">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-gray-400 rounded-full"></div>
+              <div className="absolute -bottom-2 -left-2 sm:-bottom-3 sm:-left-3 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-gray-800 rounded-full border-2 sm:border-3 md:border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.8),0_2px_4px_rgba(0,0,0,0.9)] z-20 hidden sm:flex items-center justify-center">
+                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
               </div>
-              <div className="absolute -bottom-3 -right-3 w-6 h-6 bg-gray-800 rounded-full border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.8),0_2px_4px_rgba(0,0,0,0.9)] z-20">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-gray-400 rounded-full"></div>
+              <div className="absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-gray-800 rounded-full border-2 sm:border-3 md:border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.8),0_2px_4px_rgba(0,0,0,0.9)] z-20 hidden sm:flex items-center justify-center">
+                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
               </div>
               
               {/* Weld marks / scratches */}
               <div className="absolute top-2 left-1/4 w-16 h-1 bg-yellow-600/30 blur-sm"></div>
               <div className="absolute bottom-2 right-1/4 w-12 h-1 bg-yellow-600/30 blur-sm"></div>
               
-              <div className="aspect-video rounded-none bg-gradient-to-br from-gray-950 to-black flex items-center justify-center sm:p-8 border-4 border-gray-600 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]">
-                {/* Floating orbs inside the demo area */}
-                <div className="absolute top-4 left-4">
+              <div className="aspect-video rounded-none bg-gradient-to-br from-gray-950 to-black flex items-center justify-center p-2 sm:p-4 md:p-8 border-2 sm:border-3 md:border-4 border-gray-600 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]">
+                {/* Floating orbs inside the demo area - hidden on small mobile */}
+                <div className="absolute top-4 left-4 hidden sm:block">
                   <PulsingOrb color="#FDB022" size={30} />
                 </div>
-                <div className="absolute bottom-4 right-4">
+                <div className="absolute bottom-4 right-4 hidden sm:block">
                   <PulsingOrb color="#F59E0B" size={25} />
                 </div>
-                <div className="relative rounded-lg shadow-2xl overflow-hidden border-2 border-yellow-600/20">
+                <div className="relative rounded-lg shadow-2xl overflow-hidden border sm:border-2 border-yellow-600/20">
                   <Image
                     src="/images/dashboard.png"
                     alt="SLEDGE Product Screenshot"

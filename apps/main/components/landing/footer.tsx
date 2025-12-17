@@ -53,16 +53,16 @@ export function Footer() {
 
       {/* Newsletter Section */}
       <div className="border-b border-gray-800 relative z-10">
-        <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-16 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold text-white mb-4 uppercase">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 uppercase">
               Ready to Transform Your AP Process?
             </h2>
-            <p className="text-lg text-gray-300 mb-8">
+            <p className="text-base sm:text-lg text-gray-300 mb-6 sm:mb-8">
               Join hundreds of businesses that have already streamlined their
               accounts payable with Sledge
             </p>
-            <div className="flex flex-col items-center sm:flex-row gap-4 max-w-md mx-auto">
+            <div className="flex flex-col items-stretch sm:items-center sm:flex-row gap-3 sm:gap-4 max-w-md mx-auto">
               <input
                 type="email"
                 placeholder="Enter your email"
@@ -81,10 +81,10 @@ export function Footer() {
       </div>
 
       {/* Main Footer */}
-      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-16 lg:px-8 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-12">
           {/* Brand Section */}
-          <div className="lg:col-span-2">
+          <div className="col-span-2 lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="relative">
                 <div className="w-full h-full rounded-lg flex items-center justify-center shadow-lg">
@@ -202,7 +202,7 @@ export function Footer() {
       <Separator className="bg-gray-800" />
 
       {/* Bottom Section */}
-      <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8 relative z-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8 lg:px-8 relative z-10">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-gray-400">
             © 2025 SLEDGE. All rights reserved.
