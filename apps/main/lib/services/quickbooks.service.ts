@@ -231,7 +231,7 @@ interface SyncResponse {
 
 export async function syncQuickBooksData(): Promise<SyncResponse> {
   try {
-    const response = await client.post<SyncResponse>("/api/v1/quickbooks/sync");
+    const response = await client.post<SyncResponse>("/api/v1/quickbooks/sync-vendors");
     // @ts-ignore
     return response;
   } catch (error) {

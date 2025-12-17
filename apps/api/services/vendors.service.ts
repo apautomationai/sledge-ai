@@ -88,7 +88,7 @@ class VendorsService {
                         and(
                             eq(invoiceModel.userId, userId),
                             eq(invoiceModel.isDeleted, false),
-                            ilike(invoiceModel.vendorName, `%${vendor.displayName || ""}%`)
+                            eq(invoiceModel.vendorId, vendor.id)
                         )
                     );
 
@@ -213,7 +213,7 @@ class VendorsService {
             .select({
                 id: invoiceModel.id,
                 invoiceNumber: invoiceModel.invoiceNumber,
-                vendorName: invoiceModel.vendorName,
+                vendorId: invoiceModel.vendorId,
                 customerName: invoiceModel.customerName,
                 invoiceDate: invoiceModel.invoiceDate,
                 dueDate: invoiceModel.dueDate,
@@ -228,10 +228,7 @@ class VendorsService {
                 and(
                     eq(invoiceModel.userId, userId),
                     eq(invoiceModel.isDeleted, false),
-                    or(
-                        ilike(invoiceModel.vendorName, `%${v.displayName || ""}%`),
-                        ilike(invoiceModel.vendorName, `%${v.companyName || ""}%`)
-                    )
+                    eq(invoiceModel.vendorId, v.id)
                 )
             );
 
