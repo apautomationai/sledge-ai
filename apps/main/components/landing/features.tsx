@@ -60,7 +60,7 @@ export function Features() {
 
         
           
-          <div className="grid grid-cols-2 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 justify-items-center">
             <motion.div
                 key="INVOICE SCANNING"
                 initial={{ opacity: 0, y: 18 }}
