@@ -971,7 +971,7 @@ export class QuickBooksController {
     }
   };
 
-  syncProductsAndAccounts = async (
+  syncAll = async (
     req: Request,
     res: Response,
     next: NextFunction,
@@ -997,10 +997,15 @@ export class QuickBooksController {
       // Extract items and accounts from response
       const products = lineItemsResponse?.QueryResponse?.Item || [];
       const accounts = accountsResponse?.QueryResponse?.Account || [];
+      const vendorsResponse = await quickbooksService.getVendors(integration);
 
+      // Extract vendors from response
+      const vendors = vendorsResponse?.QueryResponse?.Vendor || [];      
+      
       // Sync to database
       const productsResult = await quickbooksService.syncProductsToDatabase(userId, products);
       const accountsResult = await quickbooksService.syncAccountsToDatabase(userId, accounts);
+      const vendorsResult = await quickbooksService.syncVendorsToDatabase(userId, vendors);
 
       // Update lastSyncedAt in metadata after successful sync
       try {
@@ -1031,6 +1036,12 @@ export class QuickBooksController {
             updated: accountsResult.updated,
             skipped: accountsResult.skipped,
             total: accounts.length,
+          },
+          vendors: {
+            inserted: vendorsResult.inserted,
+            updated: vendorsResult.updated,
+            skipped: vendorsResult.skipped,
+            total: vendors.length,
           },
         },
       });
