@@ -46,7 +46,7 @@ export default function DashboardDataView({
       <div className={isLoading ? "opacity-50 pointer-events-none" : ""}>
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-3 mb-6">
-          <Link href="/invoice-review">
+          <Link href="/jobs">
             <Button variant="default" className="gap-2">
               <FileText className="h-4 w-4" />
               Review Invoices
