@@ -3,8 +3,7 @@ import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
 import { projectVendorsModel } from "@/models/project-vendors.model";
 import { projectsModel } from "@/models/projects.model";
 import { invoiceModel } from "@/models/invoice.model";
-import { lienWaiversModel } from "@/models/lien-waivers.model";
-import { eq, and, ilike, count, or } from "drizzle-orm";
+import { eq, and, ilike, count } from "drizzle-orm";
 
 interface GetVendorsParams {
     userId: number;
@@ -232,40 +231,38 @@ class VendorsService {
                 )
             );
 
-        // Get lien waivers linked to this vendor
-        const lienWaivers = await db
-            .select({
-                id: lienWaiversModel.id,
-                projectId: lienWaiversModel.projectId,
-                projectName: projectsModel.name,
-                projectAddress: projectsModel.address,
-                waiverType: lienWaiversModel.waiverType,
-                billingCycle: lienWaiversModel.billingCycle,
-                throughDate: lienWaiversModel.throughDate,
-                vendorName: lienWaiversModel.vendorName,
-                vendorEmail: lienWaiversModel.vendorEmail,
-                customerName: lienWaiversModel.customerName,
-                amount: lienWaiversModel.amount,
-                isSigned: lienWaiversModel.isSigned,
-                signedAt: lienWaiversModel.signedAt,
-                signedFileUrl: lienWaiversModel.signedFileUrl,
-                createdAt: lienWaiversModel.createdAt,
-            })
-            .from(lienWaiversModel)
-            .innerJoin(
-                projectsModel,
-                eq(lienWaiversModel.projectId, projectsModel.id)
-            )
-            .where(
-                and(
-                    eq(projectsModel.userId, userId),
-                    or(
-                        eq(lienWaiversModel.vendorId, String(vendorId)),
-                        ilike(lienWaiversModel.vendorName, `%${v.displayName || ""}%`),
-                        ilike(lienWaiversModel.vendorName, `%${v.companyName || ""}%`)
-                    )
-                )
-            );
+        // Get lien waivers linked to this vendor (uncomment below code when lien-waivers are linked properly)
+        // const lienWaivers = await db
+        //     .select({
+        //         id: lienWaiversModel.id,
+        //         projectId: lienWaiversModel.vendorId,
+        //         waiverType: lienWaiversModel.waiverType,
+        //         billingCycle: lienWaiversModel.billingCycle,
+        //         throughDate: lienWaiversModel.throughDate,
+        //         vendorName: lienWaiversModel.vendorName,
+        //         vendorEmail: lienWaiversModel.vendorEmail,
+        //         customerName: lienWaiversModel.customerName,
+        //         amount: lienWaiversModel.amount,
+        //         isSigned: lienWaiversModel.isSigned,
+        //         signedAt: lienWaiversModel.signedAt,
+        //         signedFileUrl: lienWaiversModel.signedFileUrl,
+        //         createdAt: lienWaiversModel.createdAt,
+        //     })
+        //     .from(lienWaiversModel)
+        //     .innerJoin(
+        //         projectsModel,
+        //         eq(lienWaiversModel.vendorId, projectsModel.id)
+        //     )
+        //     .where(
+        //         and(
+        //             eq(projectsModel.userId, userId),
+        //             or(
+        //                 eq(lienWaiversModel.vendorId, String(vendorId)),
+        //                 ilike(lienWaiversModel.vendorName, `%${v.displayName || ""}%`),
+        //                 ilike(lienWaiversModel.vendorName, `%${v.companyName || ""}%`)
+        //             )
+        //         )
+        //     );
 
         return {
             id: v.id,
@@ -289,10 +286,10 @@ class VendorsService {
             },
             projects,
             invoices,
-            lienWaivers,
+            lienWaivers: [],
             projectCount: projects.length,
             invoiceCount: invoices.length,
-            lienWaiverCount: lienWaivers.length,
+            lienWaiverCount: 0,
             active: v.active,
             balance: v.balance,
             createdAt: v.createdAt,
