@@ -50,7 +50,7 @@ class VendorsService {
             ? and(
                 eq(quickbooksVendorsModel.userId, userId),
                 ilike(quickbooksVendorsModel.displayName, `%${search}%`)
-              )
+            )
             : eq(quickbooksVendorsModel.userId, userId);
 
         // Get all vendors for this user
