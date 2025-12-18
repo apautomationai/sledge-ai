@@ -6,7 +6,7 @@ import { RefreshCw } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { VendorsTable, Pagination, VendorsFilter, type Vendor } from "@/components/vendors";
 import client from "@/lib/axios-client";
-import { syncQuickBooksData } from "@/lib/services/quickbooks.service";
+import { syncQuickBooksVendors } from "@/lib/services/quickbooks.service";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -76,7 +76,7 @@ export default function VendorsPage() {
     const syncVendors = async () => {
         setIsSyncing(true);
         try {
-            await syncQuickBooksData();
+            await syncQuickBooksVendors();
             toast.success("Sync completed successfully");
 
             // Refresh vendor list after sync

@@ -226,10 +226,27 @@ interface SyncResponse {
       skipped: number;
       total: number;
     };
+    vendors: {
+      inserted: number;
+      updated: number;
+      skipped: number;
+      total: number;
+    }
   };
 }
 
 export async function syncQuickBooksData(): Promise<SyncResponse> {
+  try {
+    const response = await client.post<SyncResponse>("/api/v1/quickbooks/sync");
+    // @ts-ignore
+    return response;
+  } catch (error) {
+    console.error("Error syncing QuickBooks data:", error);
+    throw error;
+  }
+}
+
+export async function syncQuickBooksVendors(): Promise<SyncResponse> {
   try {
     const response = await client.post<SyncResponse>("/api/v1/quickbooks/sync-vendors");
     // @ts-ignore

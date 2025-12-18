@@ -31,7 +31,7 @@ router.post("/create-bill", authenticate, requireSubscriptionAccess, quickbooksC
 router.post("/sync-products", authenticate, requireSubscriptionAccess, quickbooksController.syncProducts);
 router.post("/sync-accounts", authenticate, requireSubscriptionAccess, quickbooksController.syncAccounts);
 router.post("/sync-vendors", authenticate, requireSubscriptionAccess, quickbooksController.syncVendors);
-router.post("/sync", authenticate, requireSubscriptionAccess, quickbooksController.syncProductsAndAccounts);
+router.post("/sync", authenticate, requireSubscriptionAccess, quickbooksController.syncAll);
 router.delete("/disconnect", authenticate, requireSubscriptionAccess, quickbooksController.disconnect);
 
 export default router;
