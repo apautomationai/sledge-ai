@@ -136,6 +136,26 @@ class InvoiceController {
     }
   }
 
+  async getInvoiceTrends(req: Request, res: Response) {
+    try {
+      //@ts-ignore
+      const userId = req.user.id;
+      const dateRange = (req.query.dateRange as 'monthly' | 'all-time') || 'monthly';
+
+      const trendData = await invoiceServices.getInvoiceTrends(userId, dateRange);
+
+      return res.json({
+        success: true,
+        data: trendData,
+      });
+    } catch (error: any) {
+      return res.status(error.statusCode || 500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+
   async getInvoice(req: Request, res: Response) {
     try {
       // UPDATED: Parse the 'id' from URL parameter into a number
