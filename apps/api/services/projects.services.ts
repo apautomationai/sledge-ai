@@ -21,17 +21,26 @@ class ProjectsServices {
      * Fetch and update project coordinates if they're null
      */
     private async fetchAndUpdateProjectCoordinates(project: any): Promise<{ latitude: string | null, longitude: string | null }> {
+        console.log(`🔍 [COORDINATES] Checking project ${project.id} (${project.name}) - Current lat: ${project.latitude}, lng: ${project.longitude}`);
+
         if (project.latitude && project.longitude) {
+            console.log(`✅ [COORDINATES] Project ${project.id} already has coordinates - SKIPPING API call`);
             return { latitude: project.latitude, longitude: project.longitude }; // Already has coordinates
         }
 
+        console.log(`🌍 [COORDINATES] Project ${project.id} missing coordinates - CALLING Google Maps API`);
+
         try {
             const fullAddress = `${project.address}, ${project.city}, ${project.state} ${project.postalCode}`.trim();
+            console.log(`📍 [COORDINATES] Geocoding address for project ${project.id}: "${fullAddress}"`);
+
             const geocodeResult = await googleMapsService.geocodeAddress(fullAddress);
 
             if (geocodeResult) {
                 const latitude = geocodeResult.latitude.toString();
                 const longitude = geocodeResult.longitude.toString();
+
+                console.log(`✅ [COORDINATES] Successfully fetched coordinates for project ${project.id}: lat=${latitude}, lng=${longitude}`);
 
                 // Update the project with the new coordinates
                 await db
@@ -43,12 +52,14 @@ class ProjectsServices {
                     })
                     .where(eq(projectsModel.id, project.id));
 
+                console.log(`💾 [COORDINATES] Updated database for project ${project.id} with new coordinates`);
                 return { latitude, longitude };
             } else {
+                console.log(`❌ [COORDINATES] No coordinates found for project ${project.id} address: "${fullAddress}"`);
                 return { latitude: null, longitude: null };
             }
         } catch (error) {
-            console.error(`❌ Error fetching coordinates for project ${project.id}:`, error);
+            console.error(`❌ [COORDINATES] Error fetching coordinates for project ${project.id}:`, error);
             return { latitude: null, longitude: null };
         }
     }
@@ -57,14 +68,22 @@ class ProjectsServices {
      * Fetch and update project image if it's null
      */
     private async fetchAndUpdateProjectImage(project: any): Promise<string | null> {
+        console.log(`🔍 [IMAGE] Checking project ${project.id} (${project.name}) - Current imageUrl: ${project.imageUrl ? 'EXISTS' : 'NULL'}`);
+
         if (project.imageUrl) {
+            console.log(`✅ [IMAGE] Project ${project.id} already has image - SKIPPING API call`);
             return project.imageUrl; // Already has an image
         }
 
+        console.log(`📸 [IMAGE] Project ${project.id} missing image - CALLING Google Maps API`);
+
         try {
+            console.log(`🏠 [IMAGE] Fetching image for project ${project.id} address: "${project.address}"`);
             const imageUrl = await googleMapsService.getImageUrlForAddress(project.address);
 
             if (imageUrl) {
+                console.log(`✅ [IMAGE] Successfully fetched image for project ${project.id}: ${imageUrl}`);
+
                 // Update the project with the new image URL
                 await db
                     .update(projectsModel)
@@ -74,13 +93,15 @@ class ProjectsServices {
                     })
                     .where(eq(projectsModel.id, project.id));
 
+                console.log(`💾 [IMAGE] Updated database for project ${project.id} with new image URL`);
                 return imageUrl;
             } else {
+                console.log(`❌ [IMAGE] No image found for project ${project.id} address: "${project.address}"`);
                 // No image found, but don't update the database to avoid repeated API calls
                 return null;
             }
         } catch (error) {
-            console.error(`❌ Error fetching image for project ${project.id}:`, error);
+            console.error(`❌ [IMAGE] Error fetching image for project ${project.id}:`, error);
             return null;
         }
     }
@@ -165,9 +186,13 @@ class ProjectsServices {
             .limit(limit)
             .offset(offset);
 
+        console.log(`📋 [PROJECTS LIST] Retrieved ${projects.length} projects for user ${userId}`);
+
         // Get vendor counts and fetch images for each project
         const projectsWithVendorCount = await Promise.all(
             projects.map(async (project) => {
+                console.log(`🔄 [PROCESSING] Starting processing for project ${project.id} (${project.name})`);
+
                 const [{ vendorCount }] = await db
                     .select({ vendorCount: count() })
                     .from(projectVendorsModel)
@@ -181,24 +206,32 @@ class ProjectsServices {
                 // Fetch image if null (but don't wait for it to avoid slowing down the response)
                 let imageUrl = project.imageUrl;
                 if (!imageUrl) {
+                    console.log(`🚀 [BACKGROUND] Scheduling background image fetch for project ${project.id}`);
                     // Run image fetching in background without awaiting - use setImmediate to ensure it's truly async
                     setImmediate(() => {
                         this.fetchAndUpdateProjectImage(project).catch(error => {
-                            console.error(`Background image fetch failed for project ${project.id}:`, error);
+                            console.error(`❌ [BACKGROUND] Background image fetch failed for project ${project.id}:`, error);
                         });
                     });
+                } else {
+                    console.log(`✅ [SKIP] Project ${project.id} already has image - no background fetch needed`);
                 }
 
                 // Fetch coordinates if null (but don't wait for it to avoid slowing down the response)
                 let { latitude, longitude } = project;
                 if (!latitude || !longitude) {
+                    console.log(`🚀 [BACKGROUND] Scheduling background coordinate fetch for project ${project.id} (lat: ${latitude}, lng: ${longitude})`);
                     // Run coordinate fetching in background without awaiting
                     setImmediate(() => {
                         this.fetchAndUpdateProjectCoordinates(project).catch(error => {
-                            console.error(`Background coordinate fetch failed for project ${project.id}:`, error);
+                            console.error(`❌ [BACKGROUND] Background coordinate fetch failed for project ${project.id}:`, error);
                         });
                     });
+                } else {
+                    console.log(`✅ [SKIP] Project ${project.id} already has coordinates - no background fetch needed`);
                 }
+
+                console.log(`✅ [PROCESSING] Completed processing for project ${project.id}`);
 
                 return {
                     ...project,
@@ -209,6 +242,8 @@ class ProjectsServices {
                 };
             })
         );
+
+        console.log(`📊 [SUMMARY] Projects API completed for user ${userId}: ${projectsWithVendorCount.length} projects returned, ${total} total projects`);
 
         return {
             projects: projectsWithVendorCount,
@@ -467,26 +502,34 @@ class ProjectsServices {
             })
         );
 
+        console.log(`🔍 [PROJECT DETAIL] Processing project ${project.id} (${project.name}) for detailed view`);
+
         // Fetch image if null (but don't wait for it to avoid slowing down the response)
         let imageUrl = project.imageUrl;
         if (!imageUrl) {
+            console.log(`🚀 [DETAIL BACKGROUND] Scheduling background image fetch for project ${project.id}`);
             // Run image fetching in background without awaiting - use setImmediate to ensure it's truly async
             setImmediate(() => {
                 this.fetchAndUpdateProjectImage(project).catch(error => {
-                    console.error(`Background image fetch failed for project ${project.id}:`, error);
+                    console.error(`❌ [DETAIL BACKGROUND] Background image fetch failed for project ${project.id}:`, error);
                 });
             });
+        } else {
+            console.log(`✅ [DETAIL SKIP] Project ${project.id} already has image - no background fetch needed`);
         }
 
         // Fetch coordinates if null (but don't wait for it to avoid slowing down the response)
         let { latitude, longitude } = project;
         if (!latitude || !longitude) {
+            console.log(`🚀 [DETAIL BACKGROUND] Scheduling background coordinate fetch for project ${project.id} (lat: ${latitude}, lng: ${longitude})`);
             // Run coordinate fetching in background without awaiting
             setImmediate(() => {
                 this.fetchAndUpdateProjectCoordinates(project).catch(error => {
-                    console.error(`Background coordinate fetch failed for project ${project.id}:`, error);
+                    console.error(`❌ [DETAIL BACKGROUND] Background coordinate fetch failed for project ${project.id}:`, error);
                 });
             });
+        } else {
+            console.log(`✅ [DETAIL SKIP] Project ${project.id} already has coordinates - no background fetch needed`);
         }
 
         return {
@@ -581,25 +624,37 @@ class ProjectsServices {
                 )
             );
 
+        console.log(`🗺️ [MAP] Retrieved ${projects.length} projects for map display for user ${userId}`);
+
         // Fetch images and coordinates for projects that don't have them (background process)
         const projectsWithFallback = projects.map(project => {
+            console.log(`🔄 [MAP PROCESSING] Processing project ${project.id} (${project.name}) for map`);
+
             if (!project.imageUrl) {
+                console.log(`🚀 [MAP BACKGROUND] Scheduling background image fetch for project ${project.id}`);
                 // Run image fetching in background without awaiting - use setImmediate to ensure it's truly async
                 setImmediate(() => {
                     this.fetchAndUpdateProjectImage(project).catch(error => {
-                        console.error(`Background image fetch failed for project ${project.id}:`, error);
+                        console.error(`❌ [MAP BACKGROUND] Background image fetch failed for project ${project.id}:`, error);
                     });
                 });
+            } else {
+                console.log(`✅ [MAP SKIP] Project ${project.id} already has image - no background fetch needed`);
             }
 
             if (!project.latitude || !project.longitude) {
+                console.log(`🚀 [MAP BACKGROUND] Scheduling background coordinate fetch for project ${project.id} (lat: ${project.latitude}, lng: ${project.longitude})`);
                 // Run coordinate fetching in background without awaiting
                 setImmediate(() => {
                     this.fetchAndUpdateProjectCoordinates(project).catch(error => {
-                        console.error(`Background coordinate fetch failed for project ${project.id}:`, error);
+                        console.error(`❌ [MAP BACKGROUND] Background coordinate fetch failed for project ${project.id}:`, error);
                     });
                 });
+            } else {
+                console.log(`✅ [MAP SKIP] Project ${project.id} already has coordinates - no background fetch needed`);
             }
+
+            console.log(`✅ [MAP PROCESSING] Completed processing project ${project.id} for map`);
 
             return {
                 ...project,
