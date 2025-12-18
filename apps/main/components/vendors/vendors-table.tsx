@@ -59,7 +59,7 @@ export function VendorsTable({ vendors, isLoading, sortBy, sortOrder, onSort }: 
 
     if (isLoading) {
         return (
-            <div className="rounded-lg border bg-card h-full overflow-auto">
+            <div className="rounded-lg border bg-card h-full [&>div]:h-full">
                 <Table>
                     <TableHeader className="bg-card sticky top-0 z-10 shadow-sm">
                         <TableRow className="hover:bg-transparent">
@@ -96,7 +96,7 @@ export function VendorsTable({ vendors, isLoading, sortBy, sortOrder, onSort }: 
     }
 
     return (
-        <div className="rounded-lg border bg-card h-full overflow-auto">
+        <div className="rounded-lg border bg-card h-full [&>div]:h-full">
             <Table>
                 <TableHeader className="bg-card sticky top-0 z-10 shadow-sm">
                     <TableRow className="hover:bg-transparent">

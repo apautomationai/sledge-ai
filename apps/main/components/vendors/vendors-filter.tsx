@@ -57,7 +57,7 @@ export function VendorsFilter({
                         {sortOrder === "asc" ? " (A-Z)" : " (Z-A)"}
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-popover z-50">
                     {sortOptions.map((option) => (
                         <DropdownMenuItem
                             key={option.value}
