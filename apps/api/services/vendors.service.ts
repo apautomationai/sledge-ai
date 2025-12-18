@@ -3,7 +3,6 @@ import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
 import { projectVendorsModel } from "@/models/project-vendors.model";
 import { projectsModel } from "@/models/projects.model";
 import { invoiceModel } from "@/models/invoice.model";
-import { lienWaiversModel } from "@/models/lien-waivers.model";
 import { eq, and, ilike, count, or } from "drizzle-orm";
 
 interface GetVendorsParams {
