@@ -29,7 +29,7 @@ export default function DashboardDataView({
   };
 
   return (
-    <div className="flex flex-col h-full min-h-screen overflow-hidden">
+    <div className="flex flex-col overflow-x-hidden h-[calc(100vh-100px)]">
       <header className="flex items-center justify-between py-2 flex-shrink-0">
         <div>
           <h1 className="text-xl font-semibold text-foreground">Overview</h1>

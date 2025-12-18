@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
     LineChart,
     Line,
@@ -12,34 +12,82 @@ import {
     Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import client from "@/lib/axios-client";
 
 interface InvoiceTrendChartProps {
     dateRange: string;
 }
 
-// Mock data - you'll need to fetch this from your API
-const generateMockData = (range: string) => {
-    if (range === "monthly") {
-        return [
-            { name: "Week 1", invoices: 12, amount: 24500 },
-            { name: "Week 2", invoices: 19, amount: 38200 },
-            { name: "Week 3", invoices: 15, amount: 29800 },
-            { name: "Week 4", invoices: 22, amount: 45600 },
-        ];
-    } else {
-        return [
-            { name: "Jan", invoices: 45, amount: 89000 },
-            { name: "Feb", invoices: 52, amount: 105000 },
-            { name: "Mar", invoices: 48, amount: 96000 },
-            { name: "Apr", invoices: 61, amount: 122000 },
-            { name: "May", invoices: 55, amount: 110000 },
-            { name: "Jun", invoices: 67, amount: 134000 },
-        ];
-    }
-};
+interface TrendData {
+    name: string;
+    invoices: number;
+    amount: number;
+}
 
 export default function InvoiceTrendChart({ dateRange }: InvoiceTrendChartProps) {
-    const data = generateMockData(dateRange);
+    const [data, setData] = useState<TrendData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchTrendData = async () => {
+            setIsLoading(true);
+            try {
+                const response: any = await client.get(
+                    `api/v1/invoice/trends?dateRange=${dateRange}`
+                );
+
+                // The axios client returns response.data directly
+                // Backend sends: { success: true, data: [...] }
+                // Axios client returns: { success: true, data: [...] }
+                // So response.data is the array we want
+                if (response?.data && Array.isArray(response.data)) {
+                    setData(response.data);
+                } else if (response && Array.isArray(response)) {
+                    // Fallback in case response structure is different
+                    setData(response);
+                } else {
+                    console.warn("Unexpected response structure:", response);
+                    setData([]);
+                }
+            } catch (error) {
+                console.error("Failed to fetch trend data:", error);
+                // Fallback to empty data
+                setData([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchTrendData();
+    }, [dateRange]);
+
+    if (isLoading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Invoice Trends</CardTitle>
+                    <p className="text-sm text-muted-foreground capitalize">{dateRange}</p>
+                </CardHeader>
+                <CardContent className="flex items-center justify-center h-[300px]">
+                    <p className="text-muted-foreground">Loading trend data...</p>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (data.length === 0) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Invoice Trends</CardTitle>
+                    <p className="text-sm text-muted-foreground capitalize">{dateRange}</p>
+                </CardHeader>
+                <CardContent className="flex items-center justify-center h-[300px]">
+                    <p className="text-muted-foreground">No trend data available</p>
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
         <Card>
@@ -73,6 +121,12 @@ export default function InvoiceTrendChart({ dateRange }: InvoiceTrendChartProps)
                                 border: "1px solid #374151",
                                 borderRadius: "8px",
                             }}
+                            formatter={(value: any, name: string) => [
+                                name === "Total Amount ($)"
+                                    ? `$${Number(value).toLocaleString()}`
+                                    : value,
+                                name
+                            ]}
                         />
                         <Legend />
                         <Line
