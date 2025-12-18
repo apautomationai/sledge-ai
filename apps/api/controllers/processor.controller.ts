@@ -1,10 +1,9 @@
 import { Request, Response } from "express";
-import { BadRequestError, NotFoundError, ForbiddenError } from "@/helpers/errors";
+import { BadRequestError, NotFoundError } from "@/helpers/errors";
 import { attachmentServices } from "@/services/attachment.services";
 import { invoiceServices } from "@/services/invoice.services";
 import { projectServices } from "@/services/project.services";
 import { getWebSocketService } from "@/services/websocket.service";
-import { status } from "@/drizzle/schema";
 
 // import fs from 'fs';
 
@@ -148,7 +147,7 @@ class ProcessorController {
     }
   }
 
-  async getAllProjects(req: Request, res: Response) {
+  async getAllProjects(_req: Request, res: Response) {
     try {
 
       // Fetch projects from service
@@ -366,6 +365,7 @@ class ProcessorController {
         success: true,
         data: result.invoice,
         operation: result.operation,
+        message
       });
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message || "Internal server error" });
