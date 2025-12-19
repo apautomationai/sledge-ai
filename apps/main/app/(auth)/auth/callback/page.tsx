@@ -41,8 +41,8 @@ function AuthCallbackComponent() {
         description: "You have been successfully logged in!",
       });
 
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Redirect to onboarding - subscription provider will handle payment/dashboard redirect
+      router.push("/onboarding");
     } else {
       toast.error("Authentication Failed", {
         description: "Invalid response from server",

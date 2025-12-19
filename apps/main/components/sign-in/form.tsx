@@ -46,18 +46,18 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 const MicrosoftIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" {...props}>
-    <path fill="#ff5722" d="M22 22H6V6h16v16z"/>
-    <path fill="#4caf50" d="M42 22H26V6h16v16z"/>
-    <path fill="#ffc107" d="M42 42H26V26h16v16z"/>
-    <path fill="#03a9f4" d="M22 42H6V26h16v16z"/>
+    <path fill="#ff5722" d="M22 22H6V6h16v16z" />
+    <path fill="#4caf50" d="M42 22H26V6h16v16z" />
+    <path fill="#ffc107" d="M42 42H26V26h16v16z" />
+    <path fill="#03a9f4" d="M22 42H6V26h16v16z" />
   </svg>
 );
 
 function SubmitButton({ isLoading }: { isLoading: boolean }) {
   return (
-    <Button 
+    <Button
       className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-gray-900 font-bold py-3 px-4 rounded-none transition-all duration-300 shadow-lg shadow-yellow-500/50 hover:shadow-yellow-400/60 border-2 border-yellow-600 uppercase"
-      type="submit" 
+      type="submit"
       disabled={isLoading}
     >
       {isLoading ? (
@@ -103,7 +103,7 @@ function SignInFormComponent() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email");
     const password = formData.get("password");
@@ -158,8 +158,8 @@ function SignInFormComponent() {
           description: "You have been successfully logged in!",
         });
 
-        // Redirect to dashboard
-        router.push("/dashboard");
+        // Redirect to onboarding - subscription provider will handle payment/dashboard redirect
+        router.push("/onboarding");
       } else {
         setState({
           message: "Invalid response from server",
@@ -169,10 +169,10 @@ function SignInFormComponent() {
       }
     } catch (error: any) {
       console.error("Sign in error:", error);
-      
+
       if (error.response) {
         const data = error.response.data;
-        
+
         // Handle various error scenarios from the API
         if (error.response.status === 403 && data.requiresTwoFactor) {
           setState({
@@ -237,122 +237,122 @@ function SignInFormComponent() {
       </div>
 
       <div className="space-y-6">
-          {/* Social Login Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button 
-              type="button"
-              variant="outline" 
-              onClick={handleGoogleSignIn}
-              className="h-11 bg-gray-800 border-4 border-gray-600 hover:bg-gray-700 hover:border-gray-500 text-gray-200 rounded-none transition-all duration-300 relative overflow-hidden group uppercase"
-            >
-              <GoogleIcon className="mr-2 h-4 w-4 relative z-10" /> 
-              <span className="relative z-10">Google</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleMicrosoftSignIn}
-              className="h-11 bg-gray-800 border-4 border-gray-600 hover:bg-gray-700 hover:border-gray-500 text-gray-200 rounded-none transition-all duration-300 relative overflow-hidden group uppercase"
-            >
-              <MicrosoftIcon className="mr-2 h-4 w-4 relative z-10" /> 
-              <span className="relative z-10">Microsoft</span>
-            </Button>
+        {/* Social Login Buttons */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleGoogleSignIn}
+            className="h-11 bg-gray-800 border-4 border-gray-600 hover:bg-gray-700 hover:border-gray-500 text-gray-200 rounded-none transition-all duration-300 relative overflow-hidden group uppercase"
+          >
+            <GoogleIcon className="mr-2 h-4 w-4 relative z-10" />
+            <span className="relative z-10">Google</span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleMicrosoftSignIn}
+            className="h-11 bg-gray-800 border-4 border-gray-600 hover:bg-gray-700 hover:border-gray-500 text-gray-200 rounded-none transition-all duration-300 relative overflow-hidden group uppercase"
+          >
+            <MicrosoftIcon className="mr-2 h-4 w-4 relative z-10" />
+            <span className="relative z-10">Microsoft</span>
+          </Button>
+        </div>
+
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t-2 border-gray-600" />
           </div>
-
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t-2 border-gray-600" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-gradient-to-br from-gray-900 to-black px-3 text-sm text-gray-400">
-                Or continue with email
-              </span>
-            </div>
-          </div>
-
-          {/* Sign In Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-3">
-              <Label htmlFor="email" className="text-gray-300 font-medium text-sm">
-                Email Address
-              </Label>
-              <div className="relative">
-                <AtSign className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 z-20" />
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  className="pl-10 h-11 bg-gray-800 border-4 border-gray-600 text-white placeholder-gray-400 rounded-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-600 transition-all duration-300 relative z-10"
-                  required
-                />
-              </div>
-              {state.errors?.email && (
-                <p className="text-sm text-red-400 mt-1">{state.errors.email[0]}</p>
-              )}
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-gray-300 font-medium text-sm">
-                  Password
-                </Label>
-                <Link
-                  href="/forget-password"
-                  className="text-sm font-medium text-yellow-400 hover:text-yellow-300 transition-colors duration-300"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 z-20" />
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  className="pl-10 pr-10 h-11 bg-gray-800 border-4 border-gray-600 text-white placeholder-gray-400 rounded-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-600 transition-all duration-300 relative z-10"
-                  required
-                  minLength={6}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-gray-400 hover:text-gray-300 z-20"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              {state.errors?.password && (
-                <p className="text-sm text-red-400 mt-1">{state.errors.password[0]}</p>
-              )}
-            </div>
-
-            {state.errors?._form && (
-              <div className="p-3 bg-red-900/20 border-4 border-red-800 rounded-none relative overflow-hidden">
-                <p className="text-sm text-red-400 text-center relative z-10">{state.errors._form[0]}</p>
-              </div>
-            )}
-
-            <SubmitButton isLoading={isLoading} />
-          </form>
-
-          <div className="text-sm text-gray-400 text-center pt-4 border-t-2 border-gray-600">
-            Don't have an account?{" "}
-            <Link
-              href="/sign-up"
-              className="font-medium text-yellow-400 hover:text-yellow-300 transition-colors duration-300 underline underline-offset-4"
-            >
-              Create account
-            </Link>
+          <div className="relative flex justify-center">
+            <span className="bg-gradient-to-br from-gray-900 to-black px-3 text-sm text-gray-400">
+              Or continue with email
+            </span>
           </div>
         </div>
+
+        {/* Sign In Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-3">
+            <Label htmlFor="email" className="text-gray-300 font-medium text-sm">
+              Email Address
+            </Label>
+            <div className="relative">
+              <AtSign className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 z-20" />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                className="pl-10 h-11 bg-gray-800 border-4 border-gray-600 text-white placeholder-gray-400 rounded-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-600 transition-all duration-300 relative z-10"
+                required
+              />
+            </div>
+            {state.errors?.email && (
+              <p className="text-sm text-red-400 mt-1">{state.errors.email[0]}</p>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password" className="text-gray-300 font-medium text-sm">
+                Password
+              </Label>
+              <Link
+                href="/forget-password"
+                className="text-sm font-medium text-yellow-400 hover:text-yellow-300 transition-colors duration-300"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 z-20" />
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                className="pl-10 pr-10 h-11 bg-gray-800 border-4 border-gray-600 text-white placeholder-gray-400 rounded-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-600 transition-all duration-300 relative z-10"
+                required
+                minLength={6}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-gray-400 hover:text-gray-300 z-20"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            {state.errors?.password && (
+              <p className="text-sm text-red-400 mt-1">{state.errors.password[0]}</p>
+            )}
+          </div>
+
+          {state.errors?._form && (
+            <div className="p-3 bg-red-900/20 border-4 border-red-800 rounded-none relative overflow-hidden">
+              <p className="text-sm text-red-400 text-center relative z-10">{state.errors._form[0]}</p>
+            </div>
+          )}
+
+          <SubmitButton isLoading={isLoading} />
+        </form>
+
+        <div className="text-sm text-gray-400 text-center pt-4 border-t-2 border-gray-600">
+          Don't have an account?{" "}
+          <Link
+            href="/sign-up"
+            className="font-medium text-yellow-400 hover:text-yellow-300 transition-colors duration-300 underline underline-offset-4"
+          >
+            Create account
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
