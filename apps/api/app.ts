@@ -25,7 +25,6 @@ import emailIntegrationRoutes from "./routes/email-integration.routes";
 import vendorsRoutes from "./routes/vendors.routes";
 
 const app = express();
-app.use(express.json());
 
 // Configure CORS
 const getCorsOrigins = (): string | string[] => {
@@ -40,8 +39,15 @@ app.use(cors({
   optionsSuccessStatus: 200,
 }));
 
-// Stripe webhooks require raw body
-app.use("/api/v1/subscription/webhook", express.raw({ type: "application/json" }));
+// Parse JSON for all routes except webhook
+app.use((req, res, next) => {
+  if (req.path === '/api/v1/subscription/webhook') {
+    // Skip JSON parsing for webhook route
+    next();
+  } else {
+    express.json()(req, res, next);
+  }
+});
 
 // Parse URL-encoded data and cookies
 app.use(express.urlencoded({ extended: true }));
@@ -60,7 +66,7 @@ app.use("/api/v1/settings", settingsRoutes);
 app.use("/api/v1/upload", uploadRoutes);
 app.use("/api/v1/invoice", invoiceRoutes);
 app.use("/api/v1/quickbooks", quickbooksRoutes);
-app.use("/api/v1/processor", processorRoutes); 
+app.use("/api/v1/processor", processorRoutes);
 app.use("/api/v1/subscription", subscriptionRoutes);
 app.use("/api/v1/jobs", jobsRoutes);
 app.use("/api/v1/projects", projectsRoutes);
