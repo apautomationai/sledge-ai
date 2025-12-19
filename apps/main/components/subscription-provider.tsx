@@ -10,6 +10,7 @@ interface SubscriptionContextType {
     loading: boolean;
     hasAccess: boolean;
     refreshSubscription: () => Promise<void>;
+    forceReinitialize: () => void;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType>({
@@ -17,6 +18,7 @@ const SubscriptionContext = createContext<SubscriptionContextType>({
     loading: true,
     hasAccess: false,
     refreshSubscription: async () => { },
+    forceReinitialize: () => { },
 });
 
 export const useSubscription = () => useContext(SubscriptionContext);
@@ -69,19 +71,32 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         return false;
     };
 
-    const fetchSubscription = async () => {
+    const fetchSubscription = async (forceRefresh: boolean = false) => {
         try {
-            const response = await client.get(`api/v1/subscription/status?_t=${Date.now()}`);
+            // Add multiple cache-busting parameters
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).substring(7);
+            const cacheParams = `_t=${timestamp}&_r=${random}&_f=${forceRefresh ? '1' : '0'}`;
+
+            const response = await client.get(`api/v1/subscription/status?${cacheParams}`, {
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
             const subscriptionData = (response as any)?.data;
 
             // Check if user changed (different userId)
             const currentUserId = getCookie('userId');
             if (currentUserId && lastUserId && currentUserId !== lastUserId) {
+                console.log(`🔄 [SUBSCRIPTION] User changed from ${lastUserId} to ${currentUserId}, resetting state`);
                 setIsInitialized(false);
                 setSubscription(null);
             }
             setLastUserId(currentUserId);
 
+            console.log(`📊 [SUBSCRIPTION] Fetched fresh subscription data:`, subscriptionData);
             setSubscription(subscriptionData);
             return subscriptionData;
         } catch (error) {
@@ -99,9 +114,18 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     };
 
     const refreshSubscription = async () => {
+        console.log(`🔄 [SUBSCRIPTION] Force refreshing subscription data`);
         setLoading(true);
-        await fetchSubscription();
+        // Force refresh with cache busting
+        await fetchSubscription(true);
         setLoading(false);
+    };
+
+    const forceReinitialize = () => {
+        console.log(`🔄 [SUBSCRIPTION] Force reinitializing subscription provider`);
+        setIsInitialized(false);
+        setSubscription(null);
+        setLoading(true);
     };
 
     const createCheckoutAndRedirect = async () => {
@@ -251,7 +275,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     const hasAccess = subscription ? hasValidSubscription(subscription) : false;
 
     return (
-        <SubscriptionContext.Provider value={{ subscription, loading, hasAccess, refreshSubscription }}>
+        <SubscriptionContext.Provider value={{ subscription, loading, hasAccess, refreshSubscription, forceReinitialize }}>
             {children}
         </SubscriptionContext.Provider>
     );

@@ -79,6 +79,13 @@ export class SubscriptionController {
                 updatedAt: subscription.updatedAt?.toISOString()
             };
 
+            // Set no-cache headers to prevent caching
+            res.set({
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            });
+
             return res.status(200).json({
                 success: true,
                 data: subscriptionStatus,
