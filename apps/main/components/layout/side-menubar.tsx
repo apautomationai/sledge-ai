@@ -121,7 +121,15 @@ export default function SideMenuBar({
   const [isCol, setIsCol] = useState(isCollapsed);
 
   // Check if certain features should be disabled based on environment variable
-  const disabledFeatures = process.env.NEXT_PUBLIC_DISABLED_FEATURES === 'true';
+  const disabledFeaturesString = process.env.NEXT_PUBLIC_DISABLED_FEATURES || '';
+  const disabledFeaturesArray = disabledFeaturesString
+    .split(',')
+    .map(feature => feature.trim().toLowerCase())
+    .filter(feature => feature.length > 0);
+
+  const isFeatureDisabled = (featureName: string) => {
+    return disabledFeaturesArray.includes(featureName.toLowerCase());
+  };
 
   useEffect(() => {
     const savedState = localStorage.getItem("sidebar-collapsed");
@@ -175,12 +183,14 @@ export default function SideMenuBar({
               <>
                 <NavLink href="/jobs" icon={FileText} isActive={pathname.startsWith("/jobs")} isCollapsed={isCol}>Invoices</NavLink>
                 <NavLink href="/integrations" icon={Settings} isActive={pathname.startsWith("/integrations")} isCollapsed={isCol}>Integrations</NavLink>
-                {!disabledFeatures && (
-                  <>
-                    <NavLink href="/projects" icon={Package2} isActive={pathname.startsWith("/projects")} isCollapsed={isCol}>Projects</NavLink>
-                    <NavLink href="/lien-waiver" icon={FileCheck} isActive={pathname.startsWith("/lien-waiver")} isCollapsed={isCol}>Lien Waivers</NavLink>
-                    <NavLink href="/vendors" icon={Users} isActive={pathname.startsWith("/vendors")} isCollapsed={isCol}>Vendors</NavLink>
-                  </>
+                {!isFeatureDisabled('projects') && (
+                  <NavLink href="/projects" icon={Package2} isActive={pathname.startsWith("/projects")} isCollapsed={isCol}>Projects</NavLink>
+                )}
+                {!isFeatureDisabled('lienwaivers') && (
+                  <NavLink href="/lien-waiver" icon={FileCheck} isActive={pathname.startsWith("/lien-waiver")} isCollapsed={isCol}>Lien Waivers</NavLink>
+                )}
+                {!isFeatureDisabled('vendors') && (
+                  <NavLink href="/vendors" icon={Users} isActive={pathname.startsWith("/vendors")} isCollapsed={isCol}>Vendors</NavLink>
                 )}
               </>
             ) : (
@@ -188,12 +198,14 @@ export default function SideMenuBar({
               <>
                 <DisabledNavItem icon={FileText} isCollapsed={isCol}>Invoices</DisabledNavItem>
                 <DisabledNavItem icon={Settings} isCollapsed={isCol}>Integrations</DisabledNavItem>
-                {!disabledFeatures && (
-                  <>
-                    <DisabledNavItem icon={Package2} isCollapsed={isCol}>Projects</DisabledNavItem>
-                    <DisabledNavItem icon={FileCheck} isCollapsed={isCol}>Lien Waivers</DisabledNavItem>
-                    <DisabledNavItem icon={Users} isCollapsed={isCol}>Vendors</DisabledNavItem>
-                  </>
+                {!isFeatureDisabled('projects') && (
+                  <DisabledNavItem icon={Package2} isCollapsed={isCol}>Projects</DisabledNavItem>
+                )}
+                {!isFeatureDisabled('lienwaivers') && (
+                  <DisabledNavItem icon={FileCheck} isCollapsed={isCol}>Lien Waivers</DisabledNavItem>
+                )}
+                {!isFeatureDisabled('vendors') && (
+                  <DisabledNavItem icon={Users} isCollapsed={isCol}>Vendors</DisabledNavItem>
                 )}
               </>
             )}
