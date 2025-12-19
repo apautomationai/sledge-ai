@@ -32,39 +32,32 @@ export function SubscriptionTab({ setupRequired = false }: SubscriptionTabProps)
     }, [contextSubscription, contextLoading]);
 
     useEffect(() => {
-        const initSubscription = async () => {
-            await fetchSubscriptionStatus();
-
-            // Check for payment success/cancel parameters and refresh if present
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('success') === 'true') {
-                // Force a fresh check after a short delay to allow webhook processing
-                setTimeout(async () => {
-                    console.log('Payment flow completed, refreshing subscription status...');
-                    await fetchSubscriptionStatus();
-                    // Redirect to dashboard after successful payment
-                    window.location.href = '/dashboard';
-                }, 2000);
-            } else if (urlParams.get('canceled') === 'true') {
-                setTimeout(() => {
-                    console.log('Payment canceled, refreshing subscription status...');
-                    fetchSubscriptionStatus();
-                }, 1000);
-            }
-        };
-
-        initSubscription();
+        // Check for payment success/cancel parameters and refresh if present
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            // Force a fresh check after a short delay to allow webhook processing
+            setTimeout(async () => {
+                console.log('Payment flow completed, refreshing subscription status...');
+                await fetchSubscriptionStatus();
+                // Redirect to dashboard after successful payment
+                window.location.href = '/dashboard';
+            }, 2000);
+        } else if (urlParams.get('canceled') === 'true') {
+            setTimeout(() => {
+                console.log('Payment canceled, refreshing subscription status...');
+                fetchSubscriptionStatus();
+            }, 1000);
+        }
     }, []);
 
     const fetchSubscriptionStatus = async () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await client.get('api/v1/subscription/status');
-            const subscriptionData = (response as any)?.data;
-            setSubscription(subscriptionData);
-            // Also refresh the context
+            // Use the context's refresh method instead of making a separate API call
             await refreshSubscription();
+            // Get the updated subscription from context
+            setSubscription(contextSubscription);
         } catch (err: any) {
             setError(err?.message || 'Failed to load subscription information');
         } finally {
