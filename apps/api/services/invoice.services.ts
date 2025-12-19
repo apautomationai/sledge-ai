@@ -3,7 +3,7 @@ import db from "@/lib/db";
 import { attachmentsModel } from "@/models/attachments.model";
 import { invoiceModel, lineItemsModel } from "@/models/invoice.model";
 import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
-import { count, desc, eq, getTableColumns, and, sql, gte, lt, inArray } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, and, sql, gte, lt, lte, inArray } from "drizzle-orm";
 import { PDFDocument } from "pdf-lib";
 import { s3Client, uploadBufferToS3 } from "@/helpers/s3upload";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
@@ -134,7 +134,7 @@ export class InvoiceServices {
                     // Use quickbooks_id as resourceId
                     resourceId = topMatch.quickbooksId;
                     itemType = 'product' as const;
-                    console.log(`Found QuickBooks product for "${item.item_name}": ${topMatch.name} (ID: ${resourceId})`);
+                    // Found QuickBooks product match
                   }
                 } catch (error) {
                   console.error(`Error searching for product "${item.item_name}":`, error);
@@ -379,7 +379,7 @@ export class InvoiceServices {
 
       return updatedInvoiceWithVendor;
     } catch (error) {
-      console.log(error);
+      console.error("Error updating invoice:", error);
       throw new BadRequestError("Unable to update invoice");
     }
   }
@@ -1232,26 +1232,10 @@ export class InvoiceServices {
         invoiceConditions.push(lt(invoiceModel.createdAt, endDate));
       }
 
-      const [invoicesThisMonthResult] = await db
+      const [invoicesResult] = await db
         .select({ count: count() })
         .from(invoiceModel)
         .where(and(...invoiceConditions));
-
-      // Count pending invoices in the selected date range
-      const pendingConditions = [
-        eq(invoiceModel.userId, userId),
-        eq(invoiceModel.isDeleted, false),
-        eq(invoiceModel.status, "pending"),
-      ];
-      if (startDate && endDate) {
-        pendingConditions.push(gte(invoiceModel.createdAt, startDate));
-        pendingConditions.push(lt(invoiceModel.createdAt, endDate));
-      }
-
-      const [pendingThisMonthResult] = await db
-        .select({ count: count() })
-        .from(invoiceModel)
-        .where(and(...pendingConditions));
 
       // Count approved invoices in the selected date range
       const approvedConditions = [
@@ -1264,7 +1248,7 @@ export class InvoiceServices {
         approvedConditions.push(lt(invoiceModel.createdAt, endDate));
       }
 
-      const [approvedThisMonthResult] = await db
+      const [approvedResult] = await db
         .select({ count: count() })
         .from(invoiceModel)
         .where(and(...approvedConditions));
@@ -1280,10 +1264,22 @@ export class InvoiceServices {
         rejectedConditions.push(lt(invoiceModel.createdAt, endDate));
       }
 
-      const [rejectedThisMonthResult] = await db
+      const [rejectedResult] = await db
         .select({ count: count() })
         .from(invoiceModel)
         .where(and(...rejectedConditions));
+
+      // Count ALL pending invoices (not date-filtered) for "Pending Review"
+      const [allPendingResult] = await db
+        .select({ count: count() })
+        .from(invoiceModel)
+        .where(
+          and(
+            eq(invoiceModel.userId, userId),
+            eq(invoiceModel.isDeleted, false),
+            eq(invoiceModel.status, "pending")
+          )
+        );
 
       // Calculate total outstanding (sum of totalAmount for ALL pending invoices)
       const [totalOutstandingResult] = await db
@@ -1299,18 +1295,121 @@ export class InvoiceServices {
           )
         );
 
+      const metrics = {
+        invoicesThisMonth: invoicesResult.count,
+        pendingThisMonth: allPendingResult.count, // All pending invoices, not date-filtered
+        approvedThisMonth: approvedResult.count,
+        rejectedThisMonth: rejectedResult.count,
+        totalOutstanding: parseFloat(totalOutstandingResult.total || "0"),
+      };
+
       return {
         recentInvoices,
-        metrics: {
-          invoicesThisMonth: invoicesThisMonthResult.count,
-          pendingThisMonth: pendingThisMonthResult.count,
-          approvedThisMonth: approvedThisMonthResult.count,
-          rejectedThisMonth: rejectedThisMonthResult.count,
-          totalOutstanding: parseFloat(totalOutstandingResult.total || "0"),
-        },
+        metrics,
       };
     } catch (error) {
       console.error("Error fetching dashboard metrics:", error);
+      throw error;
+    }
+  }
+
+  async getInvoiceTrends(userId: number, dateRange: 'monthly' | 'all-time' = 'monthly') {
+    try {
+      const now = new Date();
+      let trendData: any[] = [];
+
+      if (dateRange === 'monthly') {
+        // Get weekly data for current month
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        // Generate 4 weeks of data
+        for (let week = 0; week < 4; week++) {
+          const weekStart = new Date(startOfMonth);
+          weekStart.setDate(weekStart.getDate() + (week * 7));
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekEnd.getDate() + 6);
+
+          // Don't go beyond end of month
+          if (weekEnd > endOfMonth) {
+            weekEnd.setTime(endOfMonth.getTime());
+          }
+
+          const [invoiceCount] = await db
+            .select({ count: count() })
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, userId),
+                eq(invoiceModel.isDeleted, false),
+                gte(invoiceModel.createdAt, weekStart),
+                lte(invoiceModel.createdAt, weekEnd)
+              )
+            );
+
+          const [totalAmount] = await db
+            .select({
+              total: sql<string>`COALESCE(SUM(${invoiceModel.totalAmount}::numeric), 0)`,
+            })
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, userId),
+                eq(invoiceModel.isDeleted, false),
+                gte(invoiceModel.createdAt, weekStart),
+                lte(invoiceModel.createdAt, weekEnd)
+              )
+            );
+
+          trendData.push({
+            name: `Week ${week + 1}`,
+            invoices: invoiceCount.count,
+            amount: parseFloat(totalAmount.total || "0"),
+          });
+        }
+      } else {
+        // Get monthly data for last 6 months
+        for (let monthOffset = 5; monthOffset >= 0; monthOffset--) {
+          const monthStart = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1);
+          const monthEnd = new Date(now.getFullYear(), now.getMonth() - monthOffset + 1, 0);
+
+          const [invoiceCount] = await db
+            .select({ count: count() })
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, userId),
+                eq(invoiceModel.isDeleted, false),
+                gte(invoiceModel.createdAt, monthStart),
+                lte(invoiceModel.createdAt, monthEnd)
+              )
+            );
+
+          const [totalAmount] = await db
+            .select({
+              total: sql<string>`COALESCE(SUM(${invoiceModel.totalAmount}::numeric), 0)`,
+            })
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, userId),
+                eq(invoiceModel.isDeleted, false),
+                gte(invoiceModel.createdAt, monthStart),
+                lte(invoiceModel.createdAt, monthEnd)
+              )
+            );
+
+          trendData.push({
+            name: monthStart.toLocaleDateString('en-US', { month: 'short' }),
+            invoices: invoiceCount.count,
+            amount: parseFloat(totalAmount.total || "0"),
+          });
+        }
+      }
+
+      return trendData;
+    } catch (error) {
+      console.error("Error fetching invoice trends:", error);
       throw error;
     }
   }
