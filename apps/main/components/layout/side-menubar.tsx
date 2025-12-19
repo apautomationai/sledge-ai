@@ -78,6 +78,31 @@ const NavLink = ({ href, icon: Icon, children, isActive, isCollapsed }: any) => 
   </TooltipProvider>
 );
 
+const DisabledNavItem = ({ icon: Icon, children, isCollapsed }: any) => (
+  <TooltipProvider delayDuration={0}>
+    {isCollapsed ? (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="group flex justify-center rounded-xl p-3 text-muted-foreground/50 cursor-not-allowed opacity-60">
+            <Icon className="h-5 w-5" />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right" sideOffset={10} className="bg-popover text-popover-foreground border shadow-lg">
+          <div className="flex items-center gap-2">
+            <Icon className="h-4 w-4" />
+            {children}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    ) : (
+      <div className="group flex items-center gap-3 rounded-xl px-4 py-3 text-muted-foreground/50 cursor-not-allowed opacity-60">
+        <Icon className="h-5 w-5" />
+        <span className="truncate">{children}</span>
+      </div>
+    )}
+  </TooltipProvider>
+);
+
 export default function SideMenuBar({
   userName,
   userEmail,
@@ -140,12 +165,27 @@ export default function SideMenuBar({
         {/* Navigation */}
         <div className="flex-1 overflow-y-auto py-4">
           <nav className="grid items-start gap-1 px-3 text-sm font-medium">
+            {/* Always show Overview, disable others during onboarding */}
             <NavLink href="/dashboard" icon={LayoutDashboard} isActive={pathname === "/dashboard"} isCollapsed={isCol}>Overview</NavLink>
-            <NavLink href="/jobs" icon={FileText} isActive={pathname.startsWith("/jobs")} isCollapsed={isCol}>Invoices</NavLink>
-            <NavLink href="/integrations" icon={Settings} isActive={pathname.startsWith("/integrations")} isCollapsed={isCol}>Integrations</NavLink>
-            <NavLink href="/projects" icon={Package2} isActive={pathname.startsWith("/projects")} isCollapsed={isCol}>Projects</NavLink>
-            <NavLink href="/lien-waiver" icon={FileCheck} isActive={pathname.startsWith("/lien-waiver")} isCollapsed={isCol}>Lien Waivers</NavLink>
-            <NavLink href="/vendors" icon={Users} isActive={pathname.startsWith("/vendors")} isCollapsed={isCol}>Vendors</NavLink>
+
+            {(isOnboardingComplete && !pathname.startsWith("/onboarding")) ? (
+              <>
+                <NavLink href="/jobs" icon={FileText} isActive={pathname.startsWith("/jobs")} isCollapsed={isCol}>Invoices</NavLink>
+                <NavLink href="/integrations" icon={Settings} isActive={pathname.startsWith("/integrations")} isCollapsed={isCol}>Integrations</NavLink>
+                <NavLink href="/projects" icon={Package2} isActive={pathname.startsWith("/projects")} isCollapsed={isCol}>Projects</NavLink>
+                <NavLink href="/lien-waiver" icon={FileCheck} isActive={pathname.startsWith("/lien-waiver")} isCollapsed={isCol}>Lien Waivers</NavLink>
+                <NavLink href="/vendors" icon={Users} isActive={pathname.startsWith("/vendors")} isCollapsed={isCol}>Vendors</NavLink>
+              </>
+            ) : (
+              /* Show disabled state for other items during onboarding */
+              <>
+                <DisabledNavItem icon={FileText} isCollapsed={isCol}>Invoices</DisabledNavItem>
+                <DisabledNavItem icon={Settings} isCollapsed={isCol}>Integrations</DisabledNavItem>
+                <DisabledNavItem icon={Package2} isCollapsed={isCol}>Projects</DisabledNavItem>
+                <DisabledNavItem icon={FileCheck} isCollapsed={isCol}>Lien Waivers</DisabledNavItem>
+                <DisabledNavItem icon={Users} isCollapsed={isCol}>Vendors</DisabledNavItem>
+              </>
+            )}
           </nav>
         </div>
 
@@ -164,7 +204,7 @@ export default function SideMenuBar({
                 isCol && "justify-center px-3" // center icon when collapsed
               )}
             >
-              <Bug className="h-4 w-4 flex-shrink-0" /> 
+              <Bug className="h-4 w-4 flex-shrink-0" />
               {!isCol && <span className="truncate text-sm">Report a Bug</span>} {/* same size as support text */}
             </Link>
 
@@ -173,10 +213,10 @@ export default function SideMenuBar({
               href="mailto:support@getsledge.com"
               className={cn(
                 "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-300",
-                isCol && "justify-center px-3" 
+                isCol && "justify-center px-3"
               )}
             >
-              <Mail className="h-4 w-4 flex-shrink-0" /> 
+              <Mail className="h-4 w-4 flex-shrink-0" />
               {!isCol && <span className="truncate text-sm">support@getsledge.com</span>} {/* same size as report text */}
             </Link>
           </div>
