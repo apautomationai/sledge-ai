@@ -120,6 +120,9 @@ export default function SideMenuBar({
   const { setTheme, theme } = useTheme();
   const [isCol, setIsCol] = useState(isCollapsed);
 
+  // Check if certain features should be disabled based on environment variable
+  const disabledFeatures = process.env.NEXT_PUBLIC_DISABLED_FEATURES === 'true';
+
   useEffect(() => {
     const savedState = localStorage.getItem("sidebar-collapsed");
     if (savedState) setIsCol(savedState === "true");
@@ -172,18 +175,26 @@ export default function SideMenuBar({
               <>
                 <NavLink href="/jobs" icon={FileText} isActive={pathname.startsWith("/jobs")} isCollapsed={isCol}>Invoices</NavLink>
                 <NavLink href="/integrations" icon={Settings} isActive={pathname.startsWith("/integrations")} isCollapsed={isCol}>Integrations</NavLink>
-                <NavLink href="/projects" icon={Package2} isActive={pathname.startsWith("/projects")} isCollapsed={isCol}>Projects</NavLink>
-                <NavLink href="/lien-waiver" icon={FileCheck} isActive={pathname.startsWith("/lien-waiver")} isCollapsed={isCol}>Lien Waivers</NavLink>
-                <NavLink href="/vendors" icon={Users} isActive={pathname.startsWith("/vendors")} isCollapsed={isCol}>Vendors</NavLink>
+                {!disabledFeatures && (
+                  <>
+                    <NavLink href="/projects" icon={Package2} isActive={pathname.startsWith("/projects")} isCollapsed={isCol}>Projects</NavLink>
+                    <NavLink href="/lien-waiver" icon={FileCheck} isActive={pathname.startsWith("/lien-waiver")} isCollapsed={isCol}>Lien Waivers</NavLink>
+                    <NavLink href="/vendors" icon={Users} isActive={pathname.startsWith("/vendors")} isCollapsed={isCol}>Vendors</NavLink>
+                  </>
+                )}
               </>
             ) : (
               /* Show disabled state for other items during onboarding */
               <>
                 <DisabledNavItem icon={FileText} isCollapsed={isCol}>Invoices</DisabledNavItem>
                 <DisabledNavItem icon={Settings} isCollapsed={isCol}>Integrations</DisabledNavItem>
-                <DisabledNavItem icon={Package2} isCollapsed={isCol}>Projects</DisabledNavItem>
-                <DisabledNavItem icon={FileCheck} isCollapsed={isCol}>Lien Waivers</DisabledNavItem>
-                <DisabledNavItem icon={Users} isCollapsed={isCol}>Vendors</DisabledNavItem>
+                {!disabledFeatures && (
+                  <>
+                    <DisabledNavItem icon={Package2} isCollapsed={isCol}>Projects</DisabledNavItem>
+                    <DisabledNavItem icon={FileCheck} isCollapsed={isCol}>Lien Waivers</DisabledNavItem>
+                    <DisabledNavItem icon={Users} isCollapsed={isCol}>Vendors</DisabledNavItem>
+                  </>
+                )}
               </>
             )}
           </nav>
