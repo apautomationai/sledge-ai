@@ -389,7 +389,7 @@ export default function JobDetailPage() {
             </div>
 
             {/* Main Content - Two Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_800px] gap-4 h-[calc(100%-4rem)] ">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_700px] gap-4 h-[calc(100%-4rem)] ">
                 {/* Left Side - Preview with Carousel (conditionally shown) */}
                 <div className="flex flex-col h-full gap-4 min-w-0 overflow-hidden">
                     {/* Carousel Controls - Only show for invoice tab */}
