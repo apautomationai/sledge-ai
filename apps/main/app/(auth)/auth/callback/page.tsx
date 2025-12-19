@@ -42,7 +42,7 @@ function AuthCallbackComponent() {
       });
 
       // Redirect to onboarding - subscription provider will handle payment/dashboard redirect
-      router.push("/onboarding");
+      router.push("/dashboard");
     } else {
       toast.error("Authentication Failed", {
         description: "Invalid response from server",

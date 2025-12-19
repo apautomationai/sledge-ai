@@ -5,8 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useSubscription } from '@/components/subscription-provider';
 
 export default function OnboardingPage() {
-    const { subscription, loading, hasAccess } = useSubscription();
+    const { loading, hasAccess, forceReinitialize } = useSubscription();
     const router = useRouter();
+
+    useEffect(() => {
+        forceReinitialize();
+    }, [forceReinitialize]);
 
     useEffect(() => {
         // Wait for subscription to load
