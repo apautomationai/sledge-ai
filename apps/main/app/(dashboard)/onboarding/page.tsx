@@ -34,10 +34,10 @@ export default function OnboardingPage() {
                 </div>
                 <div className="space-y-2">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        Setting up your account...
+                        Preparing your workspace...
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Please wait while we prepare your workspace
+                        Please wait while we set up your account
                     </p>
                 </div>
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
