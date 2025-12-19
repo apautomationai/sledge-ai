@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import client from '@/lib/axios-client';
-import type { SubscriptionStatus } from '@/lib/types';
+import { useSubscription } from '@/components/subscription-provider';
 
 interface SubscriptionGuardProps {
     children: React.ReactNode;
@@ -12,87 +11,34 @@ interface SubscriptionGuardProps {
 }
 
 export function SubscriptionGuard({ children, requiresAccess = true, loadingType = 'fullscreen' }: SubscriptionGuardProps) {
+    const { subscription, loading, hasAccess } = useSubscription();
     const [isChecking, setIsChecking] = useState(true);
-    const [hasAccess, setHasAccess] = useState(false);
     const router = useRouter();
 
-    const hasValidSubscription = (subscription: SubscriptionStatus): boolean => {
-        if (!subscription) return false;
-
-        // Free tier has access
-        if (subscription.tier === 'free') {
-            return true;
-        }
-
-        // Active subscription has access
-        if (subscription.status === 'active') {
-            return true;
-        }
-
-        // Trialing subscription has access
-        if (subscription.status === 'trialing') {
-            return true;
-        }
-
-        // User with payment method but incomplete status (webhook processing)
-        if (subscription.hasPaymentMethod && subscription.status === 'incomplete') {
-            return true;
-        }
-
-        return false;
-    };
-
-    const checkAccess = async () => {
-        try {
-            setIsChecking(true);
-
-            // If access is not required, grant immediately
-            if (!requiresAccess) {
-                setHasAccess(true);
-                return;
-            }
-
-            // Get subscription status
-            const response = await client.get(`api/v1/subscription/status?_t=${Date.now()}`);
-            const subscription = (response as any)?.data;
-
-            console.log('🔍 Subscription check:', subscription);
-
-            // Determine access based on subscription
-            const access = hasValidSubscription(subscription);
-
-            if (access) {
-                console.log('✅ Access granted');
-                setHasAccess(true);
-            } else {
-                console.log('❌ Access denied, redirecting to subscription setup');
-                router.replace('/profile?tab=subscription&setup=required');
-            }
-
-        } catch (error) {
-            console.error('❌ Subscription check failed:', error);
-
-            // Check if user just completed payment
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('success') === 'true') {
-                console.log('✅ Payment success detected, granting temporary access');
-                setHasAccess(true);
-                return;
-            }
-
-            // On error, redirect to subscription page
-            router.replace('/profile?tab=subscription');
-        } finally {
-            setIsChecking(false);
-        }
-    };
-
     useEffect(() => {
-        checkAccess();
-    }, []);
+        // If access is not required, grant immediately
+        if (!requiresAccess) {
+            setIsChecking(false);
+            return;
+        }
 
-    // Show loading while checking
-    if (isChecking) {
+        // Wait for subscription provider to finish loading
+        if (loading) {
+            return;
+        }
+
+        // Check access based on subscription provider's state
+        if (hasAccess) {
+            console.log('✅ Access granted via subscription provider');
+            setIsChecking(false);
+        } else {
+            console.log('❌ Access denied, redirecting to subscription setup');
+            router.replace('/profile?tab=subscription&setup=required');
+        }
+    }, [loading, hasAccess, requiresAccess]);
+
+    // Show loading while checking or while subscription provider is loading
+    if (isChecking || loading) {
         if (loadingType === 'skeleton') {
             return (
                 <div className="space-y-6 p-6 bg-white dark:bg-gray-900 min-h-screen">
