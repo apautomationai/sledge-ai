@@ -91,8 +91,8 @@ export async function signUpAction(
         });
       }
 
-      // Redirect to dashboard - subscription provider will handle payment/onboarding redirect
-      redirect("/dashboard");
+      // Redirect to onboarding - subscription provider will immediately handle payment setup
+      redirect("/onboarding");
     }
 
     // Fallback error if the server response is successful but invalid

@@ -28,11 +28,10 @@ interface SubscriptionProviderProps {
 export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
     const [loading, setLoading] = useState(true);
-    const [isChecked, setIsChecked] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
     const [showLoading, setShowLoading] = useState(false);
     const [redirectingToPayment, setRedirectingToPayment] = useState(false);
     const [lastUserId, setLastUserId] = useState<string | null>(null);
-    const [lastPathname, setLastPathname] = useState<string>('');
     // Initialize paymentCanceled from sessionStorage
     const [paymentCanceled, setPaymentCanceled] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -78,7 +77,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
             // Check if user changed (different userId)
             const currentUserId = getCookie('userId');
             if (currentUserId && lastUserId && currentUserId !== lastUserId) {
-                setIsChecked(false);
+                setIsInitialized(false);
                 setSubscription(null);
             }
             setLastUserId(currentUserId);
@@ -139,30 +138,21 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         // Only check subscription for authenticated users on protected routes
         if (isPublicRoute) {
             setLoading(false);
-            setIsChecked(false); // Reset when on public route
             setShowLoading(false);
             setRedirectingToPayment(false);
-            setLastPathname('');
             return;
         }
 
-        // Reset check if pathname changed
-        if (pathname !== lastPathname) {
-            setIsChecked(false);
-            setLastPathname(pathname);
-        }
-
-        // Skip if already checked for this pathname
-        if (isChecked) {
+        // Only initialize once per app load
+        if (isInitialized) {
             return;
         }
-
 
         // Show loading indicator immediately for protected routes
         setShowLoading(true);
 
         // Check if user is authenticated (has token)
-        const checkAuth = async () => {
+        const initializeSubscription = async () => {
             try {
                 const subscriptionData = await fetchSubscription();
 
@@ -171,8 +161,12 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
 
                     // If user has valid subscription
                     if (hasAccess) {
+                        // If on onboarding page, redirect to dashboard
+                        if (pathname === '/onboarding') {
+                            router.replace('/dashboard');
+                        }
                         // If on profile subscription tab, redirect to dashboard
-                        if (pathname.startsWith('/profile') && pathname.includes('tab=subscription')) {
+                        else if (pathname.startsWith('/profile') && pathname.includes('tab=subscription')) {
                             router.replace('/dashboard');
                         } else {
                             // User has access, just render the page
@@ -195,7 +189,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
                                     // Directly create and redirect to Stripe checkout
                                     setLoading(false);
                                     setShowLoading(false);
-                                    setIsChecked(true);
+                                    setIsInitialized(true);
                                     await createCheckoutAndRedirect();
                                     return;
                                 }
@@ -211,12 +205,12 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
             } finally {
                 setLoading(false);
                 setShowLoading(false);
-                setIsChecked(true);
+                setIsInitialized(true);
             }
         };
 
-        checkAuth();
-    }, [pathname, isChecked]);
+        initializeSubscription();
+    }, [isInitialized, isPublicRoute]);
 
     // Show loading screen when checking subscription or redirecting to payment
     if ((showLoading || redirectingToPayment) && !isPublicRoute) {
