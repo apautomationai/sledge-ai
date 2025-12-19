@@ -7,6 +7,7 @@ const protectedRoutes = [
   "/integrations",
   "/profile",
   "/jobs",
+  "/report"
 ];
 
 export async function middleware(request: NextRequest) {

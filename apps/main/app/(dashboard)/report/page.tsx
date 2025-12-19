@@ -68,16 +68,18 @@ export default function ReportBugPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          category,
-          title,
-          description,
-          priority,
-          source: "sledge_in_app_reporter",
-        }),
+        credentials: "include",
+        body: JSON.stringify({ category, title, description, priority, source: "sledge_in_app_reporter" }),
       });
 
       const data = await res.json();
+
+      if (res.status === 401) {
+        // Redirect to sign-in
+        window.location.href = "/sign-in";
+        return;
+      }
+
       if (!res.ok) throw new Error(data?.message || "Failed to submit bug");
 
       setSuccessState(true);
@@ -88,12 +90,13 @@ export default function ReportBugPage() {
         setSuccessState(false);
         resetForm();
       }, 2500);
+
     } catch (err: any) {
       console.error("Jira Error:", err);
-      setErrorToast("Something went wrong sending this bug. Please try again.");
+      setErrorToast(err.message || "Something went wrong sending this bug. Please try again.");
       setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="flex flex-col max-h-screen w-full bg-[var(--background)] overflow-hidden">
