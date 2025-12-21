@@ -181,8 +181,8 @@ export default function SideMenuBar({
 
             {(isOnboardingComplete && !pathname.startsWith("/onboarding")) ? (
               <>
-                <NavLink href="/jobs" icon={FileText} isActive={pathname.startsWith("/jobs")} isCollapsed={isCol}>Invoices</NavLink>
-                <NavLink href="/integrations" icon={Settings} isActive={pathname.startsWith("/integrations")} isCollapsed={isCol}>Integrations</NavLink>
+                {!isFeatureDisabled('jobs') && (<NavLink href="/jobs" icon={FileText} isActive={pathname.startsWith("/jobs")} isCollapsed={isCol}>Invoices</NavLink>)}
+                {!isFeatureDisabled('integrations') && (<NavLink href="/integrations" icon={Settings} isActive={pathname.startsWith("/integrations")} isCollapsed={isCol}>Integrations</NavLink>)}
                 {!isFeatureDisabled('projects') && (
                   <NavLink href="/projects" icon={Package2} isActive={pathname.startsWith("/projects")} isCollapsed={isCol}>Projects</NavLink>
                 )}
