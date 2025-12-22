@@ -3,7 +3,7 @@ import db from "@/lib/db";
 import { attachmentsModel } from "@/models/attachments.model";
 import { invoiceModel, lineItemsModel } from "@/models/invoice.model";
 import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
-import { count, desc, eq, getTableColumns, and, sql, gte, lt, lte, inArray } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, and, or, sql, gte, lt, lte, inArray } from "drizzle-orm";
 import { PDFDocument } from "pdf-lib";
 import { s3Client, uploadBufferToS3 } from "@/helpers/s3upload";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
@@ -1228,8 +1228,8 @@ export class InvoiceServices {
         eq(invoiceModel.isDeleted, false),
       ];
       if (startDate && endDate) {
-        invoiceConditions.push(gte(invoiceModel.createdAt, startDate));
-        invoiceConditions.push(lt(invoiceModel.createdAt, endDate));
+        invoiceConditions.push(gte(invoiceModel.invoiceDate, startDate));
+        invoiceConditions.push(lt(invoiceModel.invoiceDate, endDate));
       }
 
       const [invoicesResult] = await db
@@ -1244,8 +1244,8 @@ export class InvoiceServices {
         eq(invoiceModel.status, "approved"),
       ];
       if (startDate && endDate) {
-        approvedConditions.push(gte(invoiceModel.createdAt, startDate));
-        approvedConditions.push(lt(invoiceModel.createdAt, endDate));
+        approvedConditions.push(gte(invoiceModel.invoiceDate, startDate));
+        approvedConditions.push(lt(invoiceModel.invoiceDate, endDate));
       }
 
       const [approvedResult] = await db
@@ -1260,8 +1260,8 @@ export class InvoiceServices {
         eq(invoiceModel.status, "rejected"),
       ];
       if (startDate && endDate) {
-        rejectedConditions.push(gte(invoiceModel.createdAt, startDate));
-        rejectedConditions.push(lt(invoiceModel.createdAt, endDate));
+        rejectedConditions.push(gte(invoiceModel.invoiceDate, startDate));
+        rejectedConditions.push(lt(invoiceModel.invoiceDate, endDate));
       }
 
       const [rejectedResult] = await db
@@ -1269,38 +1269,49 @@ export class InvoiceServices {
         .from(invoiceModel)
         .where(and(...rejectedConditions));
 
-      // Count ALL pending invoices (not date-filtered) for "Pending Review"
-      const [allPendingResult] = await db
+      // Count pending invoices in the selected date range for "Pending Review"
+      const pendingConditions = [
+        eq(invoiceModel.userId, userId),
+        eq(invoiceModel.isDeleted, false),
+        eq(invoiceModel.status, "pending"),
+      ];
+      if (startDate && endDate) {
+        pendingConditions.push(gte(invoiceModel.invoiceDate, startDate));
+        pendingConditions.push(lt(invoiceModel.invoiceDate, endDate));
+      }
+
+      const [pendingResult] = await db
         .select({ count: count() })
         .from(invoiceModel)
-        .where(
-          and(
-            eq(invoiceModel.userId, userId),
-            eq(invoiceModel.isDeleted, false),
-            eq(invoiceModel.status, "pending")
-          )
-        );
+        .where(and(...pendingConditions));
 
-      // Calculate total outstanding (sum of totalAmount for ALL pending invoices)
+      // Calculate total outstanding (sum of totalAmount for pending and approved invoices in selected date range)
+      const totalOutstandingConditions = [
+        eq(invoiceModel.userId, userId),
+        eq(invoiceModel.isDeleted, false),
+        or(
+          eq(invoiceModel.status, "pending"),
+          eq(invoiceModel.status, "approved")
+        )
+      ];
+      if (startDate && endDate) {
+        totalOutstandingConditions.push(gte(invoiceModel.invoiceDate, startDate));
+        totalOutstandingConditions.push(lt(invoiceModel.invoiceDate, endDate));
+      }
+
       const [totalOutstandingResult] = await db
         .select({
           total: sql<string>`COALESCE(SUM(${invoiceModel.totalAmount}::numeric), 0)`,
         })
         .from(invoiceModel)
-        .where(
-          and(
-            eq(invoiceModel.userId, userId),
-            eq(invoiceModel.isDeleted, false),
-            eq(invoiceModel.status, "pending")
-          )
-        );
+        .where(and(...totalOutstandingConditions));
 
       const metrics = {
         invoicesThisMonth: invoicesResult.count,
-        pendingThisMonth: allPendingResult.count, // All pending invoices, not date-filtered
+        pendingThisMonth: pendingResult.count, // Pending invoices in selected date range
         approvedThisMonth: approvedResult.count,
         rejectedThisMonth: rejectedResult.count,
-        totalOutstanding: parseFloat(totalOutstandingResult.total || "0"),
+        totalOutstanding: parseFloat(totalOutstandingResult.total || "0"), // Sum of pending and approved invoices in selected date range
       };
 
       return {
@@ -1314,60 +1325,15 @@ export class InvoiceServices {
   }
 
   async getInvoiceTrends(userId: number, dateRange: 'monthly' | 'all-time' = 'monthly') {
+    // Returns trend data:
+    // - Monthly: Last 6 months with monthly data points
+    // - All-time: Yearly data from 1970 to current year (only years with data)
+    // Both invoice counts and amounts include only pending and approved invoices
     try {
       const now = new Date();
       let trendData: any[] = [];
 
       if (dateRange === 'monthly') {
-        // Get weekly data for current month
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-        // Generate 4 weeks of data
-        for (let week = 0; week < 4; week++) {
-          const weekStart = new Date(startOfMonth);
-          weekStart.setDate(weekStart.getDate() + (week * 7));
-          const weekEnd = new Date(weekStart);
-          weekEnd.setDate(weekEnd.getDate() + 6);
-
-          // Don't go beyond end of month
-          if (weekEnd > endOfMonth) {
-            weekEnd.setTime(endOfMonth.getTime());
-          }
-
-          const [invoiceCount] = await db
-            .select({ count: count() })
-            .from(invoiceModel)
-            .where(
-              and(
-                eq(invoiceModel.userId, userId),
-                eq(invoiceModel.isDeleted, false),
-                gte(invoiceModel.createdAt, weekStart),
-                lte(invoiceModel.createdAt, weekEnd)
-              )
-            );
-
-          const [totalAmount] = await db
-            .select({
-              total: sql<string>`COALESCE(SUM(${invoiceModel.totalAmount}::numeric), 0)`,
-            })
-            .from(invoiceModel)
-            .where(
-              and(
-                eq(invoiceModel.userId, userId),
-                eq(invoiceModel.isDeleted, false),
-                gte(invoiceModel.createdAt, weekStart),
-                lte(invoiceModel.createdAt, weekEnd)
-              )
-            );
-
-          trendData.push({
-            name: `Week ${week + 1}`,
-            invoices: invoiceCount.count,
-            amount: parseFloat(totalAmount.total || "0"),
-          });
-        }
-      } else {
         // Get monthly data for last 6 months
         for (let monthOffset = 5; monthOffset >= 0; monthOffset--) {
           const monthStart = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1);
@@ -1380,8 +1346,12 @@ export class InvoiceServices {
               and(
                 eq(invoiceModel.userId, userId),
                 eq(invoiceModel.isDeleted, false),
-                gte(invoiceModel.createdAt, monthStart),
-                lte(invoiceModel.createdAt, monthEnd)
+                or(
+                  eq(invoiceModel.status, "pending"),
+                  eq(invoiceModel.status, "approved")
+                ),
+                gte(invoiceModel.invoiceDate, monthStart),
+                lte(invoiceModel.invoiceDate, monthEnd)
               )
             );
 
@@ -1394,8 +1364,12 @@ export class InvoiceServices {
               and(
                 eq(invoiceModel.userId, userId),
                 eq(invoiceModel.isDeleted, false),
-                gte(invoiceModel.createdAt, monthStart),
-                lte(invoiceModel.createdAt, monthEnd)
+                or(
+                  eq(invoiceModel.status, "pending"),
+                  eq(invoiceModel.status, "approved")
+                ),
+                gte(invoiceModel.invoiceDate, monthStart),
+                lte(invoiceModel.invoiceDate, monthEnd)
               )
             );
 
@@ -1403,6 +1377,67 @@ export class InvoiceServices {
             name: monthStart.toLocaleDateString('en-US', { month: 'short' }),
             invoices: invoiceCount.count,
             amount: parseFloat(totalAmount.total || "0"),
+          });
+        }
+      } else {
+        // Get yearly data from 1970 to current year (all-time)
+        const currentYear = now.getFullYear();
+        const startYear = 1970;
+
+        for (let year = startYear; year <= currentYear; year++) {
+          const yearStart = new Date(year, 0, 1); // January 1st
+          const yearEnd = new Date(year, 11, 31, 23, 59, 59); // December 31st
+
+          const [invoiceCount] = await db
+            .select({ count: count() })
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, userId),
+                eq(invoiceModel.isDeleted, false),
+                or(
+                  eq(invoiceModel.status, "pending"),
+                  eq(invoiceModel.status, "approved")
+                ),
+                gte(invoiceModel.invoiceDate, yearStart),
+                lte(invoiceModel.invoiceDate, yearEnd)
+              )
+            );
+
+          const [totalAmount] = await db
+            .select({
+              total: sql<string>`COALESCE(SUM(${invoiceModel.totalAmount}::numeric), 0)`,
+            })
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, userId),
+                eq(invoiceModel.isDeleted, false),
+                or(
+                  eq(invoiceModel.status, "pending"),
+                  eq(invoiceModel.status, "approved")
+                ),
+                gte(invoiceModel.invoiceDate, yearStart),
+                lte(invoiceModel.invoiceDate, yearEnd)
+              )
+            );
+
+          // Only add years that have data to avoid too many zero entries
+          if (invoiceCount.count > 0 || totalAmount.total !== "0") {
+            trendData.push({
+              name: year.toString(),
+              invoices: invoiceCount.count,
+              amount: parseFloat(totalAmount.total || "0"),
+            });
+          }
+        }
+
+        // If no data found, add current year with zeros
+        if (trendData.length === 0) {
+          trendData.push({
+            name: currentYear.toString(),
+            invoices: 0,
+            amount: 0,
           });
         }
       }
