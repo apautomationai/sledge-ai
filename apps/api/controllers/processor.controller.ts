@@ -3,6 +3,7 @@ import { BadRequestError, NotFoundError } from "@/helpers/errors";
 import { attachmentServices } from "@/services/attachment.services";
 import { invoiceServices } from "@/services/invoice.services";
 import { projectServices } from "@/services/project.services";
+import { vendorsService } from "@/services/vendors.service";
 import { getWebSocketService } from "@/services/websocket.service";
 
 // import fs from 'fs';
@@ -220,7 +221,7 @@ class ProcessorController {
     const {
       invoice_number,
       customer_name,
-      vendor_id,
+      vendor_name,
       vendor_address,
       vendor_phone,
       vendor_email,
@@ -241,8 +242,8 @@ class ProcessorController {
       throw new BadRequestError("Attachment ID is required");
     }
 
-    if (!invoice_number || !vendor_id || !customer_name) {
-      throw new BadRequestError("Invoice number, vendor id, and customer name are required");
+    if (!invoice_number || !vendor_name || !customer_name) {
+      throw new BadRequestError("Invoice number, vendor name, and customer name are required");
     }
 
     if (!invoice_date) {
@@ -265,6 +266,14 @@ class ProcessorController {
       resolvedUserId = attachment.userId;
     }
 
+    // Resolve vendor ID from vendor name
+    const vendorId = await vendorsService.findOrCreateVendor(resolvedUserId, {
+      vendor_name,
+      vendor_address,
+      vendor_phone,
+      vendor_email,
+    });
+
     // Parse dates
     const parsedInvoiceDate = new Date(invoice_date);
     const parsedDueDate = due_date ? new Date(due_date) : null;
@@ -283,7 +292,7 @@ class ProcessorController {
       userId: resolvedUserId,
       attachmentId: attachment_id,
       invoiceNumber: invoice_number,
-      vendorId: vendor_id,
+      vendorId: vendorId,
       vendorAddress: vendor_address,
       vendorPhone: vendor_phone,
       vendorEmail: vendor_email,

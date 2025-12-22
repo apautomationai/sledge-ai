@@ -3,7 +3,8 @@ import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
 import { projectVendorsModel } from "@/models/project-vendors.model";
 import { projectsModel } from "@/models/projects.model";
 import { invoiceModel } from "@/models/invoice.model";
-import { eq, and, ilike, count } from "drizzle-orm";
+import { eq, and, ilike, count, or } from "drizzle-orm";
+const { v4: uuidv4 } = require("uuid");
 
 interface GetVendorsParams {
     userId: number;
@@ -295,6 +296,59 @@ class VendorsService {
             createdAt: v.createdAt,
             updatedAt: v.updatedAt,
         };
+    }
+
+    async findOrCreateVendor(
+        userId: number,
+        vendorData: {
+            vendor_name: string;
+            vendor_address?: string;
+            vendor_phone?: string;
+            vendor_email?: string;
+        }
+    ): Promise<number> {
+        // Trim vendor name for consistent matching
+        const trimmedVendorName = vendorData.vendor_name.trim();
+        
+        // Search for existing vendor by displayName or companyName (case-insensitive)
+        const existingVendors = await db
+            .select()
+            .from(quickbooksVendorsModel)
+            .where(
+                and(
+                    eq(quickbooksVendorsModel.userId, userId),
+                    or(
+                        ilike(quickbooksVendorsModel.displayName, trimmedVendorName),
+                        ilike(quickbooksVendorsModel.companyName, trimmedVendorName)
+                    )
+                )
+            )
+            .limit(1);
+
+        if (existingVendors.length > 0) {
+            return existingVendors[0].id;
+        }
+
+        // Vendor not found, create a new one
+        const quickbooksId = `LOCAL_${Date.now()}_${uuidv4()}`;
+        
+        const [newVendor] = await db
+            .insert(quickbooksVendorsModel)
+            .values({
+                userId: userId,
+                quickbooksId: quickbooksId,
+                displayName: trimmedVendorName,
+                companyName: trimmedVendorName,
+                primaryEmail: vendorData.vendor_email || null,
+                primaryPhone: vendorData.vendor_phone || null,
+                billAddrLine1: vendorData.vendor_address || null,
+                active: true,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            })
+            .returning();
+
+        return newVendor.id;
     }
 }
 
