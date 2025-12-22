@@ -120,7 +120,9 @@ export function IntegrationCard({
       } else if (isQuickBooks) {
         const result = await syncQuickBooksData();
         toast.success("Sync completed successfully", {
-          description: `Products: ${result.data.products.inserted} inserted, ${result.data.products.updated} updated, ${result.data.products.skipped} skipped. Accounts: ${result.data.accounts.inserted} inserted, ${result.data.accounts.updated} updated, ${result.data.accounts.skipped} skipped.`,
+          description: `Products: ${result.data.products.inserted} inserted, ${result.data.products.updated} updated, ${result.data.products.skipped} skipped. 
+                        Accounts: ${result.data.accounts.inserted} inserted, ${result.data.accounts.updated} updated, ${result.data.accounts.skipped} skipped.
+                        Vendors: ${result.data.vendors.inserted} inserted, ${result.data.vendors.updated} updated, ${result.data.vendors.skipped} skipped.`,
         });
       }
     } catch (error: unknown) {
