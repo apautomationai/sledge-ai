@@ -21,9 +21,9 @@ export default function StatsCards({ metrics, dateRange = "monthly" }: StatsCard
 
   const stats = [
     {
-      title: "Total Amount",
+      title: "Total Outstanding",
       value: formatCurrency(metrics.totalOutstanding),
-      description: `Pending and approved ${periodLabel.toLowerCase()}`,
+      description: "Pending invoices value",
       icon: DollarSign,
     },
     {
@@ -33,7 +33,7 @@ export default function StatsCards({ metrics, dateRange = "monthly" }: StatsCard
       icon: FileText,
     },
     {
-      title: `Pending Review ${periodLabel}`,
+      title: "Pending Review",
       value: metrics.pendingThisMonth.toString(),
       description: "Awaiting approval",
       icon: Clock,
