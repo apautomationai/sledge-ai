@@ -330,25 +330,54 @@ class VendorsService {
         }
 
         // Vendor not found, create a new one
-        const quickbooksId = `LOCAL_${Date.now()}_${uuidv4()}`;
+        // Generate a shorter unique ID that fits in varchar(50)
+        // Format: LOCAL_<timestamp>_<short-uuid> (max 50 chars)
+        const shortUuid = uuidv4().replace(/-/g, '').substring(0, 20); // 20 chars
+        const quickbooksId = `LOCAL_${Date.now()}_${shortUuid}`; // ~35 chars total
         
-        const [newVendor] = await db
-            .insert(quickbooksVendorsModel)
-            .values({
-                userId: userId,
-                quickbooksId: quickbooksId,
-                displayName: trimmedVendorName,
-                companyName: trimmedVendorName,
-                primaryEmail: vendorData.vendor_email || null,
-                primaryPhone: vendorData.vendor_phone || null,
-                billAddrLine1: vendorData.vendor_address || null,
-                active: true,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            })
-            .returning();
+        try {
+            const [newVendor] = await db
+                .insert(quickbooksVendorsModel)
+                .values({
+                    userId: userId,
+                    quickbooksId: quickbooksId,
+                    displayName: trimmedVendorName,
+                    companyName: trimmedVendorName,
+                    primaryEmail: vendorData.vendor_email || null,
+                    primaryPhone: vendorData.vendor_phone || null,
+                    billAddrLine1: vendorData.vendor_address || null,
+                    projectId: null,
+                    active: true,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                })
+                .returning();
 
-        return newVendor.id;
+            return newVendor.id;
+        } catch (error: any) {
+            // If insert fails (likely due to race condition), query again to get the existing vendor
+            // This handles the case where another concurrent request created the vendor
+            const retryVendors = await db
+                .select()
+                .from(quickbooksVendorsModel)
+                .where(
+                    and(
+                        eq(quickbooksVendorsModel.userId, userId),
+                        or(
+                            ilike(quickbooksVendorsModel.displayName, trimmedVendorName),
+                            ilike(quickbooksVendorsModel.companyName, trimmedVendorName)
+                        )
+                    )
+                )
+                .limit(1);
+
+            if (retryVendors.length > 0) {
+                return retryVendors[0].id;
+            }
+
+            // If still not found, rethrow the original error
+            throw error;
+        }
     }
 }
 

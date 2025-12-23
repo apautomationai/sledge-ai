@@ -59,23 +59,83 @@ class ProcessorController {
         userId = req.user.id;
       }
 
+      // Resolve user ID for all invoices (needed for vendor deduplication)
+      let resolvedUserId: number;
+      if (userId !== null) {
+        resolvedUserId = userId;
+      } else {
+        // Get user ID from first invoice's attachment
+        const firstAttachmentId = invoices[0]?.attachment_id;
+        if (!firstAttachmentId) {
+          throw new BadRequestError("Attachment ID is required for the first invoice");
+        }
+        const attachment = await attachmentServices.getAttachmentById(firstAttachmentId);
+        if (!attachment) {
+          throw new NotFoundError("Attachment not found");
+        }
+        resolvedUserId = attachment.userId;
+      }
+
+      // OPTIMIZATION: Deduplicate vendors before processing to avoid race conditions
+      // Extract unique vendors from all invoices
+      const uniqueVendors = new Map<string, {
+        vendor_name: string;
+        vendor_address?: string;
+        vendor_phone?: string;
+        vendor_email?: string;
+      }>();
+
+      for (const invoice of invoices) {
+        if (invoice.vendor_name) {
+          const vendorKey = invoice.vendor_name.trim().toLowerCase();
+          if (!uniqueVendors.has(vendorKey)) {
+            uniqueVendors.set(vendorKey, {
+              vendor_name: invoice.vendor_name,
+              vendor_address: invoice.vendor_address,
+              vendor_phone: invoice.vendor_phone,
+              vendor_email: invoice.vendor_email,
+            });
+          }
+        }
+      }
+
+      // Create/find all unique vendors upfront
+      const vendorIdMap = new Map<string, number>();
+      for (const [vendorKey, vendorData] of uniqueVendors.entries()) {
+        try {
+          const vendorId = await vendorsService.findOrCreateVendor(resolvedUserId, vendorData);
+          vendorIdMap.set(vendorKey, vendorId);
+        } catch (error: any) {
+          console.error(`Error creating/finding vendor ${vendorData.vendor_name}:`, error);
+          // Continue processing other vendors
+        }
+      }
+
       // Process each invoice and collect results
       const results: any[] = [];
       const wsService = getWebSocketService();
 
       for (const invoice of invoices) {
         try {
-          // Process the invoice
-          const { result, userId: resolvedUserId } = await self.processSingleInvoice(invoice, userId);
+          // Get pre-resolved vendor ID from map
+          const vendorKey = invoice.vendor_name?.trim().toLowerCase();
+          const preResolvedVendorId = vendorKey ? vendorIdMap.get(vendorKey) : undefined;
+
+          // Process the invoice with pre-resolved vendor ID
+          const { result, userId: invoiceUserId } = await self.processSingleInvoice(
+            invoice, 
+            resolvedUserId,
+            preResolvedVendorId
+          );
           const { invoice: createdInvoice, operation } = result;
 
           // Emit WebSocket events for real-time updates
           switch (operation) {
             case 'created':
-              wsService.emitInvoiceCreated(resolvedUserId, createdInvoice);
+              wsService.emitInvoiceCreated(invoiceUserId, createdInvoice);
               break;
             case 'updated':
-              wsService.emitInvoiceUpdated(resolvedUserId, createdInvoice);
+              wsService.emitInvoiceUpdated(invoiceUserId, createdInvoice);
               break;
           }
 
@@ -216,7 +276,11 @@ class ProcessorController {
   }
 
 
-  private async processSingleInvoice(invoiceData: any, userId: number | null = null) {
+  private async processSingleInvoice(
+    invoiceData: any, 
+    userId: number | null = null,
+    preResolvedVendorId?: number
+  ) {
     // Extract data from invoice object
     const {
       invoice_number,
@@ -266,8 +330,8 @@ class ProcessorController {
       resolvedUserId = attachment.userId;
     }
 
-    // Resolve vendor ID from vendor name
-    const vendorId = await vendorsService.findOrCreateVendor(resolvedUserId, {
+    // Resolve vendor ID from vendor name (use pre-resolved if available)
+    const vendorId = preResolvedVendorId ?? await vendorsService.findOrCreateVendor(resolvedUserId, {
       vendor_name,
       vendor_address,
       vendor_phone,
