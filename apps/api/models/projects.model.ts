@@ -32,7 +32,8 @@ export const projectsModel = pgTable("projects", {
   // Billing information
   billingCycleStartDate: timestamp("billing_cycle_start_date"), // Billing cycle start
   billingCycleEndDate: timestamp("billing_cycle_end_date"), // Billing cycle end
-
+	currentBillingCycle: integer("current_billing_cycle").default(1).notNull(),
+  
   // Project status and timeline
   status: varchar("status", { length: 50 }).notNull().default("pending"), // pending, active, completed, on_hold, cancelled
   projectStartDate: timestamp("project_start_date"),

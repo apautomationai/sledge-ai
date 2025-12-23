@@ -23,6 +23,8 @@ import projectsRoutes from "@/routes/projects.routes";
 import reportRoutes from "@/routes/report.route"
 import emailIntegrationRoutes from "./routes/email-integration.routes";
 import vendorsRoutes from "./routes/vendors.routes";
+import lienWaiverRoutes from "./routes/lien-waiver.routes";
+import { processBillingCycle } from "./helpers/corn";
 
 const app = express();
 
@@ -70,10 +72,16 @@ app.use("/api/v1/processor", processorRoutes);
 app.use("/api/v1/subscription", subscriptionRoutes);
 app.use("/api/v1/jobs", jobsRoutes);
 app.use("/api/v1/projects", projectsRoutes);
+app.use("/api/v1/lien-waivers", lienWaiverRoutes);
 app.use("/api/v1/vendors", vendorsRoutes);
 app.use("/api/v1/report", reportRoutes);
 
 // Error handlers
+
+// Cron job routes
+app.post('/api/v1/cron/process-billing-cycle', processBillingCycle);
+
+// Apply error handlers
 app.use(notFoundHandler);
 app.use(errorHandler);
 

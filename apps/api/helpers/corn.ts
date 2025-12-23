@@ -1,10 +1,12 @@
 import { config } from "@/lib/config";
 import axios from "axios";
 import nodeCron from "node-cron";
+import { Request, Response } from "express";
+import { lienWaiverService } from "@/services/lien-wavier.service";
 
 const fetchEmailsForAllProviders = async () => {
   const backendUrl = process.env.BACKEND_URL || 'http://localhost:4000';
-  
+
   // Run Gmail and Outlook syncs in parallel
   const [gmailResult, outlookResult] = await Promise.allSettled([
     axios.get(`${backendUrl}/api/v1/google/emails`).catch((error) => {
@@ -41,4 +43,18 @@ export const startFetchEmails = () => {
     console.log(`Email sync triggered at: ${new Date().toISOString()}`);
     await fetchEmailsForAllProviders();
   });
+};
+
+// Cron job for processing the billing cycle
+export const processBillingCycle = async (req: Request, res: Response) => {
+  const authToken = req.headers['x-cron-token'];
+  if (authToken !== process.env.AWS_CRON_JOB_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const result = await lienWaiverService.processAllProjectsBillingCycle();
+    return res.status(200).json(result);
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
 };

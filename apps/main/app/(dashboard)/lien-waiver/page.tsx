@@ -26,14 +26,27 @@ import { format } from "date-fns";
 import client from "@/lib/axios-client";
 import { LienWaiverTable, Pagination } from "@/components/lien-waiver";
 
-// Types
+// Types matching API response
 interface LienWaiver {
     id: number;
+    projectId: string;
+    projectName: string | null;
+    projectAddress: string | null;
+    waiverType: string;
+    billingCycle: number;
+    throughDate: string;
+    vendorName: string;
+    vendorEmail: string | null;
+    customerName: string | null;
+    amount: string;
+    isSigned: boolean;
+    signedAt: string | null;
+    signedFileUrl: string | null;
+    createdAt: string;
+    // Computed fields for display
     lienWaiverNumber: string;
     type: "Conditional" | "Unconditional";
     typeDescription: string;
-    throughDate: string;
-    vendorName: string;
     vendorSubtitle?: string;
     vendorInitial: string;
     status: "Requested" | "Pending Signature" | "Completed";
@@ -41,103 +54,80 @@ interface LienWaiver {
     pendingSince?: string;
 }
 
-type StatusFilter = "all" | "requested" | "pending" | "completed";
+type StatusFilter = "" | "signed" | "pending";
 
 const ITEMS_PER_PAGE = 10;
 
-// Mock data for demonstration
-const mockLienWaivers: LienWaiver[] = [
-    {
-        id: 1,
-        lienWaiverNumber: "LW-2025-0042",
-        type: "Conditional",
-        typeDescription: "Thruprds",
-        throughDate: "2025-05-31",
-        vendorName: "Canfield",
-        vendorSubtitle: "Electrician",
-        vendorInitial: "C",
-        status: "Requested",
-        sentDate: "2025-05-04",
-    },
-    {
-        id: 2,
-        lienWaiverNumber: "LW-2025-0039",
-        type: "Conditional",
-        typeDescription: "Thru QP35",
-        throughDate: "2025-05-31",
-        vendorName: "Summit",
-        vendorSubtitle: "Concrete",
-        vendorInitial: "S",
-        status: "Pending Signature",
-        pendingSince: "2025-04-30",
-    },
-    {
-        id: 3,
-        lienWaiverNumber: "LW-2025-0028",
-        type: "Conditional",
-        typeDescription: "Thru QP31",
-        throughDate: "2025-04-21",
-        vendorName: "Ace",
-        vendorSubtitle: "Plumbing",
-        vendorInitial: "A",
-        status: "Completed",
-        sentDate: "2025-04-12",
-    },
-    {
-        id: 4,
-        lienWaiverNumber: "LW-2025-0015",
-        type: "Conditional",
-        typeDescription: "Completer",
-        throughDate: "2025-03-31",
-        vendorName: "Westside",
-        vendorSubtitle: "Heating",
-        vendorInitial: "W",
-        status: "Completed",
-        sentDate: "2025-03-26",
-    },
-    {
-        id: 5,
-        lienWaiverNumber: "LW-2025-0008",
-        type: "Conditional",
-        typeDescription: "Progress",
-        throughDate: "2025-03-15",
-        vendorName: "GL Drywall",
-        vendorInitial: "D",
-        status: "Completed",
-        sentDate: "2025-03-10",
-    },
-];
-
 export default function LienWaiversPage() {
     const [lienWaivers, setLienWaivers] = useState<LienWaiver[]>([]);
-    const [filteredWaivers, setFilteredWaivers] = useState<LienWaiver[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
-    const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>("");
     const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
 
-    // Fetch lien waivers
+    // Debounce search query
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+            setCurrentPage(1);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Fetch lien waivers when filters change
     useEffect(() => {
         fetchLienWaivers();
-    }, []);
-
-    // Filter lien waivers when filters change
-    useEffect(() => {
-        filterLienWaivers();
-    }, [lienWaivers, searchQuery, statusFilter, dateRange]);
+    }, [currentPage, debouncedSearch, statusFilter, dateRange]);
 
     const fetchLienWaivers = async () => {
         setIsLoading(true);
         try {
-            // TODO: Replace with actual API call
-            // const response = await client.get("/api/v1/lien-waivers");
-            // setLienWaivers(response.data.lienWaivers);
+            const params: Record<string, string | number> = {
+                page: currentPage,
+                limit: ITEMS_PER_PAGE,
+            };
 
-            // Using mock data for now
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            setLienWaivers(mockLienWaivers);
+            if (debouncedSearch) {
+                params.search = debouncedSearch;
+            }
+
+            if (statusFilter !== "") {
+                params.status = statusFilter;
+            }
+
+            if (dateRange.from) {
+                params.startDate = format(dateRange.from, "yyyy-MM-dd");
+            }
+
+            if (dateRange.to) {
+                params.endDate = format(dateRange.to, "yyyy-MM-dd");
+            }
+
+            const response: any = await client.get("/api/v1/lien-waivers", { params });
+
+            if (response.success && response.data) {
+                // Transform API response to match display format
+                const transformedWaivers = response.data.lienWaivers.map((lw: any) => ({
+                    ...lw,
+                    lienWaiverNumber: `LW-${lw.id.toString().padStart(4, '0')}`,
+                    type: lw.waiverType === 'conditional' ? 'Conditional' : 'Unconditional',
+                    typeDescription: `Billing Cycle ${lw.billingCycle}`,
+                    vendorInitial: lw.vendorName?.charAt(0).toUpperCase() || 'V',
+                    vendorSubtitle: lw.projectName || undefined,
+                    status: lw.isSigned ? 'Completed' : 'Pending Signature',
+                    sentDate: lw.createdAt,
+                    pendingSince: !lw.isSigned ? lw.createdAt : undefined,
+                }));
+
+                setLienWaivers(transformedWaivers);
+                setTotalPages(response.data.pagination.totalPages);
+                setTotalItems(response.data.pagination.total);
+            }
         } catch (error: any) {
             toast.error("Failed to load lien waivers");
             console.error("Error fetching lien waivers:", error);
@@ -146,53 +136,19 @@ export default function LienWaiversPage() {
         }
     };
 
-    const filterLienWaivers = () => {
-        let filtered = [...lienWaivers];
-
-        // Search filter
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            filtered = filtered.filter(
-                (lw) =>
-                    lw.lienWaiverNumber.toLowerCase().includes(query) ||
-                    lw.vendorName.toLowerCase().includes(query) ||
-                    lw.vendorSubtitle?.toLowerCase().includes(query)
-            );
-        }
-
-        // Status filter
-        if (statusFilter !== "all") {
-            const statusMap: Record<string, string> = {
-                requested: "Requested",
-                pending: "Pending Signature",
-                completed: "Completed",
-            };
-            filtered = filtered.filter((lw) => lw.status === statusMap[statusFilter]);
-        }
-
-        // Date range filter
-        if (dateRange.from || dateRange.to) {
-            filtered = filtered.filter((lw) => {
-                const date = new Date(lw.throughDate);
-                if (dateRange.from && date < dateRange.from) return false;
-                if (dateRange.to && date > dateRange.to) return false;
-                return true;
-            });
-        }
-
-        setFilteredWaivers(filtered);
-        setTotalPages(Math.ceil(filtered.length / ITEMS_PER_PAGE));
+    const handleStatusChange = (value: string) => {
+        setStatusFilter(value as StatusFilter);
         setCurrentPage(1);
     };
 
-    const paginatedWaivers = filteredWaivers.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
+    const handleDateRangeChange = (range: { from?: Date; to?: Date }) => {
+        setDateRange(range);
+        setCurrentPage(1);
+    };
 
-    const handleUpload = () => {
-        // TODO: Implement upload functionality
-        toast.info("Upload functionality coming soon");
+    const handleClearDates = () => {
+        setDateRange({});
+        setCurrentPage(1);
     };
 
     return (
@@ -224,7 +180,7 @@ export default function LienWaiversPage() {
                 {/* Status Filter */}
                 <Select
                     value={statusFilter}
-                    onValueChange={(value) => setStatusFilter(value as StatusFilter)}
+                    onValueChange={handleStatusChange}
                 >
                     <SelectTrigger className="w-[140px] bg-card border-border">
                         <SelectValue placeholder="Status" />
@@ -267,7 +223,7 @@ export default function LienWaiversPage() {
                             mode="range"
                             selected={{ from: dateRange.from, to: dateRange.to }}
                             onSelect={(range) =>
-                                setDateRange({ from: range?.from, to: range?.to })
+                                handleDateRangeChange({ from: range?.from, to: range?.to })
                             }
                             numberOfMonths={2}
                         />
@@ -276,7 +232,7 @@ export default function LienWaiversPage() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => setDateRange({})}
+                                    onClick={handleClearDates}
                                     className="w-full"
                                 >
                                     Clear dates
@@ -289,7 +245,7 @@ export default function LienWaiversPage() {
 
             {/* Table - Scrollable area */}
             <div className="flex-1 min-h-0">
-                <LienWaiverTable lienWaivers={paginatedWaivers} isLoading={isLoading} />
+                <LienWaiverTable lienWaivers={lienWaivers} isLoading={isLoading} />
             </div>
 
             {/* Pagination - Fixed at bottom */}
@@ -297,7 +253,7 @@ export default function LienWaiversPage() {
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    totalItems={filteredWaivers.length}
+                    totalItems={totalItems}
                     itemsPerPage={ITEMS_PER_PAGE}
                     onPageChange={setCurrentPage}
                 />

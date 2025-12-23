@@ -4,7 +4,6 @@ export const provider = pgEnum("provider", ['local', 'gmail', 'outlook'])
 export const status = pgEnum("status", ['pending', 'approved', 'rejected', 'failed', 'not_connected'])
 export const itemType = pgEnum("item_type", ['account', 'product'])
 
-
 export const registrationCounter = pgTable("registration_counter", {
 	id: serial().primaryKey().notNull(),
 	currentCount: integer("current_count").default(0).notNull(),
@@ -161,4 +160,40 @@ export const projects = pgTable("projects", {
 	}),
 ]);
 
+export const lienWaivers = pgTable("lien_waivers", {
+	id: serial().primaryKey().notNull(),
+	userId: integer("user_id").notNull(),
+	projectId: integer("project_id").notNull(),
+	waiverType: varchar("waiver_type", { length: 20 }).notNull().default("unconditional"),
+	signedFileUrl: text("signed_file_url"),
+	billingCycle: integer("billing_cycle").notNull(),
+	throughDate: timestamp("through_date", { mode: 'string' }).notNull(),
+	status: varchar("status", { length: 20 }).notNull().default("pending"),
+	vendorName: text("vendor_name").notNull(),
+	vendorEmail: text("vendor_email"),
+	customerName: text("customer_name"),
+	amount: numeric("amount").notNull(),
+	isSigned: boolean("is_signed").default(false).notNull(),
+	signedAt: timestamp("signed_at", { mode: 'string' }),
+	createdAt: timestamp("created_at", { mode: 'string' })
+		.defaultNow()
+		.notNull(),
+}, (table) => [
+	foreignKey({
+		columns: [table.projectId],
+		foreignColumns: [projects.id],
+		name: "lien_waivers_project_id_projects_id_fk"
+	}),
+]);
 
+export const sessions = pgTable("sessions", {
+	id: serial("id").primaryKey().notNull(),
+	token: text("token").notNull().unique(), // random string
+	type: varchar("type", { length: 255 }).notNull(),
+	data: jsonb().default({}).notNull(),
+	expiresAt: timestamp("expires_at", { mode: 'string' }).notNull(),
+	used: boolean("used").default(false),
+	createdAt: timestamp("created_at", { mode: 'string' })
+		.defaultNow()
+		.notNull(),
+});

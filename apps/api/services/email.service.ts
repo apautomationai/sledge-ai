@@ -53,6 +53,19 @@ export class EmailService {
 
         return this.sendEmail({ to, subject, htmlBody, textBody });
     };
+
+    // send lien waiver email
+    sendLienWaiver = async (to: string, lienWaiverUrl: string) => {
+        const subject = "Lien Waiver";
+        const htmlBody = `
+            <p>Hello,</p>
+            <p>Click the link below to view the lien waiver:</p>
+            <a href="${lienWaiverUrl}" target="_blank">${lienWaiverUrl}</a>
+        `;
+        const textBody = `Hello,\n\nClick the link below to view the lien waiver: ${lienWaiverUrl}`;
+
+        return this.sendEmail({ to, subject, htmlBody, textBody });
+    };
 }
 
 export const emailService = new EmailService();
