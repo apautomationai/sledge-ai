@@ -34,22 +34,76 @@ export interface QuickBooksItem {
   TrackQtyOnHand?: boolean;
 }
 
-// QuickBooks Customer type
+// QuickBooks Customer type (database structure)
 export interface QuickBooksCustomer {
-  Id: string;
-  DisplayName: string;
-  FullyQualifiedName?: string;
-  CompanyName?: string;
-  GivenName?: string;
-  FamilyName?: string;
-  Active: boolean;
-  PrimaryEmailAddr?: {
-    Address: string;
-  };
-  PrimaryPhone?: {
-    FreeFormNumber: string;
-  };
-  Balance?: number;
+  id: number;
+  userId: number;
+  quickbooksId: string;
+  displayName: string | null;
+  companyName: string | null;
+  givenName: string | null;
+  middleName: string | null;
+  familyName: string | null;
+  title: string | null;
+  suffix: string | null;
+  printOnCheckName: string | null;
+  primaryEmail: string | null;
+  primaryPhone: string | null;
+  mobile: string | null;
+  alternatePhone: string | null;
+  fax: string | null;
+  website: string | null;
+  billAddrLine1: string | null;
+  billAddrLine2: string | null;
+  billAddrLine3: string | null;
+  billAddrLine4: string | null;
+  billAddrLine5: string | null;
+  billAddrCity: string | null;
+  billAddrState: string | null;
+  billAddrPostalCode: string | null;
+  billAddrCountry: string | null;
+  shipAddrLine1: string | null;
+  shipAddrLine2: string | null;
+  shipAddrLine3: string | null;
+  shipAddrLine4: string | null;
+  shipAddrLine5: string | null;
+  shipAddrCity: string | null;
+  shipAddrState: string | null;
+  shipAddrPostalCode: string | null;
+  shipAddrCountry: string | null;
+  balance: string | null;
+  balanceWithJobs: string | null;
+  active: boolean | null;
+  job: boolean | null;
+  billWithParent: boolean | null;
+  customerTypeRefValue: string | null;
+  customerTypeRefName: string | null;
+  parentRefValue: string | null;
+  parentRefName: string | null;
+  paymentMethodRefValue: string | null;
+  paymentMethodRefName: string | null;
+  termRefValue: string | null;
+  termRefName: string | null;
+  currencyRefValue: string | null;
+  currencyRefName: string | null;
+  salesTermRefValue: string | null;
+  salesTermRefName: string | null;
+  salesRepRefValue: string | null;
+  salesRepRefName: string | null;
+  taxable: boolean | null;
+  taxExemptionReasonId: string | null;
+  defaultTaxCodeRefValue: string | null;
+  defaultTaxCodeRefName: string | null;
+  gstin: string | null;
+  businessNumber: string | null;
+  gstRegistrationType: string | null;
+  syncToken: string | null;
+  domain: string | null;
+  sparse: boolean | null;
+  metaDataCreateTime: Date | null;
+  metaDataLastUpdatedTime: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // API Response types
@@ -73,11 +127,7 @@ interface QuickBooksItemsResponse {
 
 interface QuickBooksCustomersResponse {
   success: boolean;
-  data: {
-    QueryResponse?: {
-      Customer?: QuickBooksCustomer[];
-    };
-  };
+  data: QuickBooksCustomer[];
 }
 
 /**
@@ -147,35 +197,20 @@ export async function fetchQuickBooksItems(): Promise<QuickBooksItem[]> {
 }
 
 /**
- * Fetch all customers from QuickBooks
+ * Fetch all customers from QuickBooks database
  */
 export async function fetchQuickBooksCustomers(): Promise<QuickBooksCustomer[]> {
   try {
     const response = await client.get<QuickBooksCustomersResponse>("/api/v1/quickbooks/customers");
 
-    // Handle { data: { QueryResponse: { Customer: [...] } } } structure (what we're getting)
-    if ((response.data as any)?.QueryResponse?.Customer) {
-      const customers = (response.data as any).QueryResponse.Customer;
-      return customers;
-    }
-
-    // Handle nested response structure: { success: true, data: { QueryResponse: { Customer: [...] } } }
-    if (response.data?.success && response.data?.data?.QueryResponse?.Customer) {
-      return response.data.data.QueryResponse.Customer;
-    }
-
-    // Handle { success: true, data: [...] } structure
+    // Handle { success: true, data: [...] } structure (new database format)
     if (response.data?.success && Array.isArray(response.data?.data)) {
-      return response.data.data as QuickBooksCustomer[];
+      return response.data.data;
     }
 
     // Fallback: try direct array access
-    if (Array.isArray(response.data?.data)) {
-      return response.data.data as QuickBooksCustomer[];
-    }
-
     if (Array.isArray(response.data)) {
-      return response.data as QuickBooksCustomer[];
+      return response.data;
     }
 
     return [];
@@ -231,7 +266,13 @@ interface SyncResponse {
       updated: number;
       skipped: number;
       total: number;
-    }
+    };
+    customers: {
+      inserted: number;
+      updated: number;
+      skipped: number;
+      total: number;
+    };
   };
 }
 

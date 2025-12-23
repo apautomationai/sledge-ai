@@ -179,7 +179,7 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
     };
 
     const getCustomerDisplayName = (customer: QuickBooksCustomer) => {
-        return customer.DisplayName || customer.FullyQualifiedName || customer.CompanyName || 'Unknown';
+        return customer.displayName || customer.companyName || 'Unknown';
     };
 
     return (

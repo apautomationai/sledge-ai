@@ -5,6 +5,7 @@ import { integrationsModel } from "@/models/integrations.model";
 import { quickbooksProductsModel } from "@/models/quickbooks-products.model";
 import { quickbooksAccountsModel } from "@/models/quickbooks-accounts.model";
 import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
+import { quickbooksCustomersModel } from "@/models/quickbooks-customers.model";
 import { BadRequestError, InternalServerError } from "@/helpers/errors";
 import { integrationsService } from "./integrations.service";
 import { embeddingsService } from "./embeddings.service";
@@ -483,6 +484,25 @@ export class QuickBooksService {
       return vendors;
     } catch (error) {
       console.error("Error getting vendors from database:", error);
+      throw error;
+    }
+  }
+
+  // Get customers from database
+  async getCustomersFromDatabase(userId: number) {
+    try {
+      const customers = await db
+        .select()
+        .from(quickbooksCustomersModel)
+        .where(
+          and(
+            eq(quickbooksCustomersModel.userId, userId),
+            eq(quickbooksCustomersModel.active, true)
+          )
+        );
+
+      return customers;
+    } catch (error) {
       throw error;
     }
   }
@@ -1712,6 +1732,179 @@ export class QuickBooksService {
     }
 
     return { inserted, updated, skipped };
+  }
+
+  // Sync customers to database
+  async syncCustomersToDatabase(
+    userId: number,
+    customers: any[],
+  ): Promise<{ inserted: number; updated: number; skipped: number }> {
+    let inserted = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    for (const customer of customers) {
+      try {
+        const quickbooksId = customer.Id?.toString() || "";
+        if (!quickbooksId) {
+          continue;
+        }
+
+        // Parse timestamps from QuickBooks MetaData
+        const metaDataCreateTime = customer.MetaData?.CreateTime
+          ? new Date(customer.MetaData.CreateTime)
+          : null;
+        const metaDataLastUpdatedTime = customer.MetaData?.LastUpdatedTime
+          ? new Date(customer.MetaData.LastUpdatedTime)
+          : null;
+
+        const customerData = {
+          userId,
+          quickbooksId,
+          displayName: customer.DisplayName || null,
+          companyName: customer.CompanyName || null,
+          givenName: customer.GivenName || null,
+          middleName: customer.MiddleName || null,
+          familyName: customer.FamilyName || null,
+          title: customer.Title || null,
+          suffix: customer.Suffix || null,
+          printOnCheckName: customer.PrintOnCheckName || null,
+          primaryEmail: customer.PrimaryEmailAddr?.Address || null,
+          primaryPhone: customer.PrimaryPhone?.FreeFormNumber || null,
+          mobile: customer.Mobile?.FreeFormNumber || null,
+          alternatePhone: customer.AlternatePhone?.FreeFormNumber || null,
+          fax: customer.Fax?.FreeFormNumber || null,
+          website: customer.WebAddr?.URI || null,
+          billAddrLine1: customer.BillAddr?.Line1 || null,
+          billAddrLine2: customer.BillAddr?.Line2 || null,
+          billAddrLine3: customer.BillAddr?.Line3 || null,
+          billAddrLine4: customer.BillAddr?.Line4 || null,
+          billAddrLine5: customer.BillAddr?.Line5 || null,
+          billAddrCity: customer.BillAddr?.City || null,
+          billAddrState: customer.BillAddr?.CountrySubDivisionCode || null,
+          billAddrPostalCode: customer.BillAddr?.PostalCode || null,
+          billAddrCountry: customer.BillAddr?.Country || null,
+          shipAddrLine1: customer.ShipAddr?.Line1 || null,
+          shipAddrLine2: customer.ShipAddr?.Line2 || null,
+          shipAddrLine3: customer.ShipAddr?.Line3 || null,
+          shipAddrLine4: customer.ShipAddr?.Line4 || null,
+          shipAddrLine5: customer.ShipAddr?.Line5 || null,
+          shipAddrCity: customer.ShipAddr?.City || null,
+          shipAddrState: customer.ShipAddr?.CountrySubDivisionCode || null,
+          shipAddrPostalCode: customer.ShipAddr?.PostalCode || null,
+          shipAddrCountry: customer.ShipAddr?.Country || null,
+          balance: customer.Balance ? customer.Balance.toString() : null,
+          balanceWithJobs: customer.BalanceWithJobs ? customer.BalanceWithJobs.toString() : null,
+          active: customer.Active ?? null,
+          job: customer.Job ?? null,
+          billWithParent: customer.BillWithParent ?? null,
+          customerTypeRefValue: customer.CustomerTypeRef?.value || null,
+          customerTypeRefName: customer.CustomerTypeRef?.name || null,
+          parentRefValue: customer.ParentRef?.value || null,
+          parentRefName: customer.ParentRef?.name || null,
+          paymentMethodRefValue: customer.PaymentMethodRef?.value || null,
+          paymentMethodRefName: customer.PaymentMethodRef?.name || null,
+          termRefValue: customer.TermRef?.value || null,
+          termRefName: customer.TermRef?.name || null,
+          currencyRefValue: customer.CurrencyRef?.value || null,
+          currencyRefName: customer.CurrencyRef?.name || null,
+          salesTermRefValue: customer.SalesTermRef?.value || null,
+          salesTermRefName: customer.SalesTermRef?.name || null,
+          salesRepRefValue: customer.SalesRepRef?.value || null,
+          salesRepRefName: customer.SalesRepRef?.name || null,
+          taxable: customer.Taxable ?? null,
+          taxExemptionReasonId: customer.TaxExemptionReasonId || null,
+          defaultTaxCodeRefValue: customer.DefaultTaxCodeRef?.value || null,
+          defaultTaxCodeRefName: customer.DefaultTaxCodeRef?.name || null,
+          gstin: customer.GSTIN || null,
+          businessNumber: customer.BusinessNumber || null,
+          gstRegistrationType: customer.GSTRegistrationType || null,
+          syncToken: customer.SyncToken || null,
+          domain: customer.domain || null,
+          sparse: customer.sparse ?? null,
+          metaDataCreateTime,
+          metaDataLastUpdatedTime,
+        };
+
+        const embeddingText = this.buildCustomerEmbeddingText(customerData);
+
+        // Check if record exists
+        const [existing] = await db
+          .select()
+          .from(quickbooksCustomersModel)
+          .where(
+            and(
+              eq(quickbooksCustomersModel.userId, userId),
+              eq(quickbooksCustomersModel.quickbooksId, quickbooksId),
+            ),
+          )
+          .limit(1);
+
+        if (existing) {
+          const existingEmbedding =
+            (existing as { embedding?: number[] | null }).embedding ?? null;
+          // Compare updated_at timestamps
+          const dbUpdatedAt = existing.metaDataLastUpdatedTime
+            ? new Date(existing.metaDataLastUpdatedTime).getTime()
+            : 0;
+          const qbUpdatedAt = metaDataLastUpdatedTime
+            ? metaDataLastUpdatedTime.getTime()
+            : 0;
+          const embeddingMissing =
+            !existingEmbedding || existingEmbedding.length === 0;
+
+          if (dbUpdatedAt !== qbUpdatedAt || embeddingMissing) {
+            const embedding = embeddingText
+              ? await this.maybeGenerateEmbedding(embeddingText, existingEmbedding)
+              : null;
+            await db
+              .update(quickbooksCustomersModel)
+              .set({
+                ...customerData,
+                embedding,
+                updatedAt: new Date(),
+              })
+              .where(eq(quickbooksCustomersModel.id, existing.id));
+            updated++;
+          } else {
+            // Skip - no changes
+            skipped++;
+          }
+        } else {
+          const embedding = embeddingText
+            ? await this.maybeGenerateEmbedding(embeddingText)
+            : null;
+          await db.insert(quickbooksCustomersModel).values({
+            ...customerData,
+            embedding,
+            createdAt: metaDataCreateTime || new Date(),
+            updatedAt: metaDataLastUpdatedTime || new Date(),
+          });
+          inserted++;
+        }
+      } catch (error) {
+        // Continue with next customer
+      }
+    }
+
+    return { inserted, updated, skipped };
+  }
+
+  private buildCustomerEmbeddingText(customerData: any): string {
+    const parts = [
+      customerData.displayName,
+      customerData.companyName,
+      customerData.givenName,
+      customerData.familyName,
+      customerData.primaryEmail,
+      customerData.primaryPhone,
+      customerData.billAddrCity,
+      customerData.billAddrState,
+      customerData.shipAddrCity,
+      customerData.shipAddrState,
+    ].filter(Boolean);
+
+    return parts.join(" ");
   }
 }
 

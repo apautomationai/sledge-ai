@@ -316,7 +316,7 @@ export function LineItemsTable({
     };
 
     const getCustomerDisplayName = (customer: QuickBooksCustomer) => {
-        return customer.DisplayName || customer.FullyQualifiedName || customer.CompanyName || 'Unknown';
+        return customer.displayName || customer.companyName || 'Unknown';
     };
 
     if (lineItems.length === 0) {
@@ -556,7 +556,7 @@ export function LineItemsTable({
                                                     </TooltipTrigger>
                                                     <TooltipContent>
                                                         {state.customerId
-                                                            ? `Customer: ${customers.find(c => String(c.Id) === state.customerId)?.DisplayName || 'Selected'}`
+                                                            ? `Customer: ${customers.find(c => String(c.quickbooksId) === state.customerId)?.displayName || 'Selected'}`
                                                             : 'No customer selected'}
                                                     </TooltipContent>
                                                 </Tooltip>

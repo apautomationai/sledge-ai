@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import InvoicePdfViewer from "@/components/invoice-process/invoice-pdf-viewer";
 import InvoiceDetailsForm from "@/components/invoice-process/invoice-details-form";
 import { QuickBooksDataProvider } from "@/components/invoice-process/quickbooks-data-provider";
+import { ResizablePanels } from "@/components/ui/resizable-panels";
 import type { InvoiceDetails, InvoiceListItem, Attachment } from "@/lib/types/invoice";
 
 export default function JobDetailPage() {
@@ -60,6 +61,25 @@ export default function JobDetailPage() {
     } | null>(null);
 
     const currentInvoiceId = invoicesList[currentInvoiceIndex]?.id;
+
+    // Handle panel resize with localStorage persistence
+    const handlePanelResize = (leftWidth: number) => {
+        try {
+            localStorage.setItem('invoice-panel-width', leftWidth.toString());
+        } catch (error) {
+            // Ignore localStorage errors
+        }
+    };
+
+    // Get initial panel width from localStorage
+    const getInitialPanelWidth = () => {
+        try {
+            const saved = localStorage.getItem('invoice-panel-width');
+            return saved ? parseFloat(saved) : 60;
+        } catch (error) {
+            return 60;
+        }
+    };
 
     // Fetch attachment and invoice list for this job
     useEffect(() => {
@@ -388,10 +408,16 @@ export default function JobDetailPage() {
                 </div>
             </div>
 
-            {/* Main Content - Two Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_700px] gap-4 h-[calc(100%-4rem)] ">
-                {/* Left Side - Preview with Carousel (conditionally shown) */}
-                <div className="flex flex-col h-full gap-4 min-w-0 overflow-hidden">
+            {/* Main Content - Resizable Two Column Layout */}
+            <ResizablePanels
+                defaultLeftWidth={getInitialPanelWidth()}
+                minLeftWidth={30}
+                maxLeftWidth={80}
+                className="h-[calc(100%-4rem)]"
+                onResize={handlePanelResize}
+            >
+                {/* Left Side - Preview with Carousel */}
+                <div className="flex flex-col h-full gap-4 min-w-0 overflow-hidden pr-2">
                     {/* Carousel Controls - Only show for invoice tab */}
                     {activeTab === "invoice" && (
                         <div className="flex items-center justify-between gap-4 bg-card rounded-lg border px-4 py-3">
@@ -546,7 +572,7 @@ export default function JobDetailPage() {
                 </div>
 
                 {/* Right Side - Invoice Details Form */}
-                <div className="flex flex-col h-full min-w-0 overflow-hidden">
+                <div className="flex flex-col h-full min-w-0 overflow-hidden pl-2">
                     {invoiceDetails && originalInvoiceDetails ? (
                         <QuickBooksDataProvider autoLoad={true}>
                             <InvoiceDetailsForm
@@ -584,7 +610,7 @@ export default function JobDetailPage() {
                         </div>
                     )}
                 </div>
-            </div>
+            </ResizablePanels>
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

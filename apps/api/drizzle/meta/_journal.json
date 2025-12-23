@@ -99,6 +99,20 @@
       "when": 1765936965285,
       "tag": "0015_serious_liz_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1766442903345,
+      "tag": "0016_flashy_mesmero",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1766443748280,
+      "tag": "0017_fast_cassandra_nova",
+      "breakpoints": true
     }
   ]
 }

@@ -31,7 +31,16 @@ export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksIte
 
     const selectedItem = useMemo(() => {
         if (!value) return null;
-        const found = items.find((item) => item.Id === value) || null;
+        // Handle different ID field names based on item type
+        const found = items.find((item) => {
+            if ('quickbooksId' in item) {
+                // Database items (customers, vendors, etc.)
+                return item.quickbooksId === value;
+            } else {
+                // QuickBooks API items (accounts, items)
+                return (item as any).Id === value;
+            }
+        }) || null;
         return found;
     }, [items, value]);
 
@@ -47,7 +56,9 @@ export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksIte
     }, [items, searchValue, getDisplayName]);
 
     const handleSelect = (item: T) => {
-        onSelect(item.Id, item);
+        // Handle different ID field names based on item type
+        const itemId = 'quickbooksId' in item ? item.quickbooksId : (item as any).Id;
+        onSelect(itemId, item);
         setOpen(false);
         setSearchValue("");
     };
@@ -101,21 +112,25 @@ export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksIte
                                 <span className="text-sm text-muted-foreground">Loading...</span>
                             </div>
                         ) : filteredItems.length > 0 ? (
-                            filteredItems.map((item) => (
-                                <div
-                                    key={item.Id}
-                                    className="flex items-center px-3 py-2 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground border-b last:border-b-0"
-                                    onClick={() => handleSelect(item)}
-                                >
-                                    <Check
-                                        className={cn(
-                                            "mr-2 h-4 w-4",
-                                            value === item.Id ? "opacity-100" : "opacity-0"
-                                        )}
-                                    />
-                                    <span className="truncate">{getDisplayName(item)}</span>
-                                </div>
-                            ))
+                            filteredItems.map((item) => {
+                                // Handle different ID field names based on item type
+                                const itemId = 'quickbooksId' in item ? item.quickbooksId : (item as any).Id;
+                                return (
+                                    <div
+                                        key={itemId}
+                                        className="flex items-center px-3 py-2 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground border-b last:border-b-0"
+                                        onClick={() => handleSelect(item)}
+                                    >
+                                        <Check
+                                            className={cn(
+                                                "mr-2 h-4 w-4",
+                                                value === itemId ? "opacity-100" : "opacity-0"
+                                            )}
+                                        />
+                                        <span className="truncate">{getDisplayName(item)}</span>
+                                    </div>
+                                );
+                            })
                         ) : (
                             <div className="p-4 text-center text-sm text-muted-foreground">
                                 {searchValue ? "No results found." : "No items available."}

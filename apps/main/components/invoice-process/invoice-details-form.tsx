@@ -170,6 +170,8 @@ export default function InvoiceDetailsForm({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showChangeTypeDialog, setShowChangeTypeDialog] = useState(false);
+  // Accordion state management
+  const [accordionValue, setAccordionValue] = useState<string[]>(["invoice-info", "line-items"]);
   // Use shared QuickBooks data from context
   const { customers: bulkCustomers, isLoadingCustomers, loadCustomers } = useQuickBooksData();
 
@@ -542,7 +544,12 @@ export default function InvoiceDetailsForm({
     <div className="h-full flex flex-col gap-2">
       {/* Accordion Sections */}
       <div className="flex-1 overflow-hidden min-h-0">
-        <Accordion type="multiple" defaultValue={["invoice-info", "line-items"]} className="h-full flex flex-col gap-2">
+        <Accordion
+          type="multiple"
+          value={accordionValue}
+          onValueChange={setAccordionValue}
+          className="h-full flex flex-col gap-2"
+        >
           {/* Section 1: Invoice Information - 50% height when expanded */}
           <AccordionItem value="invoice-info" className="border rounded-lg bg-card flex-1 min-h-0 flex flex-col data-[state=closed]:flex-none overflow-hidden">
             <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
@@ -643,37 +650,42 @@ export default function InvoiceDetailsForm({
 
           {/* Section 2: Line Items - 50% height when expanded */}
           <AccordionItem value="line-items" className="border rounded-lg bg-card flex-1 min-h-0 flex flex-col data-[state=closed]:flex-none overflow-hidden">
-            <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
-              <div className="flex items-center gap-2 flex-1">
-                <span className="text-sm font-semibold">Line Items ({lineItems.length})</span>
-                {selectedLineItems.size > 0 && (
-                  <div className="flex items-center gap-2 ml-4">
-                    <span className="text-xs text-muted-foreground">({selectedLineItems.size} selected)</span>
-                    <Button
-                      size="sm"
-                      className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
-                      onClick={() => {
-                        setShowDeleteDialog(true);
-                      }}
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => {
-                        setShowChangeTypeDialog(true);
-                      }}
-                    >
-                      Change Type
-                    </Button>
-                  </div>
+            <div className="relative">
+              <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-sm font-semibold">Line Items ({lineItems.length})</span>
+                </div>
+                {isLoadingLineItems && (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 )}
-              </div>
-              {isLoadingLineItems && (
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </AccordionTrigger>
+              {/* Move buttons outside of AccordionTrigger */}
+              {selectedLineItems.size > 0 && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10 bg-card px-2 py-1 rounded">
+                  <span className="text-xs text-muted-foreground">({selectedLineItems.size} selected)</span>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowChangeTypeDialog(true);
+                    }}
+                  >
+                    Change Type
+                  </Button>
+                </div>
               )}
-            </AccordionTrigger>
+            </div>
             <AccordionContent className="px-2 pb-3 flex-1 min-h-0 overflow-hidden data-[state=open]:flex data-[state=open]:flex-col h-full">
               <div className="flex flex-col flex-1 min-h-0 h-full">
                 <ScrollArea className="flex-1">
@@ -745,6 +757,13 @@ export default function InvoiceDetailsForm({
         onOpenChange={(open) => {
           setShowChangeTypeDialog(open);
           if (open) {
+            // Ensure line-items accordion stays open when dialog opens
+            setAccordionValue(prev => {
+              if (!prev.includes("line-items")) {
+                return [...prev, "line-items"];
+              }
+              return prev;
+            });
             loadCustomers();
             if (bulkItemType) {
               if (bulkItemType === 'account' && bulkAccounts.length === 0) {
@@ -832,8 +851,7 @@ export default function InvoiceDetailsForm({
                 placeholder="Search customers..."
                 isLoading={isLoadingCustomers}
                 getDisplayName={(customer: QuickBooksCustomer) => {
-                  const name = customer.DisplayName || customer.CompanyName || `Customer ${customer.Id}`;
-                  console.log('📝 Display name for customer:', customer.Id, '=', name);
+                  const name = customer.displayName || customer.companyName || `Customer ${customer.quickbooksId}`;
                   return name;
                 }}
               />
