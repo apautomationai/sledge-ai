@@ -38,6 +38,7 @@ import {
 } from "@workspace/ui/components/dropdown-menu";
 import { logoutAction } from "@/app/(auth)/logout/acttion";
 import { cn } from "@workspace/ui/lib/utils";
+import { clearQueryCache } from "@/lib/query-client";
 import Image from "next/image";
 
 const NavLink = ({ href, icon: Icon, children, isActive, isCollapsed }: any) => (
@@ -305,7 +306,13 @@ export default function SideMenuBar({
                   </DropdownMenuPortal>
                 </DropdownMenuSub>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="p-2 cursor-pointer text-destructive focus:text-destructive" onSelect={() => (document.getElementById("logout-form") as HTMLFormElement)?.requestSubmit()}>
+                <DropdownMenuItem
+                  className="p-2 cursor-pointer text-destructive focus:text-destructive"
+                  onSelect={() => {
+                    clearQueryCache();
+                    (document.getElementById("logout-form") as HTMLFormElement)?.requestSubmit();
+                  }}
+                >
                   <LogOut className="mr-2 h-4 w-4" /> Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>

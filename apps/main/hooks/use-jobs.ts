@@ -1,171 +1,164 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/axios-client";
 import { useRealtimeInvoices } from "@/hooks/use-realtime-invoices";
 
 export interface VendorData {
-    id: number;
-    displayName: string | null;
-    companyName: string | null;
-    primaryEmail: string | null;
-    primaryPhone: string | null;
-    billAddrLine1: string | null;
-    billAddrCity: string | null;
-    billAddrState: string | null;
-    billAddrPostalCode: string | null;
-    active: boolean | null;
-    quickbooksId: string;
+  id: number;
+  displayName: string | null;
+  companyName: string | null;
+  primaryEmail: string | null;
+  primaryPhone: string | null;
+  billAddrLine1: string | null;
+  billAddrCity: string | null;
+  billAddrState: string | null;
+  billAddrPostalCode: string | null;
+  active: boolean | null;
+  quickbooksId: string;
 }
 
 export interface Job {
-    id: string;
-    filename: string;
-    sender: string;
-    receiver: string;
-    provider?: string;
-    created_at: string;
-    invoiceCount: number;
-    jobStatus: "pending" | "processing" | "processed" | "approved" | "rejected" | "failed";
-    vendorData?: VendorData | null;
-    invoiceStatusCounts?: {
-        approved: number;
-        rejected: number;
-        pending: number;
-    };
+  id: string;
+  filename: string;
+  sender: string;
+  receiver: string;
+  provider?: string;
+  created_at: string;
+  invoiceCount: number;
+  jobStatus:
+    | "pending"
+    | "processing"
+    | "processed"
+    | "approved"
+    | "rejected"
+    | "failed";
+  vendorData?: VendorData | null;
+  invoiceStatusCounts?: {
+    approved: number;
+    rejected: number;
+    pending: number;
+  };
 }
 
 interface JobsApiResponse {
-    jobs: Job[];
-    statusCounts: {
-        all: number;
-        pending: number;
-        processing: number;
-        processed: number;
-        approved: number;
-        rejected: number;
-        failed: number;
-    };
-    pagination: {
-        totalJobs: number;
-        page: number;
-        limit: number;
-        totalPages: number;
-    };
+  jobs: Job[];
+  statusCounts: {
+    all: number;
+    pending: number;
+    processing: number;
+    processed: number;
+    approved: number;
+    rejected: number;
+    failed: number;
+  };
+  pagination: {
+    totalJobs: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 interface UseJobsParams {
-    page: number;
-    status?: string;
-    sortBy?: string;
-    sortOrder?: string;
-    search?: string;
+  page: number;
+  status?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  search?: string;
 }
 
-export function useJobs({ page, status = "all", sortBy = "received", sortOrder = "desc", search = "" }: UseJobsParams) {
-    const [jobs, setJobs] = useState<Job[]>([]);
-    const [statusCounts, setStatusCounts] = useState({
-        all: 0,
-        pending: 0,
-        processing: 0,
-        processed: 0,
-        approved: 0,
-        failed: 0,
-    });
-    const [totalPages, setTotalPages] = useState(1);
-    const [isLoading, setIsLoading] = useState(true);
+const defaultStatusCounts = {
+  all: 0,
+  pending: 0,
+  processing: 0,
+  processed: 0,
+  approved: 0,
+  rejected: 0,
+  failed: 0,
+};
 
-    const fetchJobs = useCallback(async () => {
-        try {
-            setIsLoading(true);
+async function fetchJobs(params: UseJobsParams): Promise<JobsApiResponse> {
+  const searchParams = new URLSearchParams({
+    page: params.page.toString(),
+    limit: "10",
+    status: params.status || "all",
+    sortBy: params.sortBy || "received",
+    sortOrder: params.sortOrder || "desc",
+  });
 
-            // Build query parameters
-            const params = new URLSearchParams({
-                page: page.toString(),
-                limit: "10",
-                status,
-                sortBy,
-                sortOrder,
-            });
+  if (params.search) {
+    searchParams.append("search", params.search);
+  }
 
-            if (search) {
-                params.append("search", search);
-            }
+  const response = await client.get(`api/v1/jobs?${searchParams.toString()}`);
 
-            const response = await client.get(
-                `api/v1/jobs?${params.toString()}`
-            );
+  // Handle the response structure
+  if (response.data?.data?.jobs) {
+    return response.data.data;
+  } else if (response.data?.jobs) {
+    return response.data;
+  }
 
-            console.log("Jobs API Response:", response);
+  return {
+    jobs: [],
+    statusCounts: defaultStatusCounts,
+    pagination: { totalJobs: 0, page: 1, limit: 10, totalPages: 1 },
+  };
+}
 
-            // Handle the response structure: { status: "success", data: { jobs: [], statusCounts: {}, pagination: {} } }
-            if (response.data?.data?.jobs) {
-                setJobs(response.data.data.jobs);
-                setStatusCounts(response.data.data.statusCounts || statusCounts);
-                setTotalPages(response.data.data.pagination?.totalPages || 1);
-            } else if (response.data?.jobs) {
-                // Fallback if structure is different
-                setJobs(response.data.jobs);
-                setStatusCounts(response.data.statusCounts || statusCounts);
-                setTotalPages(response.data.pagination?.totalPages || 1);
-            } else {
-                console.warn("Unexpected response structure:", response.data);
-                setJobs([]);
-            }
-        } catch (error) {
-            console.error("Failed to fetch jobs:", error);
-            setJobs([]);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [page, status, sortBy, sortOrder, search]);
+export function useJobs({
+  page,
+  status = "all",
+  sortBy = "received",
+  sortOrder = "desc",
+  search = "",
+}: UseJobsParams) {
+  const queryClient = useQueryClient();
 
-    // Initial fetch
-    useEffect(() => {
-        fetchJobs();
-    }, [fetchJobs]);
+  const queryKey = ["jobs", { page, status, sortBy, sortOrder, search }];
 
-    // Set up real-time WebSocket connection
-    const { joinInvoiceList, leaveInvoiceList } = useRealtimeInvoices({
-        onRefreshNeeded: () => {
-            console.log("🔄 WebSocket: Refresh needed - fetching jobs");
-            fetchJobs();
-        },
-        onInvoiceCreated: (invoiceId) => {
-            console.log("✅ WebSocket: Invoice created:", invoiceId, "- fetching jobs");
-            fetchJobs();
-        },
-        onInvoiceUpdated: (invoiceId) => {
-            console.log("📝 WebSocket: Invoice updated:", invoiceId, "- fetching jobs");
-            fetchJobs();
-        },
-        onInvoiceStatusUpdated: (invoiceId, status) => {
-            console.log("🔔 WebSocket: Invoice status updated:", invoiceId, status, "- fetching jobs");
-            fetchJobs();
-        },
-        onAttachmentStatusUpdated: (attachmentId, status) => {
-            console.log("📎 WebSocket: Attachment status updated:", attachmentId, status, "- fetching jobs");
-            fetchJobs();
-        },
-        enableToasts: false,
-        autoConnect: true,
-    });
+  const query = useQuery({
+    queryKey,
+    queryFn: () => fetchJobs({ page, status, sortBy, sortOrder, search }),
+  });
 
-    // Join invoice list room when component mounts
-    useEffect(() => {
-        console.log("🔌 Jobs: Joining invoice list room");
-        joinInvoiceList();
-        return () => {
-            console.log("🔌 Jobs: Leaving invoice list room");
-            leaveInvoiceList();
-        };
-    }, [joinInvoiceList, leaveInvoiceList]);
+  // Set up real-time WebSocket connection
+  const { joinInvoiceList, leaveInvoiceList } = useRealtimeInvoices({
+    onRefreshNeeded: () => {
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onInvoiceCreated: () => {
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onInvoiceUpdated: () => {
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onInvoiceStatusUpdated: () => {
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onAttachmentStatusUpdated: () => {
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    enableToasts: false,
+    autoConnect: true,
+  });
 
-    return {
-        jobs,
-        statusCounts,
-        totalPages,
-        isLoading,
-        refetch: fetchJobs,
+  // Join invoice list room when component mounts
+  useEffect(() => {
+    joinInvoiceList();
+    return () => {
+      leaveInvoiceList();
     };
+  }, [joinInvoiceList, leaveInvoiceList]);
+
+  return {
+    jobs: query.data?.jobs || [],
+    statusCounts: query.data?.statusCounts || defaultStatusCounts,
+    totalPages: query.data?.pagination?.totalPages || 1,
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    refetch: query.refetch,
+  };
 }
