@@ -11,6 +11,7 @@ import { streamToBuffer } from "@/lib/utils/steamToBuffer";
 import { Readable } from "stream";
 import { generateS3PublicUrl } from "@/lib/utils/s3";
 import { QuickBooksService } from "@/services/quickbooks.service";
+import { emailService } from "@/services/email.service";
 const { v4: uuidv4 } = require("uuid");
 
 const quickbooksService = new QuickBooksService();
@@ -191,6 +192,7 @@ export class InvoiceServices {
         totalAmount: invoiceModel.totalAmount,
         attachmentId: invoiceModel.attachmentId,
         attachmentUrl: attachmentsModel.fileUrl,
+        senderEmail: attachmentsModel.sender,
         fileUrl: invoiceModel.fileUrl,
         createdAt: invoiceModel.createdAt,
         invoiceDate: invoiceModel.invoiceDate,
@@ -262,6 +264,7 @@ export class InvoiceServices {
       .select({
         ...getTableColumns(invoiceModel),
         sourcePdfUrl: attachmentsModel.fileUrl,
+        senderEmail: attachmentsModel.sender,
         // Vendor data from quickbooks_vendors table
         vendorData: {
           id: quickbooksVendorsModel.id,
@@ -760,13 +763,15 @@ export class InvoiceServices {
     }
   }
 
-  async updateInvoiceStatus(invoiceId: number, status: string) {
+  async updateInvoiceStatus(invoiceId: number, status: string, rejectionReason?: string, recipientEmail?: string) {
     try {
       // Update the invoice status
       await db
         .update(invoiceModel)
         .set({
           status: status as any,
+          rejectionEmailSender: recipientEmail || null,
+          rejectionReason: rejectionReason || null,
           updatedAt: new Date()
         })
         .where(eq(invoiceModel.id, invoiceId));
@@ -809,6 +814,21 @@ export class InvoiceServices {
 
       if (!updatedInvoiceWithVendor) {
         throw new NotFoundError("Invoice not found after update");
+      }
+
+      // Send rejection email if status is "rejected" and recipient email is provided
+      if (status === "rejected" && recipientEmail) {
+        try {
+          await emailService.sendInvoiceRejectionEmail({
+            to: recipientEmail,
+            invoiceNumber: updatedInvoiceWithVendor.invoiceNumber || `INV-${invoiceId}`,
+            vendorName: updatedInvoiceWithVendor.vendorData?.displayName || undefined,
+            rejectionReason: rejectionReason,
+          });
+          console.log(`Rejection email sent to ${recipientEmail} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
+        } catch (emailError) {
+          console.error("Failed to send rejection email:", emailError);
+        }
       }
 
       return updatedInvoiceWithVendor;
