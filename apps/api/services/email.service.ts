@@ -20,7 +20,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export class EmailService {
-    private defaultFrom = process.env.AUTH_EMAIL || "auth@getsledge.com";
+    private defaultFrom = process.env.AUTH_EMAIL || "";
     private notificationFrom = process.env.NOTIFICATION_EMAIL || "";
 
     // send email
