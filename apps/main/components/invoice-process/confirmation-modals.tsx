@@ -15,6 +15,15 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@workspace/ui/components/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import { InvoiceDetails } from "@/lib/types/invoice";
 import { formatLabel, renderValue, formatDate } from "@/lib/utility/formatters";
 
@@ -55,6 +64,31 @@ export default function ConfirmationModals({
   const [isQuickBooksErrorOpen, setIsQuickBooksErrorOpen] = useState(false);
   const [isLineItemsErrorOpen, setIsLineItemsErrorOpen] = useState(false);
   const [incompleteLineItems, setIncompleteLineItems] = useState<string[]>([]);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedRecipientEmail, setSelectedRecipientEmail] = useState("");
+  const [customEmail, setCustomEmail] = useState("");
+  const [customEmailError, setCustomEmailError] = useState("");
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleCustomEmailChange = (value: string) => {
+    setCustomEmail(value);
+    if (value && !validateEmail(value)) {
+      setCustomEmailError("Please enter a valid email address");
+    } else {
+      setCustomEmailError("");
+    }
+  };
+
+  const getRecipientEmail = (): string | undefined => {
+    if (selectedRecipientEmail === "custom") {
+      return customEmail && validateEmail(customEmail) ? customEmail : undefined;
+    }
+    return selectedRecipientEmail || undefined;
+  };
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
@@ -295,14 +329,23 @@ export default function ConfirmationModals({
   };
 
   const handleConfirmReject = async () => {
+    // Validate custom email if selected
+    if (selectedRecipientEmail === "custom" && (!customEmail || !validateEmail(customEmail))) {
+      setCustomEmailError("Please enter a valid email address");
+      return;
+    }
+
     setIsRejecting(true);
 
     try {
       const invoiceId = invoiceDetails.id;
+      const recipientEmail = getRecipientEmail();
 
-      // Update invoice status to rejected
+      // Update invoice status to rejected with reason and recipient email
       const statusUpdateResponse: any = await client.patch(`/api/v1/invoice/${invoiceId}/status`, {
-        status: "rejected"
+        status: "rejected",
+        rejectionReason: rejectionReason || undefined,
+        recipientEmail: recipientEmail
       });
 
       // Update local invoice details state
@@ -312,10 +355,18 @@ export default function ConfirmationModals({
       }
 
       toast.dismiss();
-      toast.success("Invoice has been rejected");
+      if (recipientEmail) {
+        toast.success(`Invoice rejected. Notification sent to ${recipientEmail}`);
+      } else {
+        toast.success("Invoice has been rejected");
+      }
 
-      // Close the dialog first
+      // Close the dialog and reset form
       setIsRejectDialogOpen(false);
+      setRejectionReason("");
+      setSelectedRecipientEmail("");
+      setCustomEmail("");
+      setCustomEmailError("");
 
     } catch (error: any) {
       console.error("Error rejecting invoice:", error.response?.data || error.message);
@@ -333,13 +384,12 @@ export default function ConfirmationModals({
   // Check if invoice is already approved or rejected
   const isInvoiceFinalized = invoiceDetails.status === "approved" || invoiceDetails.status === "rejected";
 
-  const handleRejectClick = async () => {
-    // Auto-save before rejection to ensure latest changes are persisted
-    setIsSaving(true);
-    await onSave();
-    setIsSaving(false);
-
-    // Open the reject dialog
+  const handleRejectClick = () => {
+    // Reset form state and open the reject dialog
+    setRejectionReason("");
+    setSelectedRecipientEmail("");
+    setCustomEmail("");
+    setCustomEmailError("");
     setIsRejectDialogOpen(true);
   };
 
@@ -360,13 +410,62 @@ export default function ConfirmationModals({
             >
               {isRejecting ? "Rejecting..." : "Reject"}
             </Button>
-            <DialogContent>
+            <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Confirm Invoice Rejection</DialogTitle>
+                <DialogTitle>Reject Invoice</DialogTitle>
                 <DialogDescription>
-                  Are you sure you want to reject this invoice? This action will mark the invoice as rejected.
+                  This will mark the invoice as rejected.
                 </DialogDescription>
               </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Send email to</Label>
+                  <Select
+                    value={selectedRecipientEmail}
+                    onValueChange={setSelectedRecipientEmail}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select recipient email" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {invoiceDetails.senderEmail && (
+                        <SelectItem value={invoiceDetails.senderEmail}>
+                          Sender: {invoiceDetails.senderEmail}
+                        </SelectItem>
+                      )}
+                      {(invoiceDetails.vendorData?.primaryEmail || invoiceDetails.vendorEmail) && (
+                        <SelectItem value={invoiceDetails.vendorData?.primaryEmail ?? invoiceDetails.vendorEmail ?? "vendor"}>
+                          Vendor: {invoiceDetails.vendorData?.primaryEmail || invoiceDetails.vendorEmail}
+                        </SelectItem>
+                      )}
+                      <SelectItem value="custom">Custom email</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {selectedRecipientEmail === "custom" && (
+                    <div className="mt-2">
+                      <Input
+                        type="email"
+                        value={customEmail}
+                        onChange={(e) => handleCustomEmailChange(e.target.value)}
+                        placeholder="Enter email address"
+                        className={customEmailError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
+                      />
+                      {customEmailError && (
+                        <p className="text-red-500 text-xs mt-1">{customEmailError}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Reason for rejection (optional)</Label>
+                  <textarea
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                    placeholder="Enter the reason for rejecting this invoice..."
+                    className="w-full px-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px] resize-none"
+                  />
+                </div>
+              </div>
               <DialogFooter>
                 <DialogClose asChild>
                   <Button variant="outline">Cancel</Button>
