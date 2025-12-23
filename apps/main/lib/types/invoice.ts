@@ -59,6 +59,7 @@ export interface InvoiceDetails {
   updatedAt: string;
   fileUrl: string;
   sourcePdfUrl: string | null;
+  senderEmail?: string | null;
   vendorData?: VendorData | null;
 }
 
