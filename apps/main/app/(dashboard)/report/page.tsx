@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
-import { AlertCircle, UploadCloud, X, FileImage, FileText } from "lucide-react";
+import { AlertCircle, UploadCloud, X, FileImage, FileText, FileVideo, CheckCircle2 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
 import { bugReportSchema, type BugReportFormData } from "@/lib/validators";
@@ -51,7 +51,7 @@ const PRIORITIES = [
 ] as const;
 
 const ACCEPTED_FILE_TYPES =
-  "image/jpeg,image/jpg,image/png,image/gif,image/webp,application/pdf";
+  "image/jpeg,image/jpg,image/png,image/gif,image/webp,application/pdf,video/mp4,video/webm,video/quicktime,video/x-msvideo";
 
 const runConfetti = () => {
   const duration = 1500;
@@ -68,8 +68,11 @@ const runConfetti = () => {
   })();
 };
 
+const THANK_YOU_DURATION = 5000; // 5 seconds
+
 export default function ReportBugPage() {
   const [isDragging, setIsDragging] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -106,10 +109,7 @@ export default function ReportBugPage() {
         formData.append("attachment", data.attachment);
       }
 
-      // Collect debug info and append as JSON string
       const debugInfo = debugLogger.getDebugInfo();
-      console.log("Debug info being sent:", debugInfo);
-      console.log("Debug info JSON:", JSON.stringify(debugInfo));
       if (debugInfo) {
         formData.append("debugInfo", JSON.stringify(debugInfo));
       }
@@ -122,8 +122,11 @@ export default function ReportBugPage() {
     },
     onSuccess: () => {
       runConfetti();
-      toast.success("Thank you for your feedback! We really appreciate it.");
+      setShowThankYou(true);
       reset();
+      setTimeout(() => {
+        setShowThankYou(false);
+      }, THANK_YOU_DURATION);
     },
     onError: (error: any) => {
       console.error("Bug report error:", error);
@@ -182,6 +185,38 @@ export default function ReportBugPage() {
   };
 
   const isImageFile = (file: File) => file.type.startsWith("image/");
+  const isVideoFile = (file: File) => file.type.startsWith("video/");
+
+  if (showThankYou) {
+    return (
+      <div className="flex flex-col h-full w-full bg-background overflow-hidden">
+        <main className="flex-1 flex items-center justify-center p-2 sm:p-4">
+          <Card className="w-full max-w-md border-2 border-[#D4AF37] py-8 gap-4">
+            <CardContent className="flex flex-col items-center justify-center gap-4 px-4 py-0">
+              <div className="rounded-full bg-[#D4AF37]/20 p-4">
+                <CheckCircle2 className="h-12 w-12 text-[#D4AF37]" />
+              </div>
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-bold text-foreground">
+                  Thank You!
+                </h2>
+                <p className="text-muted-foreground max-w-xs">
+                  We appreciate you taking the time to report this issue.
+                  Our team will get right on it!
+                </p>
+              </div>
+              <Button
+                onClick={() => setShowThankYou(false)}
+                className="mt-2 bg-gradient-to-b from-[#FFD65A] to-[#D4AF37] text-black hover:opacity-90 font-semibold"
+              >
+                Report Another Issue
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden">
@@ -273,6 +308,8 @@ export default function ReportBugPage() {
                   <div className="flex items-center gap-3 p-3 border border-border rounded-lg bg-muted/50">
                     {isImageFile(attachment) ? (
                       <FileImage className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+                    ) : isVideoFile(attachment) ? (
+                      <FileVideo className="h-8 w-8 text-muted-foreground flex-shrink-0" />
                     ) : (
                       <FileText className="h-8 w-8 text-muted-foreground flex-shrink-0" />
                     )}
@@ -315,7 +352,7 @@ export default function ReportBugPage() {
                       Drop file or click to upload
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      PNG, JPG, GIF, PDF (max 10MB)
+                      PNG, JPG, GIF, PDF, MP4, WebM (max 10MB)
                     </p>
                   </div>
                 )}
@@ -336,7 +373,7 @@ export default function ReportBugPage() {
               {/* Priority */}
               <div className="flex flex-col gap-1">
                 <Label>Priority</Label>
-                <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
                   {PRIORITIES.map((p) => (
                     <label
                       key={p.value}

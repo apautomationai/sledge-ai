@@ -87,7 +87,7 @@ export const attachmentDetailsSchema = z.object({
 export type AttachmentDetailsFormData = z.infer<typeof attachmentDetailsSchema>;
 
 // Bug Report Schema
-const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_ATTACHMENT_SIZE = 50 * 1024 * 1024; // 50MB
 const ACCEPTED_ATTACHMENT_TYPES = [
   "image/jpeg",
   "image/jpg",
@@ -95,6 +95,10 @@ const ACCEPTED_ATTACHMENT_TYPES = [
   "image/gif",
   "image/webp",
   "application/pdf",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+  "video/x-msvideo",
 ];
 
 // Debug info schema for bug reports
@@ -132,11 +136,11 @@ export const bugReportSchema = z.object({
     .any()
     .refine(
       (file) => !file || file.size <= MAX_ATTACHMENT_SIZE,
-      "Max file size is 10MB."
+      "Max file size is 50MB."
     )
     .refine(
       (file) => !file || ACCEPTED_ATTACHMENT_TYPES.includes(file.type),
-      "Only images (JPEG, PNG, GIF, WebP) and PDF files are supported."
+      "Only images (JPEG, PNG, GIF, WebP), PDF, and video files (MP4, WebM) are supported."
     )
     .optional(),
   debugInfo: debugInfoSchema.optional(),

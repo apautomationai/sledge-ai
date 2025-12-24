@@ -7,9 +7,13 @@ const ALLOWED_FILE_TYPES = [
   "image/gif",
   "image/webp",
   "application/pdf",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+  "video/x-msvideo",
 ];
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
 export const uploadSingle = multer({
   storage: multer.memoryStorage(),
@@ -20,7 +24,7 @@ export const uploadSingle = multer({
     if (ALLOWED_FILE_TYPES.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Invalid file type. Only images and PDFs are allowed."));
+      cb(new Error("Invalid file type. Only images, PDFs, and videos are allowed."));
     }
   },
 });

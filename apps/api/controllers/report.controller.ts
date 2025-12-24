@@ -319,19 +319,28 @@ class ReportController {
       const file = (r as any).file;
       if (file) {
         try {
-          const blob = new Blob([file.buffer], { type: file.mimetype });
-          const formData = new FormData();
-          formData.append("file", blob, file.originalname);
+          const boundary = `----FormBoundary${Date.now()}`;
+          const filename = file.originalname;
+          const contentType = file.mimetype;
+
+          const header = Buffer.from(
+            `--${boundary}\r\n` +
+              `Content-Disposition: form-data; name="file"; filename="${filename}"\r\n` +
+              `Content-Type: ${contentType}\r\n\r\n`,
+          );
+          const footer = Buffer.from(`\r\n--${boundary}--\r\n`);
+          const body = Buffer.concat([header, file.buffer, footer]);
 
           await axios.post(
             `${JIRA_BASE_URL}/rest/api/3/issue/${issueKey}/attachments`,
-            formData,
+            body,
             {
               auth: { username: JIRA_EMAIL, password: JIRA_API_TOKEN },
               headers: {
                 "X-Atlassian-Token": "no-check",
+                "Content-Type": `multipart/form-data; boundary=${boundary}`,
               },
-              timeout: 60000,
+              timeout: 120000,
             },
           );
         } catch (attachmentError: any) {
