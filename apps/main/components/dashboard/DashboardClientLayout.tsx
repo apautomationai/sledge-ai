@@ -48,10 +48,10 @@ export default function DashboardClientLayout({
       {/* Main content area */}
       <div
         className={cn(
-          "flex flex-col flex-1 transition-all duration-300",
+          "flex flex-col flex-1 min-w-0 transition-all duration-300",
         )}
       >
-        <main className="flex-1 overflow-y-auto p-4 pl-6">{children}</main>
+        <main className="flex-1 overflow-auto min-w-0 p-4 pl-6">{children}</main>
         <Footer />
       </div>
     </div>
