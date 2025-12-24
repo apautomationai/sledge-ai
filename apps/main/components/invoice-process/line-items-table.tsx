@@ -14,8 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@workspace/ui/components/input";
 import { Button } from "@workspace/ui/components/button";
 import { LineItemAutocomplete } from "./line-item-autocomplete-simple";
-import { fetchQuickBooksAccounts, fetchQuickBooksItems, fetchQuickBooksCustomers } from "@/lib/services/quickbooks.service";
-import type { QuickBooksAccount, QuickBooksItem, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
+import { fetchQuickBooksAccountsFromDB, fetchQuickBooksProductsFromDB, fetchQuickBooksCustomers } from "@/lib/services/quickbooks.service";
+import type { DBQuickBooksAccount, DBQuickBooksProduct, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
 import type { LineItem } from "@/lib/types/invoice";
 import { toast } from "sonner";
 import { client } from "@/lib/axios-client";
@@ -58,8 +58,8 @@ export function LineItemsTable({
     isQuickBooksConnected = null
 }: LineItemsTableProps) {
     const router = useRouter();
-    const [accounts, setAccounts] = useState<QuickBooksAccount[]>([]);
-    const [items, setItems] = useState<QuickBooksItem[]>([]);
+    const [accounts, setAccounts] = useState<DBQuickBooksAccount[]>([]);
+    const [items, setItems] = useState<DBQuickBooksProduct[]>([]);
     const [customers, setCustomers] = useState<QuickBooksCustomer[]>([]);
     const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
     const [isLoadingItems, setIsLoadingItems] = useState(false);
@@ -93,8 +93,9 @@ export function LineItemsTable({
                 rate: item.rate || "0",
                 amount: item.amount || "0",
                 itemType: item.itemType || null,
-                resourceId: item.resourceId ? String(item.resourceId) : null,
-                customerId: item.customerId ? String(item.customerId) : null,
+                // resourceId should store the quickbooks_id (as saved in database)
+                resourceId: item.resourceId && item.resourceId !== 'undefined' && item.resourceId !== 'null' ? String(item.resourceId) : null,
+                customerId: item.customerId && item.customerId !== 'undefined' && item.customerId !== 'null' ? String(item.customerId) : null,
             };
         });
         return initialStates;
@@ -107,16 +108,14 @@ export function LineItemsTable({
         setLineItemStates(getInitialStates());
     }, [lineItems.length]); // Only re-initialize when items are added/removed
 
-    // Load accounts, items, and customers when needed
+    // Load accounts, items, and customers when QuickBooks is connected
     useEffect(() => {
         if (isQuickBooksConnected) {
-            const needsAccounts = lineItems.some(item => item.itemType === 'account');
-            const needsItems = lineItems.some(item => item.itemType === 'product');
-
-            if (needsAccounts && accounts.length === 0 && !isLoadingAccounts) {
+            // Always load accounts and products when connected since they're needed for dropdowns
+            if (accounts.length === 0 && !isLoadingAccounts) {
                 loadAccounts();
             }
-            if (needsItems && items.length === 0 && !isLoadingItems) {
+            if (items.length === 0 && !isLoadingItems) {
                 loadItems();
             }
             // Always load customers if connected and not already loaded
@@ -124,12 +123,12 @@ export function LineItemsTable({
                 loadCustomers();
             }
         }
-    }, [lineItems, isQuickBooksConnected]);
+    }, [isQuickBooksConnected]);
 
     const loadAccounts = async () => {
         setIsLoadingAccounts(true);
         try {
-            const fetchedAccounts = await fetchQuickBooksAccounts();
+            const fetchedAccounts = await fetchQuickBooksAccountsFromDB();
             setAccounts(fetchedAccounts);
         } catch (error) {
             console.error("Error loading accounts:", error);
@@ -142,7 +141,7 @@ export function LineItemsTable({
     const loadItems = async () => {
         setIsLoadingItems(true);
         try {
-            const fetchedItems = await fetchQuickBooksItems();
+            const fetchedItems = await fetchQuickBooksProductsFromDB();
             setItems(fetchedItems);
         } catch (error) {
             console.error("Error loading items:", error);
@@ -233,7 +232,7 @@ export function LineItemsTable({
         }
     };
 
-    const handleItemTypeChange = (lineItemId: number, newType: 'account' | 'product' | null) => {
+    const handleItemTypeChange = async (lineItemId: number, newType: 'account' | 'product' | null) => {
         if (newType && !isQuickBooksConnected) {
             setIsQuickBooksErrorOpen(true);
             return;
@@ -245,6 +244,15 @@ export function LineItemsTable({
             onChange(lineItemId, { itemType: newType, resourceId: null });
         }
 
+        // Immediately save the type change to database
+        try {
+            const updateData = { itemType: newType, resourceId: null };
+            await client.patch(`/api/v1/invoice/line-items/${lineItemId}`, updateData);
+        } catch (error) {
+            console.error('Error saving item type:', error);
+            toast.error("Failed to save item type");
+        }
+
         // Load data if needed
         if (newType === 'account' && accounts.length === 0) {
             loadAccounts();
@@ -253,11 +261,34 @@ export function LineItemsTable({
         }
     };
 
-    const handleResourceSelect = (lineItemId: number, resourceId: string, type: 'account' | 'product') => {
-        updateLineItemState(lineItemId, { resourceId });
+    const handleResourceSelect = async (lineItemId: number, resourceId: string, type: 'account' | 'product') => {
+        // Find the selected item to get its quickbooks_id
+        let quickbooksId: string | null = null;
+
+        if (type === 'account') {
+            const selectedAccount = accounts.find(account => String(account.id) === resourceId);
+            quickbooksId = selectedAccount?.quickbooksId || null;
+        } else if (type === 'product') {
+            const selectedProduct = items.find(item => String(item.id) === resourceId);
+            quickbooksId = selectedProduct?.quickbooksId || null;
+        }
+
+        // Update local state with quickbooks_id for UI matching (not database id)
+        updateLineItemState(lineItemId, { resourceId: quickbooksId });
 
         if (onChange) {
-            onChange(lineItemId, { itemType: type, resourceId });
+            // Pass quickbooks_id to parent component as well
+            onChange(lineItemId, { itemType: type, resourceId: quickbooksId });
+        }
+
+        // Save quickbooks_id to database (not the database id)
+        try {
+            const updateData = { itemType: type, resourceId: quickbooksId };
+            await client.patch(`/api/v1/invoice/line-items/${lineItemId}`, updateData);
+            toast.success("Category saved");
+        } catch (error) {
+            console.error('Error saving category:', error);
+            toast.error("Failed to save category");
         }
     };
 
@@ -307,12 +338,12 @@ export function LineItemsTable({
         }
     };
 
-    const getAccountDisplayName = (account: QuickBooksAccount) => {
-        return account.FullyQualifiedName || account.Name;
+    const getAccountDisplayName = (account: DBQuickBooksAccount) => {
+        return account.fullyQualifiedName || account.name || 'Unknown Account';
     };
 
-    const getItemDisplayName = (item: QuickBooksItem) => {
-        return item.FullyQualifiedName || item.Name;
+    const getItemDisplayName = (item: DBQuickBooksProduct) => {
+        return item.fullyQualifiedName || item.name || 'Unknown Product';
     };
 
     const getCustomerDisplayName = (customer: QuickBooksCustomer) => {
@@ -520,8 +551,8 @@ export function LineItemsTable({
                                                     <TooltipContent>
                                                         {state.resourceId ? (
                                                             state.itemType === 'account'
-                                                                ? `Account: ${accounts.find(a => String(a.Id) === state.resourceId)?.FullyQualifiedName || 'Selected'}`
-                                                                : `Product: ${items.find(i => String(i.Id) === state.resourceId)?.FullyQualifiedName || 'Selected'}`
+                                                                ? `Account: ${accounts.find(a => a.quickbooksId === state.resourceId)?.fullyQualifiedName || accounts.find(a => a.quickbooksId === state.resourceId)?.name || 'Selected'}`
+                                                                : `Product: ${items.find(i => i.quickbooksId === state.resourceId)?.fullyQualifiedName || items.find(i => i.quickbooksId === state.resourceId)?.name || 'Selected'}`
                                                         ) : 'No category selected'}
                                                     </TooltipContent>
                                                 </Tooltip>
@@ -556,7 +587,7 @@ export function LineItemsTable({
                                                     </TooltipTrigger>
                                                     <TooltipContent>
                                                         {state.customerId
-                                                            ? `Customer: ${customers.find(c => String(c.quickbooksId) === state.customerId)?.displayName || 'Selected'}`
+                                                            ? `Customer: ${customers.find(c => c.quickbooksId === state.customerId)?.displayName || 'Selected'}`
                                                             : 'No customer selected'}
                                                     </TooltipContent>
                                                 </Tooltip>

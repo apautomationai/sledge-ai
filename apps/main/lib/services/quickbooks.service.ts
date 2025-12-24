@@ -1,6 +1,63 @@
 import { client } from "@/lib/axios-client";
 
-// QuickBooks Account type
+// Database structure types
+export interface DBQuickBooksAccount {
+  id: number;
+  userId: number;
+  quickbooksId: string;
+  name: string | null;
+  subAccount: boolean | null;
+  parentRefValue: string | null;
+  fullyQualifiedName: string | null;
+  active: boolean | null;
+  classification: string | null;
+  accountType: string | null;
+  accountSubType: string | null;
+  currentBalance: string | null;
+  currentBalanceWithSubAccounts: string | null;
+  currencyRefValue: string | null;
+  currencyRefName: string | null;
+  domain: string | null;
+  sparse: boolean | null;
+  syncToken: string | null;
+  metaDataCreateTime: Date | null;
+  metaDataLastUpdatedTime: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DBQuickBooksProduct {
+  id: number;
+  userId: number;
+  quickbooksId: string;
+  name: string | null;
+  description: string | null;
+  active: boolean | null;
+  fullyQualifiedName: string | null;
+  taxable: boolean | null;
+  unitPrice: string | null;
+  type: string | null;
+  incomeAccountValue: string | null;
+  incomeAccountName: string | null;
+  purchaseDesc: string | null;
+  purchaseCost: string | null;
+  expenseAccountValue: string | null;
+  expenseAccountName: string | null;
+  assetAccountValue: string | null;
+  assetAccountName: string | null;
+  trackQtyOnHand: boolean | null;
+  qtyOnHand: string | null;
+  invStartDate: Date | null;
+  domain: string | null;
+  sparse: boolean | null;
+  syncToken: string | null;
+  metaDataCreateTime: Date | null;
+  metaDataLastUpdatedTime: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// QuickBooks Account type (legacy - for backward compatibility)
 export interface QuickBooksAccount {
   Id: string;
   Name: string;
@@ -16,7 +73,7 @@ export interface QuickBooksAccount {
   };
 }
 
-// QuickBooks Product/Item type
+// QuickBooks Product/Item type (legacy - for backward compatibility)
 export interface QuickBooksItem {
   Id: string;
   Name: string;
@@ -42,64 +99,17 @@ export interface QuickBooksCustomer {
   displayName: string | null;
   companyName: string | null;
   givenName: string | null;
-  middleName: string | null;
   familyName: string | null;
-  title: string | null;
-  suffix: string | null;
-  printOnCheckName: string | null;
   primaryEmail: string | null;
   primaryPhone: string | null;
-  mobile: string | null;
-  alternatePhone: string | null;
-  fax: string | null;
-  website: string | null;
   billAddrLine1: string | null;
-  billAddrLine2: string | null;
-  billAddrLine3: string | null;
-  billAddrLine4: string | null;
-  billAddrLine5: string | null;
   billAddrCity: string | null;
   billAddrState: string | null;
   billAddrPostalCode: string | null;
   billAddrCountry: string | null;
-  shipAddrLine1: string | null;
-  shipAddrLine2: string | null;
-  shipAddrLine3: string | null;
-  shipAddrLine4: string | null;
-  shipAddrLine5: string | null;
-  shipAddrCity: string | null;
-  shipAddrState: string | null;
-  shipAddrPostalCode: string | null;
-  shipAddrCountry: string | null;
   balance: string | null;
-  balanceWithJobs: string | null;
   active: boolean | null;
-  job: boolean | null;
-  billWithParent: boolean | null;
-  customerTypeRefValue: string | null;
-  customerTypeRefName: string | null;
-  parentRefValue: string | null;
-  parentRefName: string | null;
-  paymentMethodRefValue: string | null;
-  paymentMethodRefName: string | null;
-  termRefValue: string | null;
-  termRefName: string | null;
-  currencyRefValue: string | null;
-  currencyRefName: string | null;
-  salesTermRefValue: string | null;
-  salesTermRefName: string | null;
-  salesRepRefValue: string | null;
-  salesRepRefName: string | null;
-  taxable: boolean | null;
-  taxExemptionReasonId: string | null;
-  defaultTaxCodeRefValue: string | null;
-  defaultTaxCodeRefName: string | null;
-  gstin: string | null;
-  businessNumber: string | null;
-  gstRegistrationType: string | null;
   syncToken: string | null;
-  domain: string | null;
-  sparse: boolean | null;
   metaDataCreateTime: Date | null;
   metaDataLastUpdatedTime: Date | null;
   createdAt: Date;
@@ -130,9 +140,60 @@ interface QuickBooksCustomersResponse {
   data: QuickBooksCustomer[];
 }
 
+// Database API Response types
+interface DBQuickBooksAccountsResponse {
+  success: boolean;
+  data: DBQuickBooksAccount[];
+}
+
+interface DBQuickBooksProductsResponse {
+  success: boolean;
+  data: DBQuickBooksProduct[];
+}
+
 /**
- * Fetch all accounts from QuickBooks
+ * Fetch all accounts from QuickBooks database (raw structure)
  */
+export async function fetchQuickBooksAccountsFromDB(): Promise<DBQuickBooksAccount[]> {
+  try {
+    const response = await client.get<DBQuickBooksAccountsResponse>("/api/v1/quickbooks/db/accounts");
+
+    if (response.data?.success && Array.isArray(response.data?.data)) {
+      return response.data.data;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data as DBQuickBooksAccount[];
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching QuickBooks accounts from database:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch all products from QuickBooks database (raw structure)
+ */
+export async function fetchQuickBooksProductsFromDB(): Promise<DBQuickBooksProduct[]> {
+  try {
+    const response = await client.get<DBQuickBooksProductsResponse>("/api/v1/quickbooks/db/products");
+
+    if (response.data?.success && Array.isArray(response.data?.data)) {
+      return response.data.data;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data as DBQuickBooksProduct[];
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching QuickBooks products from database:", error);
+    throw error;
+  }
+}
 export async function fetchQuickBooksAccounts(): Promise<QuickBooksAccount[]> {
   try {
     const response = await client.get<QuickBooksAccountsResponse>("/api/v1/quickbooks/accounts");

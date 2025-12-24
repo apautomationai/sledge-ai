@@ -420,10 +420,10 @@ class InvoiceController {
         updateData.itemType = itemType;
       }
       if (resourceId !== undefined) {
-        updateData.resourceId = resourceId ? String(resourceId) : null;
+        updateData.resourceId = resourceId && resourceId !== 'undefined' && resourceId !== 'null' ? String(resourceId) : null;
       }
       if (customerId !== undefined) {
-        updateData.customerId = customerId ? String(customerId) : null;
+        updateData.customerId = customerId && customerId !== 'undefined' && customerId !== 'null' ? String(customerId) : null;
       }
       if (quantity !== undefined) {
         updateData.quantity = String(quantity);

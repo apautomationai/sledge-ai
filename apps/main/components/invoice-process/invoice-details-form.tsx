@@ -27,8 +27,8 @@ import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select";
 import { LineItemAutocomplete } from "./line-item-autocomplete-simple";
-import { fetchQuickBooksAccounts, fetchQuickBooksItems } from "@/lib/services/quickbooks.service";
-import type { QuickBooksAccount, QuickBooksItem, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
+import { fetchQuickBooksAccountsFromDB, fetchQuickBooksProductsFromDB } from "@/lib/services/quickbooks.service";
+import type { DBQuickBooksAccount, DBQuickBooksProduct, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
 import { useQuickBooksData } from "./quickbooks-data-provider";
 
 const FormField = ({
@@ -240,6 +240,7 @@ export default function InvoiceDetailsForm({
   // Method to save all line item changes
   const saveLineItemChanges = async () => {
     const changeEntries = Object.entries(lineItemChanges);
+
     if (changeEntries.length === 0) {
       return; // No changes to save
     }
@@ -247,9 +248,9 @@ export default function InvoiceDetailsForm({
     try {
       // Save all line item changes in parallel
       await Promise.all(
-        changeEntries.map(([lineItemId, changes]) =>
-          client.patch(`/api/v1/invoice/line-items/${lineItemId}`, changes)
-        )
+        changeEntries.map(([lineItemId, changes]) => {
+          return client.patch(`/api/v1/invoice/line-items/${lineItemId}`, changes);
+        })
       );
 
       // Clear the changes after successful save
@@ -315,7 +316,7 @@ export default function InvoiceDetailsForm({
   const loadBulkAccounts = async () => {
     setIsLoadingBulkData(true);
     try {
-      const accountsData = await fetchQuickBooksAccounts();
+      const accountsData = await fetchQuickBooksAccountsFromDB();
       setBulkAccounts(accountsData);
     } catch (error) {
       console.error("Error loading accounts:", error);
@@ -329,7 +330,7 @@ export default function InvoiceDetailsForm({
   const loadBulkItems = async () => {
     setIsLoadingBulkData(true);
     try {
-      const itemsData = await fetchQuickBooksItems();
+      const itemsData = await fetchQuickBooksProductsFromDB();
       setBulkItems(itemsData);
     } catch (error) {
       console.error("Error loading products/services:", error);
@@ -347,13 +348,16 @@ export default function InvoiceDetailsForm({
 
     setIsApplyingBulkChange(true);
     try {
+      // bulkResourceId and bulkCustomerId now already contain quickbooks_id values
+      // No need to extract them again since we store them directly in state
+
       // Update all selected line items in parallel
       await Promise.all(
         Array.from(selectedLineItems).map((lineItemId) =>
           client.patch(`/api/v1/invoice/line-items/${lineItemId}`, {
             itemType: bulkItemType,
-            resourceId: bulkResourceId,
-            customerId: bulkCustomerId, // Apply customer to all selected items
+            resourceId: bulkResourceId, // Already contains quickbooks_id
+            customerId: bulkCustomerId, // Already contains quickbooks_id
           })
         )
       );
@@ -816,22 +820,30 @@ export default function InvoiceDetailsForm({
                   <LineItemAutocomplete
                     items={bulkAccounts}
                     value={bulkResourceId}
-                    onSelect={(id) => setBulkResourceId(id)}
+                    onSelect={(id, account) => {
+                      // Store quickbooks_id in state for UI matching
+                      const quickbooksId = account?.quickbooksId || null;
+                      setBulkResourceId(quickbooksId);
+                    }}
                     placeholder="Search accounts..."
                     isLoading={isLoadingBulkData}
-                    getDisplayName={(account: QuickBooksAccount) =>
-                      `${account.Name}${account.AccountType ? ` (${account.AccountType})` : ''}`
+                    getDisplayName={(account: any) =>
+                      account.fullyQualifiedName || account.name || 'Unknown Account'
                     }
                   />
                 ) : (
                   <LineItemAutocomplete
                     items={bulkItems}
                     value={bulkResourceId}
-                    onSelect={(id) => setBulkResourceId(id)}
+                    onSelect={(id, item) => {
+                      // Store quickbooks_id in state for UI matching
+                      const quickbooksId = item?.quickbooksId || null;
+                      setBulkResourceId(quickbooksId);
+                    }}
                     placeholder="Search products/services..."
                     isLoading={isLoadingBulkData}
-                    getDisplayName={(item: QuickBooksItem) =>
-                      `${item.Name}${item.Type ? ` (${item.Type})` : ''}`
+                    getDisplayName={(item: any) =>
+                      item.fullyQualifiedName || item.name || 'Unknown Product'
                     }
                   />
                 )}
@@ -844,9 +856,10 @@ export default function InvoiceDetailsForm({
               <LineItemAutocomplete
                 items={bulkCustomers}
                 value={bulkCustomerId}
-                onSelect={(id) => {
-                  console.log('🎯 Customer selected:', id);
-                  setBulkCustomerId(id);
+                onSelect={(id, customer) => {
+                  // Store quickbooksId for customers (they use quickbooksId field)
+                  const quickbooksId = customer?.quickbooksId || null;
+                  setBulkCustomerId(quickbooksId);
                 }}
                 placeholder="Search customers..."
                 isLoading={isLoadingCustomers}

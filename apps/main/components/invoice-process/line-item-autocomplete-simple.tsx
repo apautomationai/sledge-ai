@@ -5,9 +5,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/component
 import { Button } from "@workspace/ui/components/button";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import type { QuickBooksAccount, QuickBooksItem, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
+import type { DBQuickBooksAccount, DBQuickBooksProduct, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
 
-interface AutocompleteProps<T extends QuickBooksAccount | QuickBooksItem | QuickBooksCustomer> {
+interface AutocompleteProps<T extends DBQuickBooksAccount | DBQuickBooksProduct | QuickBooksCustomer> {
     items: T[];
     value: string | null;
     onSelect: (id: string, item?: T) => void;
@@ -17,7 +17,7 @@ interface AutocompleteProps<T extends QuickBooksAccount | QuickBooksItem | Quick
     getDisplayName: (item: T) => string;
 }
 
-export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksItem | QuickBooksCustomer>({
+export function LineItemAutocomplete<T extends DBQuickBooksAccount | DBQuickBooksProduct | QuickBooksCustomer>({
     items,
     value,
     onSelect,
@@ -30,19 +30,22 @@ export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksIte
     const [searchValue, setSearchValue] = useState("");
 
     const selectedItem = useMemo(() => {
-        if (!value) return null;
-        // Handle different ID field names based on item type
+        if (!value || value === 'undefined' || value === 'null') return null;
+
+        // For accounts and products, match by quickbooks_id (saved value)
+        // For customers, match by quickbooksId field
         const found = items.find((item) => {
             if ('quickbooksId' in item) {
-                // Database items (customers, vendors, etc.)
+                // Database items (customers) - match by quickbooksId
                 return item.quickbooksId === value;
             } else {
-                // QuickBooks API items (accounts, items)
-                return (item as any).Id === value;
+                // Database items (accounts, products) - match by quickbooks_id field
+                return (item as any).quickbooksId === value;
             }
         }) || null;
+
         return found;
-    }, [items, value]);
+    }, [items, value, getDisplayName]);
 
     const filteredItems = useMemo(() => {
         if (!searchValue.trim()) {
@@ -56,8 +59,9 @@ export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksIte
     }, [items, searchValue, getDisplayName]);
 
     const handleSelect = (item: T) => {
-        // Handle different ID field names based on item type
-        const itemId = 'quickbooksId' in item ? item.quickbooksId : (item as any).Id;
+        // For UI state management, we pass the database ID
+        // The parent component will extract quickbooks_id for saving to database
+        const itemId = String((item as any).id);
         onSelect(itemId, item);
         setOpen(false);
         setSearchValue("");
@@ -113,8 +117,12 @@ export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksIte
                             </div>
                         ) : filteredItems.length > 0 ? (
                             filteredItems.map((item) => {
-                                // Handle different ID field names based on item type
-                                const itemId = 'quickbooksId' in item ? item.quickbooksId : (item as any).Id;
+                                const itemId = String((item as any).id);
+                                // For selection highlighting, we need to check if this item's quickbooks_id matches the saved value
+                                const isSelected = 'quickbooksId' in item
+                                    ? item.quickbooksId === value
+                                    : (item as any).quickbooksId === value;
+
                                 return (
                                     <div
                                         key={itemId}
@@ -124,7 +132,7 @@ export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksIte
                                         <Check
                                             className={cn(
                                                 "mr-2 h-4 w-4",
-                                                value === itemId ? "opacity-100" : "opacity-0"
+                                                isSelected ? "opacity-100" : "opacity-0"
                                             )}
                                         />
                                         <span className="truncate">{getDisplayName(item)}</span>

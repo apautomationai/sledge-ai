@@ -1079,6 +1079,50 @@ export class QuickBooksController {
       next(error);
     }
   };
+
+  // Get accounts from database (raw structure)
+  getAccountsFromDB = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // @ts-ignore - user is added by auth middleware
+      const userId = req.user?.id;
+
+      if (!userId) {
+        throw new BadRequestError("User not authenticated");
+      }
+
+      // Fetch accounts from database with raw structure
+      const accounts = await quickbooksService.getAccountsFromDatabase(userId);
+
+      res.json({
+        success: true,
+        data: accounts,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Get products from database (raw structure)
+  getProductsFromDB = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // @ts-ignore - user is added by auth middleware
+      const userId = req.user?.id;
+
+      if (!userId) {
+        throw new BadRequestError("User not authenticated");
+      }
+
+      // Fetch products from database with raw structure
+      const products = await quickbooksService.getProductsFromDatabase(userId);
+
+      res.json({
+        success: true,
+        data: products,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export const quickbooksController = new QuickBooksController();
