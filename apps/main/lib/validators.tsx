@@ -85,3 +85,62 @@ export const attachmentDetailsSchema = z.object({
 });
 
 export type AttachmentDetailsFormData = z.infer<typeof attachmentDetailsSchema>;
+
+// Bug Report Schema
+const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10MB
+const ACCEPTED_ATTACHMENT_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "application/pdf",
+];
+
+// Debug info schema for bug reports
+const debugInfoSchema = z.object({
+  logs: z.array(z.object({
+    timestamp: z.string(),
+    level: z.enum(["log", "warn", "error", "info"]),
+    message: z.string(),
+  })),
+  networkErrors: z.array(z.object({
+    timestamp: z.string(),
+    method: z.string(),
+    url: z.string(),
+    status: z.number().nullable(),
+    statusText: z.string(),
+    error: z.string(),
+  })),
+  browserContext: z.object({
+    url: z.string(),
+    userAgent: z.string(),
+    platform: z.string(),
+    language: z.string(),
+    screenSize: z.string(),
+    viewportSize: z.string(),
+    timestamp: z.string(),
+  }),
+});
+
+export const bugReportSchema = z.object({
+  category: z.string().min(1, { message: "Please select a category." }),
+  title: z.string().min(1, { message: "Bug title is required." }).max(200, { message: "Title must be less than 200 characters." }),
+  description: z.string().min(1, { message: "Bug description is required." }).max(5000, { message: "Description must be less than 5000 characters." }),
+  priority: z.enum(["low", "medium", "high", "critical"], { message: "Please select a priority level." }),
+  attachment: z
+    .any()
+    .refine(
+      (file) => !file || file.size <= MAX_ATTACHMENT_SIZE,
+      "Max file size is 10MB."
+    )
+    .refine(
+      (file) => !file || ACCEPTED_ATTACHMENT_TYPES.includes(file.type),
+      "Only images (JPEG, PNG, GIF, WebP) and PDF files are supported."
+    )
+    .optional(),
+  debugInfo: debugInfoSchema.optional(),
+});
+
+export type BugReportFormData = z.infer<typeof bugReportSchema>;
+export type DebugInfo = z.infer<typeof debugInfoSchema>;

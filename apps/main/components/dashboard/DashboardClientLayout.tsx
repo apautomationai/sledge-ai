@@ -4,6 +4,10 @@ import React, { useEffect, useState, ReactNode } from "react";
 import SideMenuBar from "@/components/layout/side-menubar";
 import Footer from "@/components/layout/footer";
 import { cn } from "@workspace/ui/lib/utils";
+import { debugLogger } from "@/lib/debug-logger";
+
+// Initialize debug logger early to capture all console logs
+debugLogger.init();
 
 interface DashboardClientLayoutProps {
   userName: string;
