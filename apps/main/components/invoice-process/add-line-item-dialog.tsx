@@ -20,8 +20,8 @@ import { client } from "@/lib/axios-client";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/types/invoice";
 import { LineItemAutocomplete } from "./line-item-autocomplete-simple";
-import { fetchQuickBooksAccounts, fetchQuickBooksItems, fetchQuickBooksCustomers } from "@/lib/services/quickbooks.service";
-import type { QuickBooksAccount, QuickBooksItem, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
+import { fetchQuickBooksAccountsFromDB, fetchQuickBooksProductsFromDB, fetchQuickBooksCustomers } from "@/lib/services/quickbooks.service";
+import type { DBQuickBooksAccount, DBQuickBooksProduct, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
 
 interface AddLineItemDialogProps {
     invoiceId: number;
@@ -32,8 +32,8 @@ interface AddLineItemDialogProps {
 export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConnected = null }: AddLineItemDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [accounts, setAccounts] = useState<QuickBooksAccount[]>([]);
-    const [items, setItems] = useState<QuickBooksItem[]>([]);
+    const [accounts, setAccounts] = useState<DBQuickBooksAccount[]>([]);
+    const [items, setItems] = useState<DBQuickBooksProduct[]>([]);
     const [customers, setCustomers] = useState<QuickBooksCustomer[]>([]);
     const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
     const [isLoadingItems, setIsLoadingItems] = useState(false);
@@ -70,7 +70,7 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
     const loadAccounts = async () => {
         setIsLoadingAccounts(true);
         try {
-            const fetchedAccounts = await fetchQuickBooksAccounts();
+            const fetchedAccounts = await fetchQuickBooksAccountsFromDB();
             setAccounts(fetchedAccounts);
         } catch (error) {
             console.error("Error loading accounts:", error);
@@ -83,7 +83,7 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
     const loadItems = async () => {
         setIsLoadingItems(true);
         try {
-            const fetchedItems = await fetchQuickBooksItems();
+            const fetchedItems = await fetchQuickBooksProductsFromDB();
             setItems(fetchedItems);
         } catch (error) {
             console.error("Error loading items:", error);
@@ -170,12 +170,12 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
         }
     };
 
-    const getAccountDisplayName = (account: QuickBooksAccount) => {
-        return account.FullyQualifiedName || account.Name;
+    const getAccountDisplayName = (account: DBQuickBooksAccount) => {
+        return account.fullyQualifiedName || account.name || 'Unknown Account';
     };
 
-    const getItemDisplayName = (item: QuickBooksItem) => {
-        return item.FullyQualifiedName || item.Name;
+    const getItemDisplayName = (item: DBQuickBooksProduct) => {
+        return item.fullyQualifiedName || item.name || 'Unknown Product';
     };
 
     const getCustomerDisplayName = (customer: QuickBooksCustomer) => {
@@ -315,7 +315,10 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                                     <LineItemAutocomplete
                                         items={accounts}
                                         value={formData.resourceId}
-                                        onSelect={(id) => setFormData(prev => ({ ...prev, resourceId: id }))}
+                                        onSelect={(id, account) => {
+                                            const quickbooksId = account?.quickbooksId || null;
+                                            setFormData(prev => ({ ...prev, resourceId: quickbooksId }));
+                                        }}
                                         isLoading={isLoadingAccounts}
                                         disabled={isSubmitting}
                                         getDisplayName={getAccountDisplayName}
@@ -324,7 +327,10 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                                     <LineItemAutocomplete
                                         items={items}
                                         value={formData.resourceId}
-                                        onSelect={(id) => setFormData(prev => ({ ...prev, resourceId: id }))}
+                                        onSelect={(id, item) => {
+                                            const quickbooksId = item?.quickbooksId || null;
+                                            setFormData(prev => ({ ...prev, resourceId: quickbooksId }));
+                                        }}
                                         isLoading={isLoadingItems}
                                         disabled={isSubmitting}
                                         getDisplayName={getItemDisplayName}
@@ -348,7 +354,10 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                                 <LineItemAutocomplete<QuickBooksCustomer>
                                     items={customers}
                                     value={formData.customerId}
-                                    onSelect={(id) => setFormData(prev => ({ ...prev, customerId: id }))}
+                                    onSelect={(id, customer) => {
+                                        const quickbooksId = customer?.quickbooksId || null;
+                                        setFormData(prev => ({ ...prev, customerId: quickbooksId }));
+                                    }}
                                     isLoading={isLoadingCustomers}
                                     disabled={isSubmitting}
                                     getDisplayName={getCustomerDisplayName}
