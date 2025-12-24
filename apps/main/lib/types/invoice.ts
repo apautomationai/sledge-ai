@@ -38,6 +38,7 @@ export interface InvoiceDetails {
   userId: number;
   attachmentId: number;
   invoiceNumber: string;
+  vendorId?: number | null;
   vendorAddress: string | null;
   vendorPhone: string | null;
   vendorEmail: string | null;

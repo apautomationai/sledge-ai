@@ -251,6 +251,8 @@ export class QuickBooksController {
     }
   };
 
+
+
   // Get vendors
   getAccounts = async (req: Request, res: Response, next: NextFunction) => {
     try {

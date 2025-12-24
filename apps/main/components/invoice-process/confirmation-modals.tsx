@@ -39,13 +39,14 @@ interface ConfirmationModalsProps {
   invoiceDetails: InvoiceDetails;
   originalInvoiceDetails: InvoiceDetails;
   selectedFields: string[];
-  onSave: () => Promise<void>;
+  onSave: (vendorData?: any) => Promise<void>;
   onReject: () => Promise<void>;
   onApprove: () => Promise<void>;
   onCancel: () => void;
   onApprovalSuccess?: () => void;
   onInvoiceDetailsUpdate?: (updatedDetails: InvoiceDetails) => void;
   onFieldChange?: () => void;
+  vendorData?: any;
 }
 
 export default function ConfirmationModals({
@@ -54,6 +55,7 @@ export default function ConfirmationModals({
   onSave,
   onApprovalSuccess,
   onInvoiceDetailsUpdate,
+  vendorData,
 }: ConfirmationModalsProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
@@ -92,7 +94,7 @@ export default function ConfirmationModals({
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
-    await onSave();
+    await onSave(vendorData);
     setIsSaving(false);
   };
 
@@ -149,7 +151,7 @@ export default function ConfirmationModals({
     // Step 0: Auto-save if there are unsaved changes (check if onFieldChange was called)
     // We'll always save before approval to ensure latest changes are persisted
     setIsSaving(true);
-    await onSave();
+    await onSave(vendorData);
     setIsSaving(false);
 
     // Step 1: Validate line items first

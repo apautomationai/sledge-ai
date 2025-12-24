@@ -332,13 +332,54 @@ export class InvoiceServices {
       throw new NotFoundError("No invoice found to update.");
     }
 
-
     try {
-      // Update the invoice
+      // Check if vendor data is included in the update
+      const vendorData = (updatedData as any).vendorData;
+
+      // Update the invoice (exclude vendorData from invoice update)
+      const { vendorData: _, ...invoiceUpdateData } = updatedData as any;
       await db
         .update(invoiceModel)
-        .set({ ...updatedData, updatedAt: new Date() })
+        .set({ ...invoiceUpdateData, updatedAt: new Date() })
         .where(eq(invoiceModel.id, invoiceId));
+
+      // Update vendor data if provided and vendorId exists
+      if (vendorData && existingInvoice.vendorId) {
+        const vendorUpdateData: any = {};
+
+        // Map vendor fields from frontend to database fields
+        if (vendorData.displayName !== undefined) {
+          vendorUpdateData.displayName = vendorData.displayName;
+        }
+        if (vendorData.primaryEmail !== undefined) {
+          vendorUpdateData.primaryEmail = vendorData.primaryEmail;
+        }
+        if (vendorData.primaryPhone !== undefined) {
+          vendorUpdateData.primaryPhone = vendorData.primaryPhone;
+        }
+        if (vendorData.billAddrLine1 !== undefined) {
+          vendorUpdateData.billAddrLine1 = vendorData.billAddrLine1;
+        }
+        if (vendorData.billAddrCity !== undefined) {
+          vendorUpdateData.billAddrCity = vendorData.billAddrCity;
+        }
+        if (vendorData.billAddrState !== undefined) {
+          vendorUpdateData.billAddrState = vendorData.billAddrState;
+        }
+        if (vendorData.billAddrPostalCode !== undefined) {
+          vendorUpdateData.billAddrPostalCode = vendorData.billAddrPostalCode;
+        }
+
+        // Only update if there are vendor fields to update
+        if (Object.keys(vendorUpdateData).length > 0) {
+          vendorUpdateData.updatedAt = new Date();
+
+          await db
+            .update(quickbooksVendorsModel)
+            .set(vendorUpdateData)
+            .where(eq(quickbooksVendorsModel.id, existingInvoice.vendorId));
+        }
+      }
 
       // Fetch the updated invoice with vendor data using JOIN
       const [updatedInvoiceWithVendor] = await db

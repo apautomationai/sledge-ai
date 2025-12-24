@@ -70,6 +70,42 @@ class VendorsController {
             });
         }
     }
+
+    async updateVendor(req: Request, res: Response) {
+        try {
+            //@ts-ignore
+            const userId = req.user.id;
+            const vendorId = parseInt(req.params.id);
+            const updateData = req.body;
+
+            if (!userId) {
+                throw new BadRequestError("Need a valid userId");
+            }
+
+            if (!vendorId || isNaN(vendorId)) {
+                throw new BadRequestError("Need a valid vendor ID");
+            }
+
+            // Validate that the vendor belongs to the user
+            const existingVendor = await vendorsService.getVendorById(userId, vendorId);
+            if (!existingVendor) {
+                throw new NotFoundError("Vendor not found");
+            }
+
+            const updatedVendor = await vendorsService.updateVendor(vendorId, updateData);
+
+            return res.status(200).json({
+                status: "success",
+                data: updatedVendor,
+                message: "Vendor updated successfully"
+            });
+        } catch (error: any) {
+            return res.status(error.statusCode || 500).json({
+                success: false,
+                error: error.message || "Failed to update vendor",
+            });
+        }
+    }
 }
 
 export const vendorsController = new VendorsController();

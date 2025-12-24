@@ -7,5 +7,6 @@ const router = Router();
 
 router.get("/", authenticate, requireSubscriptionAccess, vendorsController.getVendors);
 router.get("/:id", authenticate, requireSubscriptionAccess, vendorsController.getVendorById);
+router.patch("/:id", authenticate, requireSubscriptionAccess, vendorsController.updateVendor);
 
 export default router;

@@ -488,6 +488,8 @@ export class QuickBooksService {
     }
   }
 
+
+
   // Get customers from database
   async getCustomersFromDatabase(userId: number) {
     try {

@@ -180,7 +180,7 @@ export default function JobDetailPage() {
         setInvoiceDetails((prev) => (prev ? { ...prev, [name]: value } : null));
     };
 
-    const handleSaveChanges = async () => {
+    const handleSaveChanges = async (vendorData?: any) => {
         if (!invoiceDetails) return;
         try {
             const dataToSave = {
@@ -188,6 +188,8 @@ export default function JobDetailPage() {
                 ...(invoiceDetails.status === "approved" || invoiceDetails.status === "rejected"
                     ? { status: "pending" }
                     : {}),
+                // Include vendor data if provided
+                ...(vendorData && { vendorData }),
             };
 
             const response = await client.patch(`/api/v1/invoice/${invoiceDetails.id}`, dataToSave);

@@ -38,6 +38,7 @@ const FormField = ({
   isEditing,
   onChange,
   onDateChange,
+  highlighted = false,
 }: {
   fieldKey: string;
   label: string;
@@ -45,6 +46,7 @@ const FormField = ({
   isEditing: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDateChange?: (fieldKey: string, dateString: string | undefined) => void;
+  highlighted?: boolean;
 }) => {
   const isDateField = fieldKey === 'invoiceDate' || fieldKey === 'dueDate';
   const isBooleanField = typeof value === 'boolean';
@@ -86,10 +88,10 @@ const FormField = ({
   };
 
   return (
-    <div className="space-y-1.5">
+    <div className={`space-y-1.5 ${highlighted ? 'p-2 bg-amber-50 border border-amber-200 rounded-md' : ''}`}>
       <Label
         htmlFor={fieldKey}
-        className="text-xs font-medium"
+        className={`text-xs font-medium ${highlighted ? 'text-amber-800' : ''}`}
       >
         {label}
         {isTotalAmountField && (
@@ -102,7 +104,7 @@ const FormField = ({
           value={dateStringValue}
           onDateChange={(dateString) => onDateChange?.(fieldKey, dateString)}
           placeholder={`Select ${label.toLowerCase()}`}
-          className="h-8"
+          className={`h-8 ${highlighted ? 'border-2 border-amber-400' : ''}`}
         />
       ) : (
         <Input
@@ -113,6 +115,10 @@ const FormField = ({
           onChange={handleChange}
           onBlur={handleBlur}
           className="h-8 read-only:bg-muted/50 read-only:border-dashed"
+          style={highlighted ? {
+            border: '2px solid #fbbf24',
+            boxShadow: '0 0 0 2px rgba(251, 191, 36, 0.2)'
+          } : {}}
         />
       )}
     </div>
@@ -127,7 +133,7 @@ interface InvoiceDetailsFormProps {
   onDetailsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   selectedFields: string[];
   setSelectedFields: React.Dispatch<React.SetStateAction<string[]>>;
-  onSave: () => Promise<void>;
+  onSave: (vendorData?: any) => Promise<void>;
   onReject: () => Promise<void>;
   onApprove: () => Promise<void>;
   onCancel: () => void;
@@ -521,6 +527,42 @@ export default function InvoiceDetailsForm({
     onDetailsChange(syntheticEvent);
   };
 
+  // Local state for vendor data
+  const [vendorData, setVendorData] = useState({
+    displayName: localInvoiceDetails.vendorData?.displayName || localInvoiceDetails.vendorData?.companyName || '',
+    primaryEmail: localInvoiceDetails.vendorData?.primaryEmail || '',
+    primaryPhone: localInvoiceDetails.vendorData?.primaryPhone || '',
+    billAddrLine1: localInvoiceDetails.vendorData?.billAddrLine1 || '',
+    billAddrCity: localInvoiceDetails.vendorData?.billAddrCity || '',
+    billAddrState: localInvoiceDetails.vendorData?.billAddrState || '',
+    billAddrPostalCode: localInvoiceDetails.vendorData?.billAddrPostalCode || '',
+  });
+
+  // Update vendor data when invoice details change
+  useEffect(() => {
+    if (localInvoiceDetails.vendorData) {
+      setVendorData({
+        displayName: localInvoiceDetails.vendorData.displayName || localInvoiceDetails.vendorData.companyName || '',
+        primaryEmail: localInvoiceDetails.vendorData.primaryEmail || '',
+        primaryPhone: localInvoiceDetails.vendorData.primaryPhone || '',
+        billAddrLine1: localInvoiceDetails.vendorData.billAddrLine1 || '',
+        billAddrCity: localInvoiceDetails.vendorData.billAddrCity || '',
+        billAddrState: localInvoiceDetails.vendorData.billAddrState || '',
+        billAddrPostalCode: localInvoiceDetails.vendorData.billAddrPostalCode || '',
+      });
+    }
+  }, [localInvoiceDetails.vendorData]);
+
+  // Handle vendor data changes
+  const handleVendorDataChange = (field: string, value: string) => {
+    setVendorData(prev => ({ ...prev, [field]: value }));
+
+    // Notify parent that there are unsaved changes
+    if (onFieldChange) {
+      onFieldChange();
+    }
+  };
+
   const allFields = Object.keys(invoiceDetails || {});
 
   const hiddenFields = [
@@ -540,7 +582,10 @@ export default function InvoiceDetailsForm({
     'vendorData',
     'vendorAddress',
     'vendorPhone',
-    'vendorEmail'
+    'vendorEmail',
+    'rejectionEmailSender',
+    'rejectionReason',
+    'senderEmail'
   ];
   const fieldsToDisplay = allFields.filter(key => !hiddenFields.includes(key));
 
@@ -562,20 +607,63 @@ export default function InvoiceDetailsForm({
             <AccordionContent className="px-4 pb-3 flex-1 min-h-0 overflow-hidden data-[state=open]:flex data-[state=open]:flex-col h-full">
               <ScrollArea className="flex-1 pr-2 h-full">
                 <div className="space-y-2.5 py-2">
-                  {/* Custom Vendor Fields - Read Only */}
+                  {/* Highlighted Fields - At the Top */}
+                  <FormField
+                    key="invoiceNumber"
+                    fieldKey="invoiceNumber"
+                    label="Invoice Number"
+                    value={localInvoiceDetails.invoiceNumber ?? null}
+                    isEditing={true}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  <FormField
+                    key="totalAmount"
+                    fieldKey="totalAmount"
+                    label="Total Amount"
+                    value={localInvoiceDetails.totalAmount ?? null}
+                    isEditing={true}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  <FormField
+                    key="totalTax"
+                    fieldKey="totalTax"
+                    label="Total Tax"
+                    value={localInvoiceDetails.totalTax ?? null}
+                    isEditing={true}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  <FormField
+                    key="invoiceDate"
+                    fieldKey="invoiceDate"
+                    label="Invoice Date"
+                    value={localInvoiceDetails.invoiceDate ?? null}
+                    isEditing={true}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  {/* Vendor Information Section */}
                   <div className="space-y-1">
                     <Label htmlFor="vendorName" className="text-xs font-medium">
                       Vendor Name
                     </Label>
                     <Input
                       id="vendorName"
-                      value={
-                        localInvoiceDetails.vendorData?.displayName ||
-                        localInvoiceDetails.vendorData?.companyName ||
-                        'No vendor assigned'
-                      }
-                      readOnly
-                      className="!bg-muted/90 cursor-not-allowed"
+                      name="vendorName"
+                      value={vendorData.displayName}
+                      onChange={(e) => handleVendorDataChange('displayName', e.target.value)}
+                      placeholder="Enter vendor name"
+                      className="h-8"
                     />
                   </div>
 
@@ -585,9 +673,12 @@ export default function InvoiceDetailsForm({
                     </Label>
                     <Input
                       id="vendorEmail"
-                      value={localInvoiceDetails.vendorData?.primaryEmail || 'No email available'}
-                      readOnly
-                      className="!bg-muted/90 cursor-not-allowed"
+                      name="vendorEmail"
+                      type="email"
+                      value={vendorData.primaryEmail}
+                      onChange={(e) => handleVendorDataChange('primaryEmail', e.target.value)}
+                      placeholder="Enter vendor email"
+                      className="h-8"
                     />
                   </div>
 
@@ -597,9 +688,12 @@ export default function InvoiceDetailsForm({
                     </Label>
                     <Input
                       id="vendorPhone"
-                      value={localInvoiceDetails.vendorData?.primaryPhone || 'No phone available'}
-                      readOnly
-                      className="!bg-muted/90 cursor-not-allowed"
+                      name="vendorPhone"
+                      type="tel"
+                      value={vendorData.primaryPhone}
+                      onChange={(e) => handleVendorDataChange('primaryPhone', e.target.value)}
+                      placeholder="Enter vendor phone"
+                      className="h-8"
                     />
                   </div>
 
@@ -609,44 +703,37 @@ export default function InvoiceDetailsForm({
                     </Label>
                     <Input
                       id="vendorAddress"
-                      value={
-                        localInvoiceDetails.vendorData?.billAddrLine1
-                          ? `${localInvoiceDetails.vendorData.billAddrLine1}${localInvoiceDetails.vendorData.billAddrCity
-                            ? `, ${localInvoiceDetails.vendorData.billAddrCity}`
-                            : ''
-                          }${localInvoiceDetails.vendorData.billAddrState
-                            ? `, ${localInvoiceDetails.vendorData.billAddrState}`
-                            : ''
-                          }${localInvoiceDetails.vendorData.billAddrPostalCode
-                            ? ` ${localInvoiceDetails.vendorData.billAddrPostalCode}`
-                            : ''
-                          }`
-                          : 'No address available'
-                      }
-                      readOnly
-                      className="!bg-muted/90 cursor-not-allowed"
+                      name="vendorAddress"
+                      value={vendorData.billAddrLine1}
+                      onChange={(e) => handleVendorDataChange('billAddrLine1', e.target.value)}
+                      placeholder="Enter vendor address"
+                      className="h-8"
                     />
                   </div>
 
-                  {fieldsToDisplay.map((key) => {
-                    const value = localInvoiceDetails[key as keyof InvoiceDetails];
-                    // Skip if the value is an object (like vendorData)
-                    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                      return null;
-                    }
+                  {/* Rest of the fields (excluding highlighted fields since they're shown at top) */}
+                  {fieldsToDisplay
+                    .filter(key => !['invoiceNumber', 'totalAmount', 'totalTax', 'invoiceDate'].includes(key)) // Exclude highlighted fields since they're shown at top
+                    .map((key) => {
+                      const value = localInvoiceDetails[key as keyof InvoiceDetails];
+                      // Skip if the value is an object (like vendorData)
+                      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                        return null;
+                      }
 
-                    return (
-                      <FormField
-                        key={key}
-                        fieldKey={key}
-                        label={formatLabel(key)}
-                        value={value ?? null}
-                        isEditing={true}
-                        onChange={onDetailsChange}
-                        onDateChange={handleDateChange}
-                      />
-                    );
-                  })}
+                      return (
+                        <FormField
+                          key={key}
+                          fieldKey={key}
+                          label={formatLabel(key)}
+                          value={value ?? null}
+                          isEditing={true}
+                          onChange={onDetailsChange}
+                          onDateChange={handleDateChange}
+                          highlighted={false}
+                        />
+                      );
+                    })}
                 </div>
               </ScrollArea>
             </AccordionContent>
@@ -743,6 +830,7 @@ export default function InvoiceDetailsForm({
           onApprovalSuccess={onApprovalSuccess}
           onInvoiceDetailsUpdate={onInvoiceDetailsUpdate}
           onFieldChange={onFieldChange}
+          vendorData={vendorData}
         />
       </div>
 
