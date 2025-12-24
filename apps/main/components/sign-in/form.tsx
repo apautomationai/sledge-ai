@@ -11,6 +11,7 @@ import { Label } from "@workspace/ui/components/label";
 import axios from "axios";
 import { SignInSchema } from "@/lib/validators";
 import { setCookie } from "cookies-next";
+import { clearQueryCache } from "@/lib/query-client";
 
 interface SignInFormState {
   message: string;
@@ -157,6 +158,9 @@ function SignInFormComponent() {
         toast.success("Login Successful", {
           description: "You have been successfully logged in!",
         });
+
+        // Clear any cached data from previous sessions
+        clearQueryCache();
 
         // Redirect to onboarding - subscription provider will handle payment/dashboard redirect
         router.push("/onboarding");

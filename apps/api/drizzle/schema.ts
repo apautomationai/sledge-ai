@@ -94,6 +94,8 @@ export const invoices = pgTable("invoices", {
 	fileKey: text("file_key"),
 	s3JsonKey: text("s3_json_key"),
 	status: status().default('pending').notNull(),
+	rejectionEmailSender: varchar("rejection_email_sender", { length: 255 }),
+  	rejectionReason: text("rejection_reason"),
 	isDeleted: boolean("is_deleted").default(false).notNull(),
 	deletedAt: timestamp("deleted_at", { mode: 'string' }),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),

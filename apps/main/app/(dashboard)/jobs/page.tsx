@@ -12,110 +12,114 @@ import { CreateJobDialog } from "@/components/jobs/create-job-dialog";
 import { useJobs } from "@/hooks/use-jobs";
 
 export default function JobsPage() {
-    const router = useRouter();
-    const [searchQuery, setSearchQuery] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [statusFilter, setStatusFilter] = useState<string>("all");
-    const [sortBy, setSortBy] = useState<string>("received");
-    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-    const [isSyncing, setIsSyncing] = useState(false);
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("received");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-    // Debounce search query
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearch(searchQuery);
-        }, 500);
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
 
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-    // Fetch jobs with filters applied on backend
-    const { jobs, statusCounts, totalPages, isLoading, refetch } = useJobs({
-        page: currentPage,
-        status: statusFilter,
-        sortBy,
-        sortOrder,
-        search: debouncedSearch,
-    });
+  // Fetch jobs with filters applied on backend
+  const { jobs, statusCounts, totalPages, isLoading, refetch } = useJobs({
+    page: currentPage,
+    status: statusFilter,
+    sortBy,
+    sortOrder,
+    search: debouncedSearch,
+  });
 
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-    };
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
-    const handleCreateJob = () => {
-        setIsCreateDialogOpen(true);
-    };
+  const handleCreateJob = () => {
+    setIsCreateDialogOpen(true);
+  };
 
-    const handleJobCreated = () => {
-        // Refresh the jobs list after creating a new job
-        refetch();
-    };
+  const handleJobCreated = () => {
+    // Refresh the jobs list after creating a new job
+    refetch();
+  };
 
-    const handleSyncEmails = async () => {
-        setIsSyncing(true);
-        try {
-            await client.get("/api/v1/email/gmail/my");
-            toast.success("Emails synced successfully");
-            refetch();
-            router.refresh();
-        } catch (error) {
-            toast.error("Failed to sync emails");
-            console.error(error);
-        } finally {
-            setIsSyncing(false);
-        }
-    };
+  const handleSyncEmails = async () => {
+    setIsSyncing(true);
+    try {
+      await client.get("/api/v1/email/gmail/my");
+      toast.success("Emails synced successfully");
+      refetch();
+      router.refresh();
+    } catch (error) {
+      toast.error("Failed to sync emails");
+      console.error(error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
-    const handleReviewJob = (jobId: string, invoiceId?: number) => {
-        if (invoiceId) {
-            router.push(`/jobs/${jobId}?invoiceId=${invoiceId}`);
-        } else {
-            router.push(`/jobs/${jobId}`);
-        }
-    };
+  const handleReviewJob = (jobId: string, invoiceId?: number) => {
+    if (invoiceId) {
+      router.push(`/jobs/${jobId}?invoiceId=${invoiceId}`);
+    } else {
+      router.push(`/jobs/${jobId}`);
+    }
+  };
 
-    return (
-        <div className="space-y-4 sm:space-y-6">
-            <div className="flex flex-col gap-3 sm:gap-4">
-                <JobsHeader />
-                <JobsFilters
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    statusFilter={statusFilter}
-                    onStatusFilterChange={setStatusFilter}
-                    onCreateJob={handleCreateJob}
-                    onSyncEmails={handleSyncEmails}
-                    isSyncing={isSyncing}
-                    statusCounts={statusCounts}
-                />
-            </div>
+  return (
+    <div className="space-y-4 sm:space-y-6 min-w-0">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <JobsHeader />
+        <JobsFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          onCreateJob={handleCreateJob}
+          onSyncEmails={handleSyncEmails}
+          isSyncing={isSyncing}
+          statusCounts={statusCounts}
+        />
+      </div>
 
-            <JobsTable
-                jobs={jobs}
-                isLoading={isLoading}
-                onReviewJob={handleReviewJob}
-                onJobDeleted={refetch}
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                onSort={(field) => {
-                    if (sortBy === field) {
-                        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                    } else {
-                        setSortBy(field);
-                        setSortOrder("asc");
-                    }
-                }}
-            />
+      <JobsTable
+        jobs={jobs}
+        isLoading={isLoading}
+        onReviewJob={handleReviewJob}
+        onJobDeleted={refetch}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={(field) => {
+          if (sortBy === field) {
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+          } else {
+            setSortBy(field);
+            setSortOrder("asc");
+          }
+        }}
+      />
 
-            <JobsPagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+      <JobsPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
 
-            <CreateJobDialog
-                open={isCreateDialogOpen}
-                onOpenChange={setIsCreateDialogOpen}
-                onJobCreated={handleJobCreated}
-            />
-        </div>
-    );
+      <CreateJobDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onJobCreated={handleJobCreated}
+      />
+    </div>
+  );
 }
