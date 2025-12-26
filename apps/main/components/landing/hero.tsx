@@ -38,20 +38,26 @@ export function Hero() {
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-900/10 via-transparent to-orange-900/10 opacity-60" />
-        
+
         {/* Diamond plate texture overlay - ROUGHER */}
-        <div className="absolute inset-0 opacity-[0.08]" style={{
-          backgroundImage: `repeating-linear-gradient(45deg, #FDB022 0, #FDB022 2px, transparent 0, transparent 40px),
+        <div
+          className="absolute inset-0 opacity-[0.08]"
+          style={{
+            backgroundImage: `repeating-linear-gradient(45deg, #FDB022 0, #FDB022 2px, transparent 0, transparent 40px),
                            repeating-linear-gradient(-45deg, #FDB022 0, #FDB022 2px, transparent 0, transparent 40px)`,
-          backgroundSize: '40px 40px'
-        }} />
-        
+            backgroundSize: "40px 40px",
+          }}
+        />
+
         {/* Additional rough texture layer */}
-        <div className="absolute inset-0 opacity-[0.05]" style={{
-          backgroundImage: `radial-gradient(circle at 20% 50%, transparent 20%, rgba(253, 176, 34, 0.1) 21%, rgba(253, 176, 34, 0.1) 22%, transparent 23%),
+        <div
+          className="absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 20% 50%, transparent 20%, rgba(253, 176, 34, 0.1) 21%, rgba(253, 176, 34, 0.1) 22%, transparent 23%),
                            radial-gradient(circle at 80% 80%, transparent 20%, rgba(245, 158, 11, 0.1) 21%, rgba(245, 158, 11, 0.1) 22%, transparent 23%)`,
-          backgroundSize: '200px 200px, 150px 150px'
-        }} />
+            backgroundSize: "200px 200px, 150px 150px",
+          }}
+        />
 
         {/* Professional floating elements - hidden on mobile */}
         <div className="hidden md:block">
@@ -112,7 +118,8 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-4 sm:mt-6 md:mt-8 text-base sm:text-lg md:text-xl leading-7 sm:leading-8 text-gray-300 max-w-3xl mx-auto font-medium px-2 sm:px-0"
           >
-            Sledge automates invoices, releases, and approvals built tough for contractors, subs, and crews that move fast.
+            Sledge automates invoices, releases, and approvals built tough for
+            contractors, subs, and crews that move fast.
           </motion.p>
 
           <motion.div
@@ -213,11 +220,11 @@ export function Hero() {
               <div className="absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-gray-800 rounded-full border-2 sm:border-3 md:border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.8),0_2px_4px_rgba(0,0,0,0.9)] z-20 hidden sm:flex items-center justify-center">
                 <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
               </div>
-              
+
               {/* Weld marks / scratches */}
               <div className="absolute top-2 left-1/4 w-16 h-1 bg-yellow-600/30 blur-sm"></div>
               <div className="absolute bottom-2 right-1/4 w-12 h-1 bg-yellow-600/30 blur-sm"></div>
-              
+
               <div className="aspect-video rounded-none bg-gradient-to-br from-gray-950 to-black flex items-center justify-center p-2 sm:p-4 md:p-8 border-2 sm:border-3 md:border-4 border-gray-600 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]">
                 {/* Floating orbs inside the demo area - hidden on small mobile */}
                 <div className="absolute top-4 left-4 hidden sm:block">
