@@ -305,32 +305,54 @@ export default function ReportBugPage() {
               <div className="flex flex-col gap-1">
                 <Label>Attachment (optional)</Label>
                 {attachment ? (
-                  <div className="flex items-center gap-3 p-3 border border-border rounded-lg bg-muted/50">
-                    {isImageFile(attachment) ? (
-                      <FileImage className="h-8 w-8 text-muted-foreground flex-shrink-0" />
-                    ) : isVideoFile(attachment) ? (
-                      <FileVideo className="h-8 w-8 text-muted-foreground flex-shrink-0" />
-                    ) : (
-                      <FileText className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+                  <div className="flex flex-col gap-2 p-3 border border-border rounded-lg bg-muted/50">
+                    {/* Preview */}
+                    {isImageFile(attachment) && (
+                      <div className="relative w-full rounded-md overflow-hidden bg-black/5">
+                        <img
+                          src={URL.createObjectURL(attachment)}
+                          alt="Preview"
+                          className="w-full max-h-48 object-contain"
+                        />
+                      </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate text-foreground">
-                        {attachment.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {(attachment.size / 1024).toFixed(1)} KB
-                      </p>
+                    {isVideoFile(attachment) && (
+                      <div className="relative w-full rounded-md overflow-hidden bg-black">
+                        <video
+                          src={URL.createObjectURL(attachment)}
+                          controls
+                          className="w-full max-h-48"
+                        />
+                      </div>
+                    )}
+                    {/* File info row */}
+                    <div className="flex items-center gap-3">
+                      {isImageFile(attachment) ? (
+                        <FileImage className="h-6 w-6 text-muted-foreground flex-shrink-0" />
+                      ) : isVideoFile(attachment) ? (
+                        <FileVideo className="h-6 w-6 text-muted-foreground flex-shrink-0" />
+                      ) : (
+                        <FileText className="h-6 w-6 text-muted-foreground flex-shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate text-foreground">
+                          {attachment.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {(attachment.size / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={removeFile}
+                        className="flex-shrink-0 h-8 w-8"
+                      >
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Remove file</span>
+                      </Button>
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={removeFile}
-                      className="flex-shrink-0 h-8 w-8"
-                    >
-                      <X className="h-4 w-4" />
-                      <span className="sr-only">Remove file</span>
-                    </Button>
                   </div>
                 ) : (
                   <div
