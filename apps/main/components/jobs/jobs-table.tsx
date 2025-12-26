@@ -277,6 +277,7 @@ export function JobsTable({
   const getSourceDisplay = (provider?: string) => {
     if (provider === "gmail") return "Gmail";
     if (provider === "outlook") return "Outlook";
+    if (provider === "local") return "Uploaded";
     return "—";
   };
 
