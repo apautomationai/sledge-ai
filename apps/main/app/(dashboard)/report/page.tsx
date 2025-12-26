@@ -1,243 +1,424 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { useTheme } from "next-themes";
+import { useState, useRef } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
+import { toast } from "sonner";
+import { AlertCircle, UploadCloud, X, FileImage, FileText, FileVideo, CheckCircle2 } from "lucide-react";
+import { cn } from "@workspace/ui/lib/utils";
 
-type Priority = "low" | "medium" | "high" | "critical";
+import { bugReportSchema, type BugReportFormData } from "@/lib/validators";
+import client from "@/lib/axios-client";
+import { debugLogger } from "@/lib/debug-logger";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Textarea } from "@workspace/ui/components/textarea";
+import { Label } from "@workspace/ui/components/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+
+const CATEGORIES = [
+  { value: "UI / UX", label: "UI / UX" },
+  { value: "Invoices / AP", label: "Invoices / AP" },
+  { value: "Lien Waivers", label: "Lien Waivers" },
+  { value: "Vendors", label: "Vendors" },
+  { value: "Projects", label: "Projects" },
+  { value: "Integrations / QuickBooks", label: "Integrations / QuickBooks" },
+  { value: "Performance / Speed", label: "Performance / Speed" },
+  { value: "Other", label: "Other" },
+] as const;
+
+const PRIORITIES = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+  { value: "critical", label: "Critical" },
+] as const;
+
+const ACCEPTED_FILE_TYPES =
+  "image/jpeg,image/jpg,image/png,image/gif,image/webp,application/pdf,video/mp4,video/webm,video/quicktime,video/x-msvideo";
+
+const runConfetti = () => {
+  const duration = 1500;
+  const end = Date.now() + duration;
+  (function frame() {
+    confetti({
+      particleCount: 30,
+      startVelocity: 40,
+      spread: 100,
+      ticks: 80,
+      origin: { x: Math.random(), y: Math.random() * 0.6 },
+    });
+    if (Date.now() < end) requestAnimationFrame(frame);
+  })();
+};
+
+const THANK_YOU_DURATION = 5000; // 5 seconds
 
 export default function ReportBugPage() {
-  const [category, setCategory] = useState("");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState<Priority>("low");
-  const [loading, setLoading] = useState(false);
-  const [errorToast, setErrorToast] = useState<string | null>(null);
-  const [successState, setSuccessState] = useState(false);
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const { theme } = useTheme();
+  const [isDragging, setIsDragging] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!errorToast) return;
-    const t = setTimeout(() => setErrorToast(null), 3000);
-    return () => clearTimeout(t);
-  }, [errorToast]);
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<BugReportFormData>({
+    resolver: zodResolver(bugReportSchema),
+    defaultValues: {
+      category: "",
+      title: "",
+      description: "",
+      priority: "low",
+      attachment: undefined,
+    },
+  });
 
-  const resetForm = () => {
-    setCategory("");
-    setTitle("");
-    setDescription("");
-    setPriority("low");
-  };
+  const attachment = watch("attachment");
 
-  const validate = () => {
-    if (!category) return "Category is required.";
-    if (!title.trim()) return "Bug Title is required.";
-    if (!description.trim()) return "Bug Description is required.";
-    if (!priority) return "Please select a priority.";
-    return null;
-  };
+  const mutation = useMutation({
+    mutationFn: async (data: BugReportFormData) => {
+      const formData = new FormData();
+      formData.append("category", data.category);
+      formData.append("title", data.title);
+      formData.append("description", data.description);
+      formData.append("priority", data.priority);
+      formData.append("source", "sledge_in_app_reporter");
 
-  const runConfetti = () => {
-    const duration = 1500;
-    const end = Date.now() + duration;
-    (function frame() {
-      confetti({
-        particleCount: 30,
-        startVelocity: 40,
-        spread: 100,
-        ticks: 80,
-        origin: { x: Math.random(), y: Math.random() * 0.6 },
-      });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    })();
-  };
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const v = validate();
-    if (v) {
-      setErrorToast(v);
-      return;
-    }
-
-    setLoading(true);
-    setErrorToast(null);
-
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/report`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ category, title, description, priority, source: "sledge_in_app_reporter" }),
-      });
-
-      const data = await res.json();
-
-      if (res.status === 401) {
-        // Redirect to sign-in
-        window.location.href = "/sign-in";
-        return;
+      if (data.attachment) {
+        formData.append("attachment", data.attachment);
       }
 
-      if (!res.ok) throw new Error(data?.message || "Failed to submit bug");
+      const debugInfo = debugLogger.getDebugInfo();
+      if (debugInfo) {
+        formData.append("debugInfo", JSON.stringify(debugInfo));
+      }
 
-      setSuccessState(true);
-      setLoading(false);
+      return client.post("/api/v1/report", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    },
+    onSuccess: () => {
       runConfetti();
-
+      setShowThankYou(true);
+      reset();
       setTimeout(() => {
-        setSuccessState(false);
-        resetForm();
-      }, 2500);
+        setShowThankYou(false);
+      }, THANK_YOU_DURATION);
+    },
+    onError: (error: any) => {
+      console.error("Bug report error:", error);
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong. Please try again.";
+      toast.error(message);
+    },
+  });
 
-    } catch (err: any) {
-      console.error("Jira Error:", err);
-      setErrorToast(err.message || "Something went wrong sending this bug. Please try again.");
-      setLoading(false);
+  const onSubmit = (data: BugReportFormData) => {
+    mutation.mutate(data);
+  };
+
+  const handleFileChange = (file: File | undefined) => {
+    setValue("attachment", file, { shouldValidate: true });
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFileChange(file);
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    handleFileChange(file);
+    e.target.value = "";
+  };
+
+  const removeFile = () => {
+    setValue("attachment", undefined, { shouldValidate: true });
+  };
+
+  const isImageFile = (file: File) => file.type.startsWith("image/");
+  const isVideoFile = (file: File) => file.type.startsWith("video/");
+
+  if (showThankYou) {
+    return (
+      <div className="flex flex-col h-full w-full bg-background overflow-hidden">
+        <main className="flex-1 flex items-center justify-center p-2 sm:p-4">
+          <Card className="w-full max-w-md border-2 border-[#D4AF37] py-8 gap-4">
+            <CardContent className="flex flex-col items-center justify-center gap-4 px-4 py-0">
+              <div className="rounded-full bg-[#D4AF37]/20 p-4">
+                <CheckCircle2 className="h-12 w-12 text-[#D4AF37]" />
+              </div>
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-bold text-foreground">
+                  Thank You!
+                </h2>
+                <p className="text-muted-foreground max-w-xs">
+                  We appreciate you taking the time to report this issue.
+                  Our team will get right on it!
+                </p>
+              </div>
+              <Button
+                onClick={() => setShowThankYou(false)}
+                className="mt-2 bg-gradient-to-b from-[#FFD65A] to-[#D4AF37] text-black hover:opacity-90 font-semibold"
+              >
+                Report Another Issue
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col max-h-screen w-full bg-[var(--background)] overflow-hidden">
-      {/* Main content */}
-      <main className="flex-1 flex items-center justify-center p-3 sm:p-6 overflow-auto">
-        {successState && (
-          <div
-            className={`absolute inset-0 z-50 flex flex-col items-center justify-center ${
-              theme === "dark" ? "bg-[#1a1d21]" : "bg-white"
-            }`}
-          >
-            <h1
-              className={`text-2xl md:text-3xl font-bold ${
-                theme === "dark" ? "text-white" : "text-[#D4AF37]"
-              } text-center`}
-            >
-              Thank you for your feedback
-            </h1>
-            <p
-              className={`mt-2 text-lg md:text-xl ${
-                theme === "dark" ? "text-white" : "text-[#D4AF37]"
-              } text-center`}
-            >
-              We really appreciate it
-            </p>
-          </div>
-        )}
-
-        {!successState && (
-          <form
-            ref={formRef}
-            onSubmit={onSubmit}
-            className={`flex flex-col w-full max-w-md h-full border-2 border-[#D4AF37] rounded-lg p-4 sm:p-5 shadow-lg gap-3 bg-white dark:bg-[#1a1d21]`}
-          >
-            <h1
-              className={`text-center text-lg sm:text-xl font-semibold mb-2 ${
-                theme === "dark" ? "text-white" : "text-black"
-              }`}
-            >
+    <div className="flex flex-col h-full w-full bg-background overflow-hidden">
+      <main className="flex-1 flex items-center justify-center p-2 sm:p-4">
+        <Card className="w-full max-w-md border-2 border-[#D4AF37] py-4 gap-3">
+          <CardHeader className="px-4 py-0">
+            <CardTitle className="text-center text-xl font-bold">
               Having an Issue with Sledge?
-            </h1>
-
-            {errorToast && (
-              <div className="mb-2">
-                <div
-                  className={`bg-red-600/90 px-2 py-1 rounded-md text-sm text-center text-white`}
-                >
-                  {errorToast}
-                </div>
-              </div>
-            )}
-
-            {/* Category */}
-            <div className="flex flex-col">
-              <label className={`text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>
-                Category
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className={`w-full rounded-md border border-gray-600 px-2 py-1 text-sm focus:outline-none ${
-                  theme === "dark" ? "text-white bg-[#111417]" : "text-black bg-card"
-                }`}
-              >
-                <option value="">Select category</option>
-                <option value="UI / UX">UI / UX</option>
-                <option value="Invoices / AP">Invoices / AP</option>
-                <option value="Lien Waivers">Lien Waivers</option>
-                <option value="Vendors">Vendors</option>
-                <option value="Projects">Projects</option>
-                <option value="Integrations / QuickBooks">Integrations / QuickBooks</option>
-                <option value="Performance / Speed">Performance / Speed</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            {/* Bug Title */}
-            <div className="flex flex-col">
-              <label className={`text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>
-                Bug Title
-              </label>
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                type="text"
-                placeholder="Briefly describe the issue…"
-                className={`w-full rounded-md border border-gray-600 px-2 py-1 text-sm focus:outline-none ${
-                  theme === "dark" ? "text-white bg-[#111417]" : "text-black bg-card"
-                }`}
-              />
-            </div>
-
-            {/* Bug Description */}
-            <div className="flex flex-col flex-1">
-              <label className={`text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>
-                Bug Description
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="What went wrong? Steps to reproduce?"
-                className={`w-full flex-1 rounded-md border border-gray-600 px-2 py-1 text-sm focus:outline-none resize-none overflow-auto ${
-                  theme === "dark" ? "text-white bg-[#111417]" : "text-black bg-card"
-                }`}
-              />
-            </div>
-
-            {/* Priority */}
-            <div className="flex flex-col">
-              <label className={`text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>
-                Priority
-              </label>
-              <div className="flex items-center justify-between max-w-xs flex-wrap gap-1">
-                {(["low", "medium", "high", "critical"] as Priority[]).map((lvl) => (
-                  <label key={lvl} className="flex items-center gap-1 text-sm">
-                    <input
-                      type="radio"
-                      name="priority"
-                      value={lvl}
-                      checked={priority === lvl}
-                      onChange={(e) => setPriority(e.target.value as Priority)}
-                      className="form-radio"
-                    />
-                    <span className="capitalize">{lvl}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className={`mt-auto w-full py-2 rounded-md text-sm font-semibold bg-gradient-to-b from-[#FFD65A] to-[#D4AF37] text-black ${
-                loading ? "opacity-60 cursor-not-allowed" : "hover:opacity-90"
-              }`}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 py-0">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="flex flex-col gap-3"
             >
-              {loading ? "Submitting..." : "Submit Bug"}
-            </button>
-          </form>
-        )}
+              {/* Category */}
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="category">Category</Label>
+                <Controller
+                  name="category"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger
+                        id="category"
+                        className={cn(
+                          "h-9",
+                          errors.category && "border-destructive",
+                        )}
+                      >
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.category && (
+                  <p className="text-xs text-destructive">
+                    {errors.category.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Bug Title */}
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="title">Bug Title</Label>
+                <Input
+                  id="title"
+                  placeholder="Briefly describe the issue..."
+                  {...register("title")}
+                  className={cn("h-9", errors.title && "border-destructive")}
+                />
+                {errors.title && (
+                  <p className="text-xs text-destructive">
+                    {errors.title.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Bug Description */}
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="description">Bug Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="What went wrong? Steps to reproduce?"
+                  {...register("description")}
+                  className={cn(
+                    "min-h-[60px] resize-none",
+                    errors.description && "border-destructive",
+                  )}
+                />
+                {errors.description && (
+                  <p className="text-xs text-destructive">
+                    {errors.description.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Screenshot / Attachment */}
+              <div className="flex flex-col gap-1">
+                <Label>Attachment (optional)</Label>
+                {attachment ? (
+                  <div className="flex items-center gap-3 p-3 border border-border rounded-lg bg-muted/50">
+                    {isImageFile(attachment) ? (
+                      <FileImage className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+                    ) : isVideoFile(attachment) ? (
+                      <FileVideo className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+                    ) : (
+                      <FileText className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate text-foreground">
+                        {attachment.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {(attachment.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={removeFile}
+                      className="flex-shrink-0 h-8 w-8"
+                    >
+                      <X className="h-4 w-4" />
+                      <span className="sr-only">Remove file</span>
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-1 py-4 px-3 border-2 border-dashed rounded-lg text-center transition-colors duration-200 cursor-pointer",
+                      isDragging
+                        ? "border-[#D4AF37] bg-[#D4AF37]/10"
+                        : "border-border hover:border-[#D4AF37]/50",
+                      errors.attachment && "border-destructive",
+                    )}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                  >
+                    <UploadCloud className="h-6 w-6 text-muted-foreground" />
+                    <p className="text-sm text-foreground">
+                      Drop file or click to upload
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      PNG, JPG, GIF, PDF, MP4, WebM (max 10MB)
+                    </p>
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={ACCEPTED_FILE_TYPES}
+                  className="hidden"
+                  onChange={handleInputChange}
+                />
+                {errors.attachment && (
+                  <p className="text-xs text-destructive">
+                    {errors.attachment.message as string}
+                  </p>
+                )}
+              </div>
+
+              {/* Priority */}
+              <div className="flex flex-col gap-1">
+                <Label>Priority</Label>
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  {PRIORITIES.map((p) => (
+                    <label
+                      key={p.value}
+                      className="flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        value={p.value}
+                        {...register("priority")}
+                        className="h-4 w-4 accent-[#D4AF37]"
+                      />
+                      <span className="text-sm text-foreground">{p.label}</span>
+                    </label>
+                  ))}
+                </div>
+                {errors.priority && (
+                  <p className="text-xs text-destructive">
+                    {errors.priority.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Error Alert */}
+              {mutation.isError && (
+                <Alert variant="destructive" className="py-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    {(mutation.error as any)?.response?.data?.message ||
+                      (mutation.error as any)?.message ||
+                      "Failed to submit bug report. Please try again."}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Submit */}
+              <Button
+                type="submit"
+                disabled={mutation.isPending}
+                className="w-full h-10 bg-gradient-to-b from-[#FFD65A] to-[#D4AF37] text-black hover:opacity-90 font-semibold"
+              >
+                {mutation.isPending ? "Submitting..." : "Submit Bug"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
