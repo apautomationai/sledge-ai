@@ -85,14 +85,8 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mt-6 sm:mt-8 md:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4 sm:px-0"
           >
-            {isLoggedIn ? (
-              <WatchDemoButton />
-            ) : (
-              <>
-                <TrialButton />
-                <WatchDemoButton />
-              </>
-            )}
+            <TrialButton />
+            <WatchDemoButton />
           </motion.div>
 
           {/* <motion.div

@@ -1,17 +1,17 @@
 export default function IntegrationShowcase() {
   return (
-    <div className=" px-52 py-8 inline-flex flex-col justify-start items-center gap-6 overflow-hidden ">
-      <div className="flex flex-col justify-start items-center gap-2">
-        <div className="text-center justify-start text-white text-2xl font-bold font-['League_Spartan'] uppercase">
+    <div className="w-full px-4 sm:px-8 md:px-16 lg:px-52 py-8 flex flex-col justify-center items-center gap-6 overflow-hidden">
+      <div className="flex flex-col justify-center items-center gap-2">
+        <div className="text-center text-white text-2xl font-bold font-league-spartan uppercase">
           Sledge connects directly with the tools construction teams already
           use.
         </div>
-        <div className="text-center justify-start text-white text-lg font-normal font-['Inter'] leading-6">
+        <div className="text-center text-white text-lg font-normal font-sans leading-6">
           Email, accounting, and payments — unified through AI-powered
           workflows.
         </div>
       </div>
-      <div className="inline-flex justify-start items-center gap-16">
+      <div className="flex justify-center items-center gap-8 md:gap-16 flex-wrap">
         <img
           className="h-12 object-contain"
           src="/images/Stripe wordmark - White 1.png"

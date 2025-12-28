@@ -1,23 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
 import {
   AnimatedRocket,
   AnimatedChart,
   PulsingOrb,
   FloatingElements,
-  // GeometricPattern,
   ProfessionalIcons,
 } from "./animated-icons";
-import {
-  ArrowRight,
-  Play,
-  // Star,
-  // Users,
-  // TrendingUp,
-  // Shield,
-} from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { checkSession } from "./action";
@@ -84,108 +73,57 @@ export function Hero() {
       </div>
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl text-center">
-          {/* <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Badge
-              variant="outline"
-              className="mb-6 px-4 py-2 text-sm font-medium border-blue-200 bg-blue-50/50 text-blue-700 hover:bg-blue-100/50 transition-all duration-300"
-            >
-              <Star className="w-4 h-4 mr-2 fill-yellow-400 text-yellow-400" />
-              Trusted by 10,000+ businesses worldwide
-            </Badge>
-          </motion.div> */}
-
-          <motion.h1
+        <div className="w-full max-w-[1014px] mx-auto inline-flex flex-col justify-start items-center gap-6">
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-3xl font-bold tracking-tight text-white xs:text-4xl sm:text-5xl md:text-7xl lg:text-8xl uppercase"
+            className="self-stretch flex flex-col justify-start items-center gap-2"
           >
-            AI-Powered
-            <span className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 bg-clip-text text-transparent">
-              {" "}
-              Accounts Payable{" "}
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-4 sm:mt-6 md:mt-8 text-base sm:text-lg md:text-xl leading-7 sm:leading-8 text-gray-300 max-w-3xl mx-auto font-medium px-2 sm:px-0"
-          >
-            Sledge automates invoices, releases, and approvals built tough for
-            contractors, subs, and crews that move fast.
-          </motion.p>
+            <h1 className="text-center text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-league-spartan uppercase leading-tight lg:leading-[64px]">
+              The Builder's AI Office.
+            </h1>
+            <p className="self-stretch text-center text-white text-lg sm:text-xl lg:text-2xl font-normal font-sans leading-7 lg:leading-8 px-4 sm:px-0">
+              One intelligent platform that runs your back office so you can run the jobsite.
+            </p>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-6 sm:mt-8 md:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4 sm:px-0"
+            className="inline-flex flex-col sm:flex-row justify-start items-center gap-4"
           >
             {isLoggedIn ? (
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base md:text-lg font-medium rounded-lg text-gray-900 bg-white hover:bg-gray-100 border-2 border-yellow-500 hover:border-yellow-400 transition-all duration-300 group shadow-lg shadow-yellow-500/20"
+              <Link
+                href="#demo"
+                className="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-start items-start gap-2 overflow-hidden transition-colors"
               >
-                <Link href="#demo">
-                  <Play className="mr-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" />
-                  WATCH PRODUCT DEMO
-                </Link>
-              </Button>
+                <span className="text-center text-zinc-100 text-base font-bold font-sans uppercase leading-6">
+                  WATCH HOW IT WORKS
+                </span>
+              </Link>
             ) : (
               <>
-                <Button
-                  asChild
-                  size="lg"
-                  className="w-full sm:w-auto bg-gradient-to-r from-yellow-500 via-yellow-400 to-amber-500 hover:from-yellow-400 hover:via-yellow-300 hover:to-amber-400 text-gray-900 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base md:text-lg font-bold rounded-lg shadow-2xl shadow-yellow-500/50 hover:shadow-yellow-400/60 transition-all duration-300 group uppercase border-2 border-yellow-600"
+                <Link
+                  href="/sign-up"
+                  className="px-4 py-3 bg-amber-400 hover:bg-amber-500 rounded flex justify-start items-start gap-2 overflow-hidden transition-colors"
                 >
-                  <Link href="/sign-up">
-                    START FREE TRIAL
-                    <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base md:text-lg font-medium rounded-lg text-white bg-transparent hover:bg-gray-800 border-2 border-gray-600 hover:border-gray-500 transition-all duration-300 group uppercase"
+                  <span className="text-center text-stone-800 text-base font-bold font-sans uppercase leading-6">
+                    START A FREE TRIAL
+                  </span>
+                </Link>
+                <Link
+                  href="#demo"
+                  className="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-start items-start gap-2 overflow-hidden transition-colors"
                 >
-                  <Link href="#demo">
-                    <Play className="mr-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" />
-                    WATCH PRODUCT DEMO
-                  </Link>
-                </Button>
+                  <span className="text-center text-zinc-100 text-base font-bold font-sans uppercase leading-6">
+                    WATCH HOW IT WORKS
+                  </span>
+                </Link>
               </>
             )}
           </motion.div>
-
-          {/* <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-12 flex flex-wrap items-center justify-center gap-8 text-sm text-gray-500"
-          >
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              <span>10,000+ Active Users</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              <span>99.9% Uptime</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              <span>Enterprise Security</span>
-            </div>
-          </motion.div> */}
         </div>
 
         {/* Product Preview */}

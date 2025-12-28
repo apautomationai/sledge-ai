@@ -134,20 +134,9 @@ export function Header() {
                   height={48}
                 />
               </div>
-              <div>
-                <span
-                  className="uppercase"
-                  style={{
-                    color: "#FFF",
-                    fontSize: "24px",
-                    fontStyle: "normal",
-                    fontWeight: "700",
-                    lineHeight: "24px",
-                  }}
-                >
-                  SLEDGE
-                </span>
-              </div>
+              <span className="uppercase text-white text-2xl font-bold font-league-spartan leading-6">
+                SLEDGE
+              </span>
             </Link>
 
             <div className="hidden lg:flex lg:items-center lg:gap-8">
@@ -184,7 +173,7 @@ export function Header() {
                                 "brightness(0) saturate(100%) invert(72%) sepia(68%) saturate(1455%) hue-rotate(4deg)",
                             }}
                           />
-                          <div className="justify-start text-amber-400 text-base font-medium font-['Work_Sans'] capitalize leading-6">
+                          <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Product overview
                           </div>
                         </a>
@@ -202,8 +191,8 @@ export function Header() {
                                 "brightness(0) saturate(100%) invert(72%) sepia(68%) saturate(1455%) hue-rotate(4deg)",
                             }}
                           />
-                          <div className="justify-start text-amber-400 text-base font-medium font-['Work_Sans'] capitalize leading-6">
-                            aI Accounts Payable
+                          <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
+                            AI Accounts Payable
                           </div>
                         </a>
                         <a
@@ -220,7 +209,7 @@ export function Header() {
                                 "brightness(0) saturate(100%) invert(72%) sepia(68%) saturate(1455%) hue-rotate(4deg)",
                             }}
                           />
-                          <div className="justify-start text-amber-400 text-base font-medium font-['Work_Sans'] capitalize leading-6">
+                          <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Integrations
                           </div>
                         </a>
@@ -258,7 +247,7 @@ export function Header() {
                           onClick={() => setIndustriesDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
-                          <div className="justify-start text-amber-400 text-base font-medium font-['Work_Sans'] capitalize leading-6">
+                          <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Construction
                           </div>
                         </a>
@@ -267,7 +256,7 @@ export function Header() {
                           onClick={() => setIndustriesDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
-                          <div className="justify-start text-amber-400 text-base font-medium font-['Work_Sans'] capitalize leading-6">
+                          <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Concrete
                           </div>
                         </a>

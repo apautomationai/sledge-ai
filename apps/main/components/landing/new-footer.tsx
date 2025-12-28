@@ -41,7 +41,7 @@ const navigation = {
 
 export function Footer() {
   return (
-    <footer className="bg-neutral-900 text-gray-300 relative overflow-hidden border-t-4 border-yellow-600/30">
+    <footer className="bg-neutral-900 text-gray-300 relative overflow-hidden">
       {/* Diamond plate texture - ROUGHER */}
       <div />
 
@@ -112,7 +112,9 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-white mb-4">Industries</h3>
+            <h3 className="text-sm font-semibold text-white mb-4">
+              Industries
+            </h3>
             <ul className="space-y-3">
               {navigation.industries.map((item) => (
                 <li key={item.name}>

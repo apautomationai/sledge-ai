@@ -3,141 +3,133 @@
 import Image from "next/image";
 
 export default function Savings() {
-  // Fixed display values
   const annualSavings = 125000;
   const hoursPerYear = 500;
 
   return (
-    <section className=" text-white py-20 ">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <div className="justify-start text-white text-5xl font-bold font-['League_Spartan'] uppercase mb-4">
-            Save Hours Every Week with AI Accounts Payable.
+    <section className="w-full px-4 sm:px-8 md:px-16 lg:px-48 py-16 inline-flex flex-col justify-center items-center gap-12">
+      {/* Header */}
+      <div className="self-stretch flex flex-col justify-start items-center gap-2">
+        <div className="text-center text-white text-3xl sm:text-4xl lg:text-5xl font-bold font-league-spartan uppercase">
+          Save Hours Every Week with AI Accounts Payable.
+        </div>
+        <div className="self-stretch text-center text-white text-lg sm:text-xl lg:text-2xl font-normal font-sans">
+          This calculator estimates how much time and money your team can save
+          by automating invoice processing with AI.
+          <br className="hidden sm:block" />
+          Results are based on common construction back-office workflows.
+        </div>
+      </div>
+
+      {/* Content Grid */}
+      <div className="self-stretch inline-flex flex-col lg:flex-row justify-center items-center lg:items-start gap-8 lg:gap-24">
+        {/* Left Column - Input Form */}
+        <div className="w-full max-w-96 p-6 sm:p-8 lg:p-12 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-700 inline-flex flex-col justify-start items-start gap-4">
+          <div className="self-stretch flex flex-col justify-start items-start gap-1">
+            <div className="self-stretch text-white text-sm font-medium font-sans">
+              Invoices per month
+            </div>
+            <div className="self-stretch h-11 relative bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 overflow-hidden">
+              <div className="left-[16px] top-[14px] absolute text-neutral-100/50 text-sm font-medium font-sans">
+                500
+              </div>
+            </div>
           </div>
-          <div className="self-stretch text-center justify-start text-white text-2xl font-normal font-['Inter']">
-            This calculator estimates how much time and money your team can save
-            by automating invoice processing with AI. <br />
-            Results are based on common construction back-office workflows.
+          <div className="self-stretch flex flex-col justify-start items-start gap-1">
+            <div className="self-stretch text-white text-sm font-medium font-sans">
+              Time spent per invoice
+            </div>
+            <div className="self-stretch h-11 relative bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 overflow-hidden">
+              <div className="left-[16px] top-[14px] absolute text-neutral-100/50 text-sm font-medium font-sans">
+                5 minutes
+              </div>
+            </div>
+          </div>
+          <div className="self-stretch flex flex-col justify-start items-start gap-1">
+            <div className="self-stretch text-white text-sm font-medium font-sans">
+              Number of workers
+            </div>
+            <div className="self-stretch h-11 relative bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 overflow-hidden">
+              <div className="left-[16px] top-[14px] absolute text-neutral-100/50 text-sm font-medium font-sans">
+                3
+              </div>
+            </div>
+          </div>
+          <div className="self-stretch flex flex-col justify-start items-start gap-1">
+            <div className="self-stretch text-white text-sm font-medium font-sans">
+              Average hourly rate per worker
+            </div>
+            <div className="self-stretch h-11 relative bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 overflow-hidden">
+              <div className="left-[16px] top-[14px] absolute text-neutral-100/50 text-sm font-medium font-sans">
+                50
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12 items-start">
-          {/* Left Column - Input Form */}
-          <div className="space-y-6">
-            {/* Invoices per month */}
-            <div>
-              <label className="block text-sm mb-2 text-gray-300">
-                Invoices per month
-              </label>
-              <input
-                type="number"
-                value={500}
-                readOnly
-                className="w-full bg-[#1a1a1a] border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:border-gray-500 transition-colors"
-              />
-            </div>
+        {/* Right Column - Results */}
+        <div className="w-full max-w-96 inline-flex flex-col justify-center items-center gap-6">
+          <div className="self-stretch text-center text-white text-sm font-normal font-sans leading-6">
+            Estimated impact after automating payables with AI.
+          </div>
 
-            {/* Time spent per invoice */}
-            <div>
-              <label className="block text-sm mb-2 text-gray-300">
-                Time spent per invoice
-              </label>
-              <input
-                type="text"
-                value="5 minutes"
-                readOnly
-                className="w-full bg-[#1a1a1a] border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:border-gray-500 transition-colors"
-              />
+          {/* Annual Savings */}
+          <div className="w-full max-w-72 flex flex-col justify-start items-center gap-3">
+            <div className="text-white text-xl sm:text-2xl font-medium font-sans">
+              Annual Savings
             </div>
-
-            {/* Number of workers */}
-            <div>
-              <label className="block text-sm mb-2 text-gray-300">
-                Number of workers
-              </label>
-              <input
-                type="number"
-                value={3}
-                readOnly
-                className="w-full bg-[#1a1a1a] border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:border-gray-500 transition-colors"
-              />
-            </div>
-
-            {/* Average hourly rate per worker */}
-            <div>
-              <label className="block text-sm mb-2 text-gray-300">
-                Average hourly rate per worker
-              </label>
-              <input
-                type="number"
-                value={50}
-                readOnly
-                className="w-full bg-[#1a1a1a] border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:border-gray-500 transition-colors"
-              />
+            <div className="self-stretch inline-flex justify-center items-center gap-2">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 relative overflow-hidden flex-shrink-0">
+                <Image
+                  src="/images/Vector.png"
+                  alt="Savings icon"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <div className="text-amber-400 text-3xl sm:text-4xl lg:text-5xl font-bold font-league-spartan">
+                ${annualSavings.toLocaleString()}
+              </div>
             </div>
           </div>
 
-          {/* Right Column - Results */}
-          <div className="bg-[#1a1a1a] border border-gray-800 rounded-lg p-8">
-            <p className="text-sm text-gray-400 text-center mb-8">
-              Estimated impact after automating payables with AI.
-            </p>
-
-            <div className="space-y-8">
-              {/* Annual Savings */}
-              <div className="text-center">
-                <div className="justify-start text-white text-2xl font-medium font-['Inter']">Annual Savings</div>
-                <div className="flex items-center justify-center gap-3">
-                  <Image
-                    src="/images/Vector.png"
-                    alt="Savings icon"
-                    width={48}
-                    height={48}
-                  />
-                  <span
-                    className="text-5xl font-bold"
-                    style={{ color: "#FFAB3C" }}
-                  >
-                    ${annualSavings.toLocaleString()}
-                  </span>
-                </div>
+          {/* Annual Time Saved */}
+          <div className="w-full max-w-80 flex flex-col justify-start items-center gap-4">
+            <div className="self-stretch text-center text-white text-xl sm:text-2xl font-medium font-sans">
+              Annual Time Saved
+            </div>
+            <div className="self-stretch inline-flex justify-center items-center gap-2">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 relative overflow-hidden flex-shrink-0">
+                <Image
+                  src="/images/Vector (1).png"
+                  alt="Time saved icon"
+                  fill
+                  className="object-contain"
+                />
               </div>
-
-              {/* Annual Time Saved */}
-              <div className="text-center">
-                <div className="justify-start text-white text-2xl font-medium font-['Inter']">Annual Time Saved</div>
-                <div className="flex items-center justify-center gap-3">
-                  <Image
-                    src="/images/Vector (1).png"
-                    alt="Time saved icon"
-                    width={48}
-                    height={48}
-                  />
-                  <span
-                    className="text-5xl font-bold"
-                    style={{ color: "#FFAB3C" }}
-                  >
-                    {hoursPerYear.toLocaleString()} HOURS
-                  </span>
-                </div>
+              <div className="text-amber-400 text-3xl sm:text-4xl lg:text-5xl font-bold font-league-spartan">
+                {hoursPerYear.toLocaleString()} HOURS
               </div>
             </div>
+          </div>
 
-            <p className="text-xs text-gray-500 text-center mt-8">
-              Estimates vary by workflow and volume. Actual savings depend on
-              usage and approval patterns.
-            </p>
+          <div className="self-stretch text-center text-zinc-400 text-xs font-medium font-sans">
+            Estimates vary by workflow and volume. Actual savings depend on
+            usage and approval patterns.
+          </div>
 
-            {/* CTA Buttons */}
-            <div className="mt-8 space-y-3">
-              <button className="w-full text-white font-semibold py-3 px-6 rounded transition-colors flex items-center justify-center gap-2" style={{ backgroundColor: '#E3B02F' }}>
-                SEE HOW SLEDGE AUTOMATES IT
-              </button>
-              <button className="w-full bg-transparent border border-gray-700 hover:border-gray-500 text-white font-semibold py-3 px-6 rounded transition-colors">
+          {/* CTA Buttons */}
+          <div className="w-full flex flex-col justify-center items-center gap-4">
+            <button className="self-stretch px-4 py-3 bg-amber-400 hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors">
+              <span className="text-center text-stone-800 text-sm sm:text-base font-semibold uppercase leading-5">
+                SEE HOW SLEDGE AUTOMATES PAYABLES
+              </span>
+            </button>
+            <button className="self-stretch px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors">
+              <span className="text-center text-zinc-100 text-sm sm:text-base font-bold font-sans uppercase leading-6">
                 START A FREE TRIAL
-              </button>
-            </div>
+              </span>
+            </button>
           </div>
         </div>
       </div>
