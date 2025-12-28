@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, League_Spartan } from "next/font/google";
 
 import "@workspace/ui/globals.css";
 import { cn } from "@workspace/ui/lib/utils";
@@ -7,6 +7,7 @@ import { Toaster } from "@/components/layout/toaster";
 import { Providers } from "@/components/providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const leagueSpartan = League_Spartan({ subsets: ["latin"], variable: "--font-league-spartan" });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://getsledge.com"),
@@ -37,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body
-        className={cn("bg-background font-sans antialiased", inter.variable)}
+        className={cn("bg-background font-sans antialiased", inter.variable, leagueSpartan.variable)}
       >
         <Providers>
           {children}

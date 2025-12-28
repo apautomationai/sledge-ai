@@ -4,7 +4,7 @@ import { WatchDemoButton } from "./watch-demo-button";
 
 export default function ReadyToRun() {
   return (
-    <section className="bg-[#1a1a1a] py-20 px-8">
+    <section className="py-20 px-8">
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
           READY TO RUN YOUR BUSINESS BETTER?
