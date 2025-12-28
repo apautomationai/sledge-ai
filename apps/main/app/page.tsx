@@ -1,10 +1,10 @@
 "use client";
 
-import { Header } from "@/components/landing/new-header";
-import { Hero } from "@/components/landing/new-hero";
+import { Header } from "@/components/landing/header";
+import { Hero } from "@/components/landing/hero";
 import WhatIsIt from "@/components/landing/what-is-it";
 import IntegrationShowcase from "@/components/landing/integration-showcase";
-import { Footer } from "@/components/landing/new-footer";
+import { Footer } from "@/components/landing/footer";
 import SeeTheDifference from "@/components/landing/see-the-difference";
 import Savings from "@/components/landing/savings";
 import ImportantTask from "@/components/landing/important-task";

@@ -8,19 +8,23 @@ import { Badge } from "@workspace/ui/components/badge";
 import { Menu, X, CreditCard, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { checkSession } from "./action";
+import { TrialButton } from "./trial-button";
 
 const navigation = [
-  { name: "Features", href: "/#features" },
+  { name: "Products", href: "/#products" },
+  { name: "Industries", href: "/#industries" },
   { name: "Pricing", href: "/#pricing" },
-  { name: "Use Cases", href: "/#use-cases" },
-  { name: "About", href: "/#about" },
 ];
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [industriesDropdownOpen, setIndustriesDropdownOpen] = useState(false);
   const bodyRef = useRef<HTMLElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const industriesDropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,6 +43,32 @@ export function Header() {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Handle clicking outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+      if (
+        industriesDropdownRef.current &&
+        !industriesDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIndustriesDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen || industriesDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownOpen, industriesDropdownOpen]);
 
   // Prevent body scroll without causing jump to top
   useEffect(() => {
@@ -87,63 +117,162 @@ export function Header() {
         </Link>
       </Button>
     ) : (
-      <>
-        <Button
-          asChild
-          variant="ghost"
-          className="text-gray-300 hover:text-yellow-400 font-medium hover:bg-gray-800 transition-colors duration-300"
-        >
-          <Link href={"/sign-in"}>Sign In</Link>
-        </Button>
-        <Button
-          asChild
-          className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-gray-900 font-bold px-6 shadow-lg shadow-yellow-500/30 hover:shadow-xl hover:shadow-yellow-400/40 transition-all duration-300 group uppercase border-2 border-yellow-600"
-        >
-          <Link href={"/sign-up"}>
-            Start Free Trial
-            <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-          </Link>
-        </Button>
-      </>
+      <TrialButton />
     );
 
   return (
     <>
-      <header
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 border-b-4 ${
-          scrolled
-            ? "bg-gray-950/98 backdrop-blur-none shadow-[0_4px_20px_rgba(0,0,0,0.9),0_0_30px_rgba(253,176,34,0.2)] border-yellow-600/50"
-            : "bg-gray-950/80 backdrop-blur-none border-yellow-600/20"
-        }`}
-      >
+      <header className="bg-neutral-900 backdrop-blur-none shadow-[0_4px_20px_rgba(0,0,0,0.9),0_0_30px_rgba(253,176,34,0.2)] border-yellow-600/50 ">
         <nav className="mx-auto max-w-7xl px-6 lg:px-8" aria-label="Global">
           <div className="flex items-center justify-between py-2">
             <Link href="/" className="flex items-center gap-3">
               <div className="w-full h-full rounded-xl flex items-center justify-center">
                 <Image
-                  src={"/images/logos/sledge.png"}
+                  src={"/images/logos/logosledge.png"}
                   alt="Logo"
-                  width={70}
-                  height={50}
+                  width={48}
+                  height={48}
                 />
               </div>
-              <div>
-                {/* <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent uppercase">
-                  SLEDGE
-                </span> */}
-              </div>
+              <span className="uppercase text-white text-2xl font-bold font-league-spartan leading-6">
+                SLEDGE
+              </span>
             </Link>
 
             <div className="hidden lg:flex lg:items-center lg:gap-8">
-              {navigation.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className="text-gray-300 hover:text-yellow-400 font-medium transition-colors duration-300 uppercase text-sm"
-                >
-                  {item.name}
-                </a>
-              ))}
+              {navigation.map((item) =>
+                item.name === "Products" ? (
+                  <div key={item.name} className="relative" ref={dropdownRef}>
+                    <button
+                      onClick={() => setDropdownOpen(!dropdownOpen)}
+                      className="text-gray-300 font-medium transition-colors duration-300 uppercase text-sm flex items-center gap-2 cursor-pointer"
+                    >
+                      {item.name}
+                      <img
+                        src="/images/logos/arrow-down.svg"
+                        alt="dropdown arrow"
+                        className={`w-4 h-4 transition-transform duration-300 ${dropdownOpen ? "rotate-180" : ""}`}
+                        style={{
+                          filter: "invert(1) brightness(0.8)",
+                        }}
+                      />
+                    </button>
+                    {dropdownOpen && (
+                      <div className="absolute top-full left-0 mt-2 z-50 w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800">
+                        <a
+                          href="#product-overview"
+                          onClick={() => setDropdownOpen(false)}
+                          className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
+                        >
+                          <img
+                            src="/images/logos/roadmap.svg"
+                            alt="roadmap"
+                            className="w-6 h-6"
+                            style={{
+                              filter:
+                                "brightness(0) saturate(100%) invert(72%) sepia(68%) saturate(1455%) hue-rotate(4deg)",
+                            }}
+                          />
+                          <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
+                            Product overview
+                          </div>
+                        </a>
+                        <a
+                          href="#ai-accounts"
+                          onClick={() => setDropdownOpen(false)}
+                          className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
+                        >
+                          <img
+                            src="/images/logos/DocumentScan.svg"
+                            alt="document scan"
+                            className="w-6 h-6"
+                            style={{
+                              filter:
+                                "brightness(0) saturate(100%) invert(72%) sepia(68%) saturate(1455%) hue-rotate(4deg)",
+                            }}
+                          />
+                          <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
+                            AI Accounts Payable
+                          </div>
+                        </a>
+                        <a
+                          href="#integrations"
+                          onClick={() => setDropdownOpen(false)}
+                          className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
+                        >
+                          <img
+                            src="/images/logos/Connect.svg"
+                            alt="connect"
+                            className="w-6 h-6"
+                            style={{
+                              filter:
+                                "brightness(0) saturate(100%) invert(72%) sepia(68%) saturate(1455%) hue-rotate(4deg)",
+                            }}
+                          />
+                          <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
+                            Integrations
+                          </div>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ) : item.name === "Industries" ? (
+                  <div
+                    key={item.name}
+                    className="relative"
+                    ref={industriesDropdownRef}
+                  >
+                    <button
+                      onClick={() =>
+                        setIndustriesDropdownOpen(!industriesDropdownOpen)
+                      }
+                      className="text-gray-300 font-medium transition-colors duration-300 uppercase text-sm flex items-center gap-2 cursor-pointer"
+                    >
+                      {item.name}
+                      <img
+                        src="/images/logos/arrow-down.svg"
+                        alt="dropdown arrow"
+                        className={`w-4 h-4 transition-transform duration-300 ${
+                          industriesDropdownOpen ? "rotate-180" : ""
+                        }`}
+                        style={{
+                          filter: "invert(1) brightness(0.8)",
+                        }}
+                      />
+                    </button>
+                    {industriesDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-2 z-50 w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800 inline-flex flex-col justify-start items-start overflow-hidden">
+                        <a
+                          href="#construction"
+                          onClick={() => setIndustriesDropdownOpen(false)}
+                          className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
+                        >
+                          <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
+                            Construction
+                          </div>
+                        </a>
+                        <a
+                          href="#concrete"
+                          onClick={() => setIndustriesDropdownOpen(false)}
+                          className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
+                        >
+                          <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
+                            Concrete
+                          </div>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="text-gray-300 font-medium transition-colors duration-300 uppercase text-sm"
+                  >
+                    {item.name}
+                  </a>
+                )
+              )}
             </div>
 
             <div className="hidden lg:flex lg:items-center lg:gap-4">
@@ -213,26 +342,136 @@ export function Header() {
                 {/* Navigation Links */}
                 <div className="flex-1 overflow-y-auto py-6 bg-gray-900">
                   <div className="px-6 space-y-2">
-                    {navigation.map((item) => (
-                      <a
-                        key={item.name}
-                        href={item.href}
-                        className="block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-gray-800 hover:text-yellow-400 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setMobileMenuOpen(false);
-                          // Wait for menu to close before scrolling
-                          setTimeout(() => {
-                            const target = document.querySelector(item.href);
-                            if (target) {
-                              target.scrollIntoView({ behavior: "smooth" });
+                    {navigation.map((item) =>
+                      item.name === "Products" ? (
+                        <div key={item.name}>
+                          <button
+                            onClick={() => setDropdownOpen(!dropdownOpen)}
+                            className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
+                          >
+                            {item.name}
+                            <img
+                              src="/images/logos/arrow-down.svg"
+                              alt="dropdown arrow"
+                              className={`w-4 h-4 transition-transform duration-300 ${dropdownOpen ? "rotate-180" : ""}`}
+                              style={{
+                                filter: "invert(1) brightness(0.8)",
+                              }}
+                            />
+                          </button>
+                          {dropdownOpen && (
+                            <div className="mt-2 ml-4 space-y-2">
+                              <a
+                                href="#product-overview"
+                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                onClick={() => setDropdownOpen(false)}
+                              >
+                                <img
+                                  src="/images/logos/roadmap.svg"
+                                  alt="roadmap"
+                                  className="w-5 h-5"
+                                  style={{
+                                    filter:
+                                      "brightness(0) saturate(100%) invert(72%) sepia(68%) saturate(1455%) hue-rotate(4deg)",
+                                  }}
+                                />
+                                Product overview
+                              </a>
+                              <a
+                                href="#ai-accounts"
+                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                onClick={() => setDropdownOpen(false)}
+                              >
+                                <img
+                                  src="/images/logos/DocumentScan.svg"
+                                  alt="document scan"
+                                  className="w-5 h-5"
+                                  style={{
+                                    filter:
+                                      "brightness(0) saturate(100%) invert(72%) sepia(68%) saturate(1455%) hue-rotate(4deg)",
+                                  }}
+                                />
+                                AI Accounts Payable
+                              </a>
+                              <a
+                                href="#integrations"
+                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                onClick={() => setDropdownOpen(false)}
+                              >
+                                <img
+                                  src="/images/logos/Connect.svg"
+                                  alt="connect"
+                                  className="w-5 h-5"
+                                  style={{
+                                    filter:
+                                      "brightness(0) saturate(100%) invert(72%) sepia(68%) saturate(1455%) hue-rotate(4deg)",
+                                  }}
+                                />
+                                Integrations
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      ) : item.name === "Industries" ? (
+                        <div key={item.name}>
+                          <button
+                            onClick={() =>
+                              setIndustriesDropdownOpen(!industriesDropdownOpen)
                             }
-                          }, 300);
-                        }}
-                      >
-                        {item.name}
-                      </a>
-                    ))}
+                            className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
+                          >
+                            {item.name}
+                            <img
+                              src="/images/logos/arrow-down.svg"
+                              alt="dropdown arrow"
+                              className={`w-4 h-4 transition-transform duration-300 ${
+                                industriesDropdownOpen ? "rotate-180" : ""
+                              }`}
+                              style={{
+                                filter: "invert(1) brightness(0.8)",
+                              }}
+                            />
+                          </button>
+                          {industriesDropdownOpen && (
+                            <div className="mt-2 ml-4 space-y-2">
+                              <a
+                                href="#construction"
+                                className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                onClick={() => setIndustriesDropdownOpen(false)}
+                              >
+                                Construction
+                              </a>
+                              <a
+                                href="#concrete"
+                                className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                onClick={() => setIndustriesDropdownOpen(false)}
+                              >
+                                Concrete
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <a
+                          key={item.name}
+                          href={item.href}
+                          className="block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setMobileMenuOpen(false);
+                            // Wait for menu to close before scrolling
+                            setTimeout(() => {
+                              const target = document.querySelector(item.href);
+                              if (target) {
+                                target.scrollIntoView({ behavior: "smooth" });
+                              }
+                            }, 300);
+                          }}
+                        >
+                          {item.name}
+                        </a>
+                      )
+                    )}
                   </div>
                 </div>
 

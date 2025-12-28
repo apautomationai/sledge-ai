@@ -63,7 +63,7 @@ export default function SeeTheDifference() {
         <div className="absolute inset-0">
           <Image
             src="/images/after 10.png"
-            alt="After - AI-powered workflows with Sledge"
+            alt="AI workflow automation"
             fill
             className="object-cover"
             priority
@@ -79,7 +79,7 @@ export default function SeeTheDifference() {
         >
           <Image
             src="/images/after 9.png"
-            alt="Before - Manual construction back office"
+            alt="construction back office automation"
             fill
             className="object-cover"
             priority
