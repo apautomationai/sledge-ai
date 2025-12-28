@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Savings() {
   const annualSavings = 125000;
@@ -120,16 +121,20 @@ export default function Savings() {
 
           {/* CTA Buttons */}
           <div className="w-full flex flex-col justify-center items-center gap-4">
-            <button className="self-stretch px-4 py-3 bg-amber-400 hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors">
-              <span className="text-center text-stone-800 text-sm sm:text-base font-semibold uppercase leading-5">
+            <button className="self-stretch px-3 sm:px-4 py-3 bg-amber-400 hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors">
+              <span className="cursor-pointer text-center text-stone-800 text-[11px] sm:text-sm md:text-base font-semibold uppercase leading-tight whitespace-nowrap">
                 SEE HOW SLEDGE AUTOMATES PAYABLES
               </span>
             </button>
-            <button className="self-stretch px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors">
-              <span className="text-center text-zinc-100 text-sm sm:text-base font-bold font-sans uppercase leading-6">
+
+            <Link
+              href="/sign-up"
+              className="cursor-pointer self-stretch px-3 sm:px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors"
+            >
+              <span className="text-center text-zinc-100 text-[11px] sm:text-sm md:text-base font-bold font-sans uppercase leading-tight whitespace-nowrap">
                 START A FREE TRIAL
               </span>
-            </button>
+            </Link>
           </div>
         </div>
       </div>
