@@ -123,7 +123,7 @@ class ProcessorController {
 
           // Process the invoice with pre-resolved vendor ID
           const { result, userId: invoiceUserId } = await self.processSingleInvoice(
-            invoice, 
+            invoice,
             resolvedUserId,
             preResolvedVendorId
           );
@@ -265,7 +265,7 @@ class ProcessorController {
       // Emit WebSocket event
       if (status && updated) {
         const wsService = getWebSocketService();
-        wsService.emitAttachmentStatusUpdated(updated.userId, attachmentIdNumber, status);
+        wsService.emitAttachmentStatusUpdated(updated.userId, attachmentIdNumber, status, updated);
       }
 
       return res.status(200).json({ success: true, data: updated });
@@ -277,7 +277,7 @@ class ProcessorController {
 
 
   private async processSingleInvoice(
-    invoiceData: any, 
+    invoiceData: any,
     userId: number | null = null,
     preResolvedVendorId?: number
   ) {
