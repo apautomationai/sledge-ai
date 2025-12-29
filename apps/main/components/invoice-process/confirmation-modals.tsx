@@ -51,16 +51,13 @@ const isAutomatedEmail = (email: string | null | undefined): boolean => {
     'donotreply',
     'do-not-reply',
     'do_not_reply',
-    'mailer-daemon',
-    'postmaster',
-    'automated',
     'notification',
     'notifications',
     'alert',
     'alerts',
     'system',
-    'auto@',
-    'bounce',
+    'auto',
+    'automated',
   ];
   return automatedPatterns.some(pattern => lowerEmail.includes(pattern));
 };
