@@ -47,7 +47,7 @@ export function FAQ() {
 
   return (
     <section className="relative py-20 md:py-28 bg-neutral-900">
-      <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-4xl xl:max-w-6xl 2xl:max-w-7xl px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white uppercase leading-tight sm:leading-tight md:leading-snug text-center mb-8 sm:mb-10 md:mb-12">
           Frequently Asked Questions.
         </h2>

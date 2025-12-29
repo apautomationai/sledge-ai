@@ -41,7 +41,7 @@ export function Tools() {
             CONSTRUCTION SOFTWARE INTEGRATIONS | AI-POWERED INTEGRATIONS –
             SLEDGE
           </p>
-          <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-[64px] font-bold uppercase mb-4 sm:mb-6 leading-tight sm:leading-tight md:leading-snug lg:whitespace-nowrap">
+          <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-[64px] font-bold uppercase mb-4 sm:mb-6 leading-tight sm:leading-tight md:leading-snug ">
             WORKS WITH TOOLS YOU ALREADY USE
           </h2>
           <p className="text-white text-sm sm:text-base md:text-lg lg:text-2xl max-w-3xl lg:max-w-none mx-auto leading-relaxed">
