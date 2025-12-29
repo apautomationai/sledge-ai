@@ -4,11 +4,9 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
 import { Menu, X, CreditCard, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { checkSession } from "./action";
-import { TrialButton } from "./trial-button";
 
 const navigation = [
   { name: "Products", href: "/#products" },
@@ -117,14 +115,34 @@ export function Header() {
         </Link>
       </Button>
     ) : (
-      <TrialButton />
+      <div
+        data-state="Default"
+        className="inline-flex justify-end items-center gap-4"
+      >
+        <Link
+          href="/sign-in"
+          className="text-white text-base font-medium font-['Inter'] leading-6 hover:text-amber-400 transition-colors"
+        >
+          Log In
+        </Link>
+        <Link href="/sign-up">
+          <div className="px-4 py-3 bg-amber-400 rounded flex justify-start items-start gap-2 overflow-hidden hover:bg-amber-500 transition-colors">
+            <div className="text-center justify-start text-stone-800 text-base font-bold font-['Inter'] uppercase leading-6">
+              start a free trial
+            </div>
+          </div>
+        </Link>
+      </div>
     );
 
   return (
     <>
       <header className="bg-neutral-900 backdrop-blur-none shadow-[0_4px_20px_rgba(0,0,0,0.9),0_0_30px_rgba(253,176,34,0.2)] border-yellow-600/50 ">
-        <nav className="mx-auto max-w-7xl px-6 lg:px-8" aria-label="Global">
-          <div className="flex items-center justify-between py-2">
+        <nav
+          className="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 lg:px-8 2xl:px-12"
+          aria-label="Global"
+        >
+          <div className="flex items-center justify-between py-4">
             <Link href="/" className="flex items-center gap-3">
               <div className="w-full h-full rounded-xl flex items-center justify-center">
                 <Image
@@ -139,7 +157,7 @@ export function Header() {
               </span>
             </Link>
 
-            <div className="hidden lg:flex lg:items-center lg:gap-8">
+            <div className="hidden lg:flex lg:items-center lg:gap-8 2xl:gap-12">
               {navigation.map((item) =>
                 item.name === "Products" ? (
                   <div key={item.name} className="relative" ref={dropdownRef}>
@@ -160,7 +178,7 @@ export function Header() {
                     {dropdownOpen && (
                       <div className="absolute top-full left-0 mt-2 z-50 w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800">
                         <a
-                          href="#product-overview"
+                          href="product-overview"
                           onClick={() => setDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
@@ -178,7 +196,7 @@ export function Header() {
                           </div>
                         </a>
                         <a
-                          href="#ai-accounts"
+                          href="ai-account-payable"
                           onClick={() => setDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
@@ -196,7 +214,7 @@ export function Header() {
                           </div>
                         </a>
                         <a
-                          href="#integrations"
+                          href="integration"
                           onClick={() => setDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
@@ -275,7 +293,7 @@ export function Header() {
               )}
             </div>
 
-            <div className="hidden lg:flex lg:items-center lg:gap-4">
+            <div className="hidden lg:flex lg:items-center lg:gap-4 2xl:gap-6">
               <AuthButtons />
             </div>
 

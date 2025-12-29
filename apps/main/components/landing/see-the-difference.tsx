@@ -41,10 +41,10 @@ export default function SeeTheDifference() {
   return (
     <div className="flex flex-col gap-8 items-center px-8 md:px-16 mt-14">
       <div className="flex flex-col gap-4">
-        <div className="self-stretch text-center justify-start text-white text-5xl font-bold font-['League_Spartan'] uppercase leading-[52px]">
+        <div className="self-stretch text-center justify-start text-white text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-bold font-['League_Spartan'] uppercase leading-tight sm:leading-tight md:leading-[52px] lg:leading-none">
           SEE THE DIFFERENCE WITH SLEDGE.
         </div>
-        <div className="self-stretch text-center justify-start text-white text-2xl font-normal font-['Inter'] leading-8">
+        <div className="self-stretch text-center justify-start text-white text-base sm:text-lg md:text-xl lg:text-2xl font-normal font-['Inter'] leading-relaxed sm:leading-relaxed md:leading-8">
           Manual construction back offices vs. AI-powered workflows with Sledge.
         </div>
       </div>

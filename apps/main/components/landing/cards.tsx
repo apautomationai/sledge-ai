@@ -21,7 +21,7 @@ export function Cards() {
       subtile: "Instantly scan, sort and search every file",
     },
     {
-      icon: "/images/job2.png",
+      icon: "/images/image 11.png",
       title: "Projects",
       subtile: "Automate invoices, payables, & approvals ",
     },
@@ -53,11 +53,23 @@ export function Cards() {
   };
 
   const iconVariants = {
-    normal: { scale: 1, z: 0, opacity: 1 },
+    normal: { scale: 1, z: 0, opacity: 1, y: 0 },
     hover: {
       scale: 0.75,
       z: -20,
       opacity: 0.6,
+      y: -20,
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut" as any,
+      },
+    },
+  };
+
+  const glowVariants = {
+    normal: { opacity: 0 },
+    hover: {
+      opacity: 1,
       transition: {
         duration: 0.3,
         ease: "easeInOut" as any,
@@ -68,7 +80,7 @@ export function Cards() {
   const titleVariants = {
     normal: { y: 0 },
     hover: {
-      y: -20,
+      y: -40,
       transition: {
         duration: 0.3,
         ease: "easeInOut" as any,
@@ -79,7 +91,7 @@ export function Cards() {
   const subtitleVariants = {
     normal: { y: 40, opacity: 0 },
     hover: {
-      y: 0,
+      y: -36,
       opacity: 1,
       transition: {
         duration: 0.3,
@@ -88,38 +100,26 @@ export function Cards() {
     },
   };
 
-  const overlayVariants = {
-    visible: { opacity: 0 },
-    hover: {
-      opacity: 0.3,
-      transition: {
-        duration: 0.3,
-        ease: "easeInOut" as any,
-      },
-    },
-  };
-
   return (
-    <section className="py-16 px-4">
+    <section className="py-16">
       <div className="max-w-7xl mx-auto">
         <motion.div
-          className="text-center mb-12"
+          className="text-center mb-12 px-4 sm:px-6 lg:px-8"
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" as any }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-bold text-white mb-4 leading-tight sm:leading-tight md:leading-snug">
             YOUR ENTIRE OPERATION, SUPERCHARGED.
           </h2>
-          <p className="text-gray-400 text-lg">
-            Sledge is built as a unified AI platform that supports every part of
-            the construction back office.
+          <p className="text-gray-400 text-sm sm:text-base md:text-lg lg:text-2xl leading-relaxed">
+            Sledge is built as a unified AI platform that supports every part of the construction back office.
           </p>
         </motion.div>
 
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"
+          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8 xl:gap-[48px] px-4 lg:px-12 xl:px-0"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -128,47 +128,50 @@ export function Cards() {
           {cards.map((card, index) => (
             <motion.div
               key={index}
-              className="relative w-full h-80 group cursor-pointer overflow-hidden rounded-2xl"
+              className="relative w-full aspect-[318/346] max-w-[318px] mx-auto group cursor-pointer overflow-hidden rounded-2xl"
               variants={cardVariants}
               animate="normal"
               whileHover="hover"
               whileTap="hover"
             >
               <Image
-                src="/images/image 21.png"
+                src="/images/bg-steelplate.png"
                 alt={card.title}
                 fill
                 className="object-fill rounded-2xl"
               />
 
-              {/* Yellow Overlay */}
-              <motion.div
-                className="absolute inset-0 bg-yellow-400 rounded-2xl"
-                variants={overlayVariants}
-                initial="visible"
-                animate="visible"
-              />
-
               {/* Content Container */}
-              <motion.div
-                className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl"
-                initial="normal"
-                whileHover="hover"
-              >
+              <motion.div className="absolute inset-0 flex flex-col items-center justify-center pt-[20px] rounded-2xl">
+                {/* Hover Glow Overlay */}
+                <motion.div
+                  className="absolute inset-0 left-[7px] pointer-events-none"
+                  variants={glowVariants}
+                >
+                  <Image
+                    src="/images/hover-overlay-glow.png"
+                    alt=""
+                    fill
+                    className="object-fill rounded-2xl"
+                  />
+                </motion.div>
                 {/* Icon */}
-                <motion.div className="mb-4" variants={iconVariants}>
+                <motion.div
+                  className="h-[184px] w-[184px] flex items-center justify-center mb-0"
+                  variants={iconVariants}
+                >
                   <Image
                     src={card.icon}
                     alt={card.title}
-                    width={119}
-                    height={80}
+                    width={184}
+                    height={184}
                     className="object-contain"
                   />
                 </motion.div>
 
                 {/* Title */}
                 <motion.h3
-                  className="text-lg font-semibold text-yellow-400"
+                  className="text-lg sm:text-xl md:text-[24px] font-inter font-bold text-[#E3B02F]"
                   variants={titleVariants}
                 >
                   {card.title}
@@ -176,7 +179,7 @@ export function Cards() {
 
                 {/* Subtitle */}
                 <motion.p
-                  className="text-sm text-white/80 text-center px-4 mt-2 max-w-xs"
+                  className="text-base sm:text-lg md:text-[20px] font-inter font-normal text-[#E3B02F] text-center px-4 mt-0 max-w-xs"
                   variants={subtitleVariants}
                 >
                   {card.subtile}
