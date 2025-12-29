@@ -40,6 +40,28 @@ const capitalizeStatus = (status: string | null | undefined): string => {
   return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 };
 
+// Helper function to detect automated/no-reply email addresses
+const isAutomatedEmail = (email: string | null | undefined): boolean => {
+  if (!email) return false;
+  const lowerEmail = email.toLowerCase();
+  const automatedPatterns = [
+    'noreply',
+    'no-reply',
+    'no_reply',
+    'donotreply',
+    'do-not-reply',
+    'do_not_reply',
+    'notification',
+    'notifications',
+    'alert',
+    'alerts',
+    'system',
+    'auto',
+    'automated',
+  ];
+  return automatedPatterns.some(pattern => lowerEmail.includes(pattern));
+};
+
 interface ConfirmationModalsProps {
   isEditing: boolean;
   setIsEditing: (isEditing: boolean) => void;
@@ -439,17 +461,38 @@ export default function ConfirmationModals({
                       <SelectValue placeholder="Select recipient email" />
                     </SelectTrigger>
                     <SelectContent>
-                      {invoiceDetails.senderEmail && (
-                        <SelectItem value={invoiceDetails.senderEmail}>
-                          Sender: {invoiceDetails.senderEmail}
-                        </SelectItem>
-                      )}
-                      {(invoiceDetails.vendorData?.primaryEmail || invoiceDetails.vendorEmail) && (
-                        <SelectItem value={invoiceDetails.vendorData?.primaryEmail ?? invoiceDetails.vendorEmail ?? "vendor"}>
-                          Vendor: {invoiceDetails.vendorData?.primaryEmail || invoiceDetails.vendorEmail}
-                        </SelectItem>
-                      )}
-                      <SelectItem value="custom">Custom email</SelectItem>
+                        {invoiceDetails.senderEmail && (
+                          isAutomatedEmail(invoiceDetails.senderEmail) ? (
+                            <div
+                              title="This appears to be an automated email address that cannot receive replies"
+                              className="relative flex w-full cursor-not-allowed select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-muted-foreground opacity-50"
+                            >
+                              Sender: {invoiceDetails.senderEmail}
+                            </div>
+                          ) : (
+                            <SelectItem value={invoiceDetails.senderEmail}>
+                              Sender: {invoiceDetails.senderEmail}
+                            </SelectItem>
+                          )
+                        )}
+                        {(invoiceDetails.vendorData?.primaryEmail || invoiceDetails.vendorEmail) && (
+                          (() => {
+                            const vendorEmail = invoiceDetails.vendorData?.primaryEmail ?? invoiceDetails.vendorEmail ?? "vendor";
+                            return isAutomatedEmail(vendorEmail) ? (
+                              <div
+                                title="This appears to be an automated email address that cannot receive replies"
+                                className="relative flex w-full cursor-not-allowed select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-muted-foreground opacity-50"
+                              >
+                                Vendor: {vendorEmail}
+                              </div>
+                            ) : (
+                              <SelectItem value={vendorEmail}>
+                                Vendor: {vendorEmail}
+                              </SelectItem>
+                            );
+                          })()
+                        )}
+                        <SelectItem value="custom">Custom email</SelectItem>
                     </SelectContent>
                   </Select>
                   {selectedRecipientEmail === "custom" && (
