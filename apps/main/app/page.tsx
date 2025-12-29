@@ -14,7 +14,7 @@ import { Testimonial } from "@/components/landing/testimonial";
 
 export default function Home() {
   return (
-    <div className="min-h-screen w-full">
+    <div className="min-h-screen w-full overflow-x-hidden">
       <Header />
       <main className="flex flex-col">
         <Hero />

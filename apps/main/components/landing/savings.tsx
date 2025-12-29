@@ -8,7 +8,7 @@ export default function Savings() {
   const hoursPerYear = 500;
 
   return (
-    <section className="w-full px-4 sm:px-8 md:px-16 lg:px-48 py-16 inline-flex flex-col justify-center items-center gap-12">
+    <section className="w-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-48 py-16 inline-flex flex-col justify-center items-center gap-12">
       {/* Header */}
       <div className="self-stretch flex flex-col justify-start items-center gap-2">
         <div className="text-center text-white text-3xl sm:text-4xl lg:text-5xl font-bold font-league-spartan uppercase">
@@ -23,9 +23,9 @@ export default function Savings() {
       </div>
 
       {/* Content Grid */}
-      <div className="self-stretch inline-flex flex-col lg:flex-row justify-center items-center lg:items-start gap-8 lg:gap-24">
+      <div className="self-stretch inline-flex flex-col lg:flex-row justify-center items-center lg:items-start gap-8 lg:gap-12 xl:gap-24">
         {/* Left Column - Input Form */}
-        <div className="w-full max-w-96 p-6 sm:p-8 lg:p-12 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-700 inline-flex flex-col justify-start items-start gap-4">
+        <div className="w-full max-w-96 shrink-0 p-6 sm:p-8 lg:p-12 bg-zinc-900 rounded-lg outline-1 -outline-offset-1 outline-neutral-700 inline-flex flex-col justify-start items-start gap-4">
           <div className="self-stretch flex flex-col justify-start items-start gap-1">
             <div className="self-stretch text-white text-sm font-medium font-sans">
               Invoices per month
@@ -69,7 +69,7 @@ export default function Savings() {
         </div>
 
         {/* Right Column - Results */}
-        <div className="w-full max-w-96 inline-flex flex-col justify-center items-center gap-6">
+        <div className="w-full max-w-96 shrink-0 inline-flex flex-col justify-center items-center gap-6">
           <div className="self-stretch text-center text-white text-sm font-normal font-sans leading-6">
             Estimated impact after automating payables with AI.
           </div>
