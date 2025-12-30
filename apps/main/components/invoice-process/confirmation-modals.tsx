@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
 import { Button } from "@workspace/ui/components/button";
 import { client } from "@/lib/axios-client";
 import { toast } from "sonner";
@@ -27,10 +28,38 @@ import { Label } from "@workspace/ui/components/label";
 import { InvoiceDetails } from "@/lib/types/invoice";
 import { formatLabel, renderValue, formatDate } from "@/lib/utility/formatters";
 
+// Zod schema for rejection form
+const rejectionFormSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
+  reason: z.string().min(1, "Reason is required").min(10, "Reason must be at least 10 characters"),
+});
+
 // Helper function to capitalize status
 const capitalizeStatus = (status: string | null | undefined): string => {
   if (!status) return '';
   return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+};
+
+// Helper function to detect automated/no-reply email addresses
+const isAutomatedEmail = (email: string | null | undefined): boolean => {
+  if (!email) return false;
+  const lowerEmail = email.toLowerCase();
+  const automatedPatterns = [
+    'noreply',
+    'no-reply',
+    'no_reply',
+    'donotreply',
+    'do-not-reply',
+    'do_not_reply',
+    'notification',
+    'notifications',
+    'alert',
+    'alerts',
+    'system',
+    'auto',
+    'automated',
+  ];
+  return automatedPatterns.some(pattern => lowerEmail.includes(pattern));
 };
 
 interface ConfirmationModalsProps {
@@ -69,27 +98,31 @@ export default function ConfirmationModals({
   const [rejectionReason, setRejectionReason] = useState("");
   const [selectedRecipientEmail, setSelectedRecipientEmail] = useState("");
   const [customEmail, setCustomEmail] = useState("");
-  const [customEmailError, setCustomEmailError] = useState("");
+  const [formErrors, setFormErrors] = useState<{ email?: string; reason?: string }>({});
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleCustomEmailChange = (value: string) => {
-    setCustomEmail(value);
-    if (value && !validateEmail(value)) {
-      setCustomEmailError("Please enter a valid email address");
-    } else {
-      setCustomEmailError("");
-    }
-  };
-
-  const getRecipientEmail = (): string | undefined => {
+  const getRecipientEmail = (): string => {
     if (selectedRecipientEmail === "custom") {
-      return customEmail && validateEmail(customEmail) ? customEmail : undefined;
+      return customEmail;
     }
-    return selectedRecipientEmail || undefined;
+    return selectedRecipientEmail;
+  };
+
+  const validateForm = (): boolean => {
+    const email = getRecipientEmail();
+    const result = rejectionFormSchema.safeParse({ email, reason: rejectionReason });
+
+    if (!result.success) {
+      const errors: { email?: string; reason?: string } = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0] === "email") errors.email = err.message;
+        if (err.path[0] === "reason") errors.reason = err.message;
+      });
+      setFormErrors(errors);
+      return false;
+    }
+
+    setFormErrors({});
+    return true;
   };
 
   const handleSaveChanges = async () => {
@@ -298,9 +331,8 @@ export default function ConfirmationModals({
   };
 
   const handleConfirmReject = async () => {
-    // Validate custom email if selected
-    if (selectedRecipientEmail === "custom" && (!customEmail || !validateEmail(customEmail))) {
-      setCustomEmailError("Please enter a valid email address");
+    // Validate form using Zod
+    if (!validateForm()) {
       return;
     }
 
@@ -313,7 +345,7 @@ export default function ConfirmationModals({
       // Update invoice status to rejected with reason and recipient email
       const statusUpdateResponse: any = await client.patch(`/api/v1/invoice/${invoiceId}/status`, {
         status: "rejected",
-        rejectionReason: rejectionReason || undefined,
+        rejectionReason: rejectionReason,
         recipientEmail: recipientEmail
       });
 
@@ -324,18 +356,14 @@ export default function ConfirmationModals({
       }
 
       toast.dismiss();
-      if (recipientEmail) {
-        toast.success(`Invoice rejected. Notification sent to ${recipientEmail}`);
-      } else {
-        toast.success("Invoice has been rejected");
-      }
+      toast.success(`Invoice rejected. Notification sent to ${recipientEmail}`);
 
       // Close the dialog and reset form
       setIsRejectDialogOpen(false);
       setRejectionReason("");
       setSelectedRecipientEmail("");
       setCustomEmail("");
-      setCustomEmailError("");
+      setFormErrors({});
 
     } catch (error: any) {
       console.error("Error rejecting invoice:", error.response?.data || error.message);
@@ -358,7 +386,7 @@ export default function ConfirmationModals({
     setRejectionReason("");
     setSelectedRecipientEmail("");
     setCustomEmail("");
-    setCustomEmailError("");
+    setFormErrors({});
     setIsRejectDialogOpen(true);
   };
 
@@ -388,26 +416,52 @@ export default function ConfirmationModals({
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Send email to</Label>
+                  <Label className="text-sm font-medium">
+                    Send email to <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     value={selectedRecipientEmail}
-                    onValueChange={setSelectedRecipientEmail}
+                    onValueChange={(value) => {
+                      setSelectedRecipientEmail(value);
+                      setFormErrors((prev) => ({ ...prev, email: undefined }));
+                    }}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className={`w-full ${formErrors.email && selectedRecipientEmail !== "custom" ? "border-red-500" : ""}`}>
                       <SelectValue placeholder="Select recipient email" />
                     </SelectTrigger>
                     <SelectContent>
-                      {invoiceDetails.senderEmail && (
-                        <SelectItem value={invoiceDetails.senderEmail}>
-                          Sender: {invoiceDetails.senderEmail}
-                        </SelectItem>
-                      )}
-                      {(invoiceDetails.vendorData?.primaryEmail || invoiceDetails.vendorEmail) && (
-                        <SelectItem value={invoiceDetails.vendorData?.primaryEmail ?? invoiceDetails.vendorEmail ?? "vendor"}>
-                          Vendor: {invoiceDetails.vendorData?.primaryEmail || invoiceDetails.vendorEmail}
-                        </SelectItem>
-                      )}
-                      <SelectItem value="custom">Custom email</SelectItem>
+                        {invoiceDetails.senderEmail && (
+                          isAutomatedEmail(invoiceDetails.senderEmail) ? (
+                            <div
+                              title="This appears to be an automated email address that cannot receive replies"
+                              className="relative flex w-full cursor-not-allowed select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-muted-foreground opacity-50"
+                            >
+                              Sender: {invoiceDetails.senderEmail}
+                            </div>
+                          ) : (
+                            <SelectItem value={invoiceDetails.senderEmail}>
+                              Sender: {invoiceDetails.senderEmail}
+                            </SelectItem>
+                          )
+                        )}
+                        {(invoiceDetails.vendorData?.primaryEmail || invoiceDetails.vendorEmail) && (
+                          (() => {
+                            const vendorEmail = invoiceDetails.vendorData?.primaryEmail ?? invoiceDetails.vendorEmail ?? "vendor";
+                            return isAutomatedEmail(vendorEmail) ? (
+                              <div
+                                title="This appears to be an automated email address that cannot receive replies"
+                                className="relative flex w-full cursor-not-allowed select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-muted-foreground opacity-50"
+                              >
+                                Vendor: {vendorEmail}
+                              </div>
+                            ) : (
+                              <SelectItem value={vendorEmail}>
+                                Vendor: {vendorEmail}
+                              </SelectItem>
+                            );
+                          })()
+                        )}
+                        <SelectItem value="custom">Custom email</SelectItem>
                     </SelectContent>
                   </Select>
                   {selectedRecipientEmail === "custom" && (
@@ -415,24 +469,35 @@ export default function ConfirmationModals({
                       <Input
                         type="email"
                         value={customEmail}
-                        onChange={(e) => handleCustomEmailChange(e.target.value)}
+                        onChange={(e) => {
+                          setCustomEmail(e.target.value);
+                          setFormErrors((prev) => ({ ...prev, email: undefined }));
+                        }}
                         placeholder="Enter email address"
-                        className={customEmailError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
+                        className={formErrors.email ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
                       />
-                      {customEmailError && (
-                        <p className="text-red-500 text-xs mt-1">{customEmailError}</p>
-                      )}
                     </div>
+                  )}
+                  {formErrors.email && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Reason for rejection (optional)</Label>
+                  <Label className="text-sm font-medium">
+                    Reason for rejection <span className="text-red-500">*</span>
+                  </Label>
                   <textarea
                     value={rejectionReason}
-                    onChange={(e) => setRejectionReason(e.target.value)}
+                    onChange={(e) => {
+                      setRejectionReason(e.target.value);
+                      setFormErrors((prev) => ({ ...prev, reason: undefined }));
+                    }}
                     placeholder="Enter the reason for rejecting this invoice..."
-                    className="w-full px-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px] resize-none"
+                    className={`w-full px-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px] resize-none ${formErrors.reason ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
                   />
+                  {formErrors.reason && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors.reason}</p>
+                  )}
                 </div>
               </div>
               <DialogFooter>

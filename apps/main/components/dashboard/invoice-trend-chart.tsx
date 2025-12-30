@@ -66,7 +66,9 @@ export default function InvoiceTrendChart({ dateRange }: InvoiceTrendChartProps)
             <Card>
                 <CardHeader>
                     <CardTitle>Invoice Trends</CardTitle>
-                    <p className="text-sm text-muted-foreground capitalize">{dateRange}</p>
+                    <p className="text-sm text-muted-foreground">
+                        {dateRange === 'monthly' ? 'Weekly breakdown for current month' : 'All-time yearly data'}
+                    </p>
                 </CardHeader>
                 <CardContent className="flex items-center justify-center h-[300px]">
                     <p className="text-muted-foreground">Loading trend data...</p>
@@ -80,7 +82,9 @@ export default function InvoiceTrendChart({ dateRange }: InvoiceTrendChartProps)
             <Card>
                 <CardHeader>
                     <CardTitle>Invoice Trends</CardTitle>
-                    <p className="text-sm text-muted-foreground capitalize">{dateRange}</p>
+                    <p className="text-sm text-muted-foreground">
+                        {dateRange === 'monthly' ? 'Weekly breakdown for current month' : 'All-time yearly data'}
+                    </p>
                 </CardHeader>
                 <CardContent className="flex items-center justify-center h-[300px]">
                     <p className="text-muted-foreground">No trend data available</p>
@@ -93,7 +97,9 @@ export default function InvoiceTrendChart({ dateRange }: InvoiceTrendChartProps)
         <Card>
             <CardHeader>
                 <CardTitle>Invoice Trends</CardTitle>
-                <p className="text-sm text-muted-foreground capitalize">{dateRange}</p>
+                <p className="text-sm text-muted-foreground">
+                    {dateRange === 'monthly' ? 'Weekly breakdown for current month' : 'All-time yearly data'}
+                </p>
             </CardHeader>
             <CardContent>
                 <ResponsiveContainer width="100%" height={300}>

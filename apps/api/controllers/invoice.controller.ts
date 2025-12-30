@@ -505,8 +505,50 @@ class InvoiceController {
 
       // Emit WebSocket event for status update
       const wsService = getWebSocketService();
-      // wsService.emitInvoiceStatusUpdated(userId, parseInt(id), status, updatedInvoice);
       wsService.emitInvoiceStatusUpdated(userId, parseInt(id), status);
+
+      // Check if we need to update job status based on all invoices for this attachment
+      if (updatedInvoice && updatedInvoice.attachmentId) {
+        try {
+          // Get all invoices for this attachment
+          const allInvoices = await invoiceServices.getInvoicesByAttachmentId(updatedInvoice.attachmentId);
+          const activeInvoices = allInvoices.filter((inv: any) => inv.status !== "deleted");
+
+          if (activeInvoices.length > 0) {
+            const statuses = activeInvoices.map((inv: any) => inv.status);
+            const hasPending = statuses.some((s: string) => s === "pending" || s === "processing");
+            const hasFailed = statuses.some((s: string) => s === "failed");
+            const allApprovedOrRejected = statuses.every((s: string) => s === "approved" || s === "rejected");
+
+            let jobStatus: string;
+            if (hasFailed) {
+              jobStatus = "failed";
+            } else if (allApprovedOrRejected && statuses.length > 0) {
+              jobStatus = "approved";
+            } else if (hasPending) {
+              jobStatus = "processed";
+            } else {
+              jobStatus = "processed";
+            }
+
+            // Emit job status update with additional job context
+            const jobUpdate = {
+              jobStatus,
+              invoiceStatusCounts: {
+                approved: activeInvoices.filter((inv: any) => inv.status === "approved").length,
+                rejected: activeInvoices.filter((inv: any) => inv.status === "rejected").length,
+                pending: activeInvoices.filter((inv: any) => inv.status === "pending" || inv.status === "processing").length,
+              },
+              invoiceCount: activeInvoices.length,
+            };
+
+            wsService.emitJobStatusUpdated(userId, updatedInvoice.attachmentId.toString(), jobStatus, jobUpdate);
+          }
+        } catch (error) {
+          console.error("Error calculating job status after invoice update:", error);
+          // Don't fail the request if job status calculation fails
+        }
+      }
 
       return res.status(200).json({
         success: true,

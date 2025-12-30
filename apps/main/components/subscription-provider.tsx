@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import client from '@/lib/axios-client';
 import type { SubscriptionStatus } from '@/lib/types';
@@ -113,20 +113,20 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         return null;
     };
 
-    const refreshSubscription = async () => {
+    const refreshSubscription = useCallback(async () => {
         console.log(`🔄 [SUBSCRIPTION] Force refreshing subscription data`);
         setLoading(true);
         // Force refresh with cache busting
         await fetchSubscription(true);
         setLoading(false);
-    };
+    }, []);
 
-    const forceReinitialize = () => {
+    const forceReinitialize = useCallback(() => {
         console.log(`🔄 [SUBSCRIPTION] Force reinitializing subscription provider`);
         setIsInitialized(false);
         setSubscription(null);
         setLoading(true);
-    };
+    }, []);
 
     const createCheckoutAndRedirect = async () => {
         try {
@@ -234,7 +234,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         };
 
         initializeSubscription();
-    }, [isInitialized, isPublicRoute]);
+    }, [isInitialized, isPublicRoute, pathname, router, paymentCanceled]);
 
     // Show loading screen when checking subscription or redirecting to payment
     if ((showLoading || redirectingToPayment) && !isPublicRoute) {

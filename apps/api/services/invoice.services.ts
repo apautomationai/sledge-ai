@@ -1384,11 +1384,24 @@ export class InvoiceServices {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-        // Generate 4 weeks of data
-        for (let week = 0; week < 4; week++) {
-          const weekStart = new Date(startOfMonth);
-          weekStart.setDate(weekStart.getDate() + (week * 7));
-          const weekEnd = new Date(weekStart);
+        // Calculate actual weeks of the current month
+        const weeks: { start: Date; end: Date; name: string }[] = [];
+        let currentWeekStart = new Date(startOfMonth);
+
+        // Find the first Monday of the month (or start of month if it's later)
+        const firstDayOfWeek = startOfMonth.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        if (firstDayOfWeek !== 1) { // If not Monday
+          // Go back to the previous Monday, but not before start of month
+          const daysToSubtract = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+          currentWeekStart.setDate(currentWeekStart.getDate() - daysToSubtract);
+          if (currentWeekStart < startOfMonth) {
+            currentWeekStart = new Date(startOfMonth);
+          }
+        }
+
+        let weekNumber = 1;
+        while (currentWeekStart <= endOfMonth) {
+          const weekEnd = new Date(currentWeekStart);
           weekEnd.setDate(weekEnd.getDate() + 6);
 
           // Don't go beyond end of month
@@ -1396,6 +1409,22 @@ export class InvoiceServices {
             weekEnd.setTime(endOfMonth.getTime());
           }
 
+          // Only include weeks that have at least one day in the current month
+          if (weekEnd >= startOfMonth) {
+            weeks.push({
+              start: new Date(Math.max(currentWeekStart.getTime(), startOfMonth.getTime())),
+              end: new Date(weekEnd),
+              name: `Week ${weekNumber}`
+            });
+            weekNumber++;
+          }
+
+          // Move to next week
+          currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+        }
+
+        // Generate data for each week
+        for (const week of weeks) {
           const [invoiceCount] = await db
             .select({ count: count() })
             .from(invoiceModel)
@@ -1403,8 +1432,9 @@ export class InvoiceServices {
               and(
                 eq(invoiceModel.userId, userId),
                 eq(invoiceModel.isDeleted, false),
-                gte(invoiceModel.createdAt, weekStart),
-                lte(invoiceModel.createdAt, weekEnd)
+                inArray(invoiceModel.status, ['pending', 'approved']),
+                gte(invoiceModel.invoiceDate, week.start),
+                lte(invoiceModel.invoiceDate, week.end)
               )
             );
 
@@ -1417,22 +1447,26 @@ export class InvoiceServices {
               and(
                 eq(invoiceModel.userId, userId),
                 eq(invoiceModel.isDeleted, false),
-                gte(invoiceModel.createdAt, weekStart),
-                lte(invoiceModel.createdAt, weekEnd)
+                inArray(invoiceModel.status, ['pending', 'approved']),
+                gte(invoiceModel.invoiceDate, week.start),
+                lte(invoiceModel.invoiceDate, week.end)
               )
             );
 
           trendData.push({
-            name: `Week ${week + 1}`,
+            name: week.name,
             invoices: invoiceCount.count,
             amount: parseFloat(totalAmount.total || "0"),
           });
         }
       } else {
-        // Get monthly data for last 6 months
-        for (let monthOffset = 5; monthOffset >= 0; monthOffset--) {
-          const monthStart = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1);
-          const monthEnd = new Date(now.getFullYear(), now.getMonth() - monthOffset + 1, 0);
+        // Get yearly data for all-time view
+        const earliestYear = 1970; // Start from a reasonable earliest year
+        const currentYear = now.getFullYear();
+
+        for (let year = earliestYear; year <= currentYear; year++) {
+          const yearStart = new Date(year, 0, 1);
+          const yearEnd = new Date(year, 11, 31, 23, 59, 59);
 
           const [invoiceCount] = await db
             .select({ count: count() })
@@ -1441,8 +1475,9 @@ export class InvoiceServices {
               and(
                 eq(invoiceModel.userId, userId),
                 eq(invoiceModel.isDeleted, false),
-                gte(invoiceModel.createdAt, monthStart),
-                lte(invoiceModel.createdAt, monthEnd)
+                inArray(invoiceModel.status, ['pending', 'approved']),
+                gte(invoiceModel.invoiceDate, yearStart),
+                lte(invoiceModel.invoiceDate, yearEnd)
               )
             );
 
@@ -1455,16 +1490,20 @@ export class InvoiceServices {
               and(
                 eq(invoiceModel.userId, userId),
                 eq(invoiceModel.isDeleted, false),
-                gte(invoiceModel.createdAt, monthStart),
-                lte(invoiceModel.createdAt, monthEnd)
+                inArray(invoiceModel.status, ['pending', 'approved']),
+                gte(invoiceModel.invoiceDate, yearStart),
+                lte(invoiceModel.invoiceDate, yearEnd)
               )
             );
 
-          trendData.push({
-            name: monthStart.toLocaleDateString('en-US', { month: 'short' }),
-            invoices: invoiceCount.count,
-            amount: parseFloat(totalAmount.total || "0"),
-          });
+          // Only include years that have data
+          if (invoiceCount.count > 0) {
+            trendData.push({
+              name: year.toString(),
+              invoices: invoiceCount.count,
+              amount: parseFloat(totalAmount.total || "0"),
+            });
+          }
         }
       }
 

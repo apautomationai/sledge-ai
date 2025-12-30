@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { BadRequestError, NotFoundError } from "@/helpers/errors";
 import { attachmentServices } from "@/services/attachment.services";
 import { invoiceServices } from "@/services/invoice.services";
-import { projectServices } from "@/services/project.services";
+import { projectsServices } from "@/services/projects.services";
 import { vendorsService } from "@/services/vendors.service";
 import { getWebSocketService } from "@/services/websocket.service";
 
@@ -123,7 +123,7 @@ class ProcessorController {
 
           // Process the invoice with pre-resolved vendor ID
           const { result, userId: invoiceUserId } = await self.processSingleInvoice(
-            invoice, 
+            invoice,
             resolvedUserId,
             preResolvedVendorId
           );
@@ -212,7 +212,7 @@ class ProcessorController {
     try {
 
       // Fetch projects from service
-      const { projects, totalCount } = await projectServices.getAllProjects();
+      const { projects, totalCount } = await projectsServices.getAllProjects();
 
       // Safe check for empty array
       if (!projects || projects.length === 0) {
@@ -265,7 +265,7 @@ class ProcessorController {
       // Emit WebSocket event
       if (status && updated) {
         const wsService = getWebSocketService();
-        wsService.emitAttachmentStatusUpdated(updated.userId, attachmentIdNumber, status);
+        wsService.emitAttachmentStatusUpdated(updated.userId, attachmentIdNumber, status, updated);
       }
 
       return res.status(200).json({ success: true, data: updated });
@@ -277,7 +277,7 @@ class ProcessorController {
 
 
   private async processSingleInvoice(
-    invoiceData: any, 
+    invoiceData: any,
     userId: number | null = null,
     preResolvedVendorId?: number
   ) {
@@ -456,7 +456,7 @@ class ProcessorController {
         });
       }
 
-      const result = await projectServices.createProjectFromAddress(
+      const result = await projectsServices.createProjectFromAddress(
         userId,
         reqData.address,
         reqData.vendor_name,
