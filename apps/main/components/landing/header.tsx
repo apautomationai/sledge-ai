@@ -121,7 +121,7 @@ export function Header() {
       >
         <Link
           href="/sign-in"
-          className="text-white text-base font-medium font-['Inter'] leading-6 hover:text-amber-400 transition-colors"
+          className="text-white text-base font-medium font-['Inter'] leading-6  "
         >
           Log In
         </Link>
