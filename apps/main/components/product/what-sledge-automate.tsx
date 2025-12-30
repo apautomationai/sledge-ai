@@ -18,7 +18,8 @@ export default function WhatSledgeAutomate() {
         <div className="xl:flex-1">
           <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight sm:leading-tight md:leading-snug mb-4 sm:mb-6">
             <span className="md:whitespace-nowrap">WHAT SLEDGE AUTOMATES</span>
-            <br />
+            <span className="hidden md:inline"><br /></span>
+            <span className="md:hidden"> </span>
             TODAY
           </h2>
           <p className="text-white text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-xl leading-relaxed">
