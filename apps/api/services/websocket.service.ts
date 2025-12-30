@@ -168,11 +168,27 @@ export class WebSocketService {
     }
 
     // Emit attachment status updated
-    public emitAttachmentStatusUpdated(userId: number, attachmentId: number, status: string) {
+    public emitAttachmentStatusUpdated(userId: number, attachmentId: number, status: string, attachmentData?: any) {
         const notification = {
             type: 'ATTACHMENT_STATUS_UPDATED',
             attachmentId: attachmentId,
             status: status,
+            attachmentData: attachmentData, // Include full attachment data
+            timestamp: new Date().toISOString()
+        };
+
+        this.io.to(`user_${userId}`).emit('invoice_notification', notification);
+        this.io.to(`dashboard_${userId}`).emit('dashboard_notification', notification);
+        this.io.to(`invoice_list_${userId}`).emit('invoice_list_notification', notification);
+    }
+
+    // Emit job status updated (for direct job status changes)
+    public emitJobStatusUpdated(userId: number, jobId: string, status: string, jobData?: any) {
+        const notification = {
+            type: 'JOB_STATUS_UPDATED',
+            jobId: jobId,
+            status: status,
+            jobData: jobData, // Include full job data
             timestamp: new Date().toISOString()
         };
 
