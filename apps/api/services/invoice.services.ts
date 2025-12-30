@@ -55,9 +55,11 @@ export class InvoiceServices {
         if (existingInvoice) {
           // Check if data is different from existing invoice
           const hasChanges =
+            existingInvoice.vendorId !== invoiceData.vendorId ||
             existingInvoice.vendorAddress !== invoiceData.vendorAddress ||
             existingInvoice.vendorPhone !== invoiceData.vendorPhone ||
             existingInvoice.vendorEmail !== invoiceData.vendorEmail ||
+            existingInvoice.customerId !== invoiceData.customerId ||
             existingInvoice.customerName !== invoiceData.customerName ||
             existingInvoice.invoiceDate?.getTime() !== invoiceData.invoiceDate?.getTime() ||
             existingInvoice.dueDate?.getTime() !== invoiceData.dueDate?.getTime() ||
@@ -74,9 +76,11 @@ export class InvoiceServices {
             const [updatedInvoice] = await tx
               .update(invoiceModel)
               .set({
+                vendorId: invoiceData.vendorId,
                 vendorAddress: invoiceData.vendorAddress,
                 vendorPhone: invoiceData.vendorPhone,
                 vendorEmail: invoiceData.vendorEmail,
+                customerId: invoiceData.customerId,
                 customerName: invoiceData.customerName,
                 invoiceDate: invoiceData.invoiceDate,
                 dueDate: invoiceData.dueDate,
