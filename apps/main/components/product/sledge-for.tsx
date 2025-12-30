@@ -37,7 +37,7 @@ export function SledgeFor() {
               key={index}
               className="bg-[#2a2a2a] rounded-2xl p-4 sm:p-6 flex flex-col items-center text-center hover:bg-[#333333] transition-colors"
             >
-              <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 mb-3 sm:mb-4 relative">
+              <div className="w-[225px] h-[225px] mb-3 sm:mb-4 relative">
                 <Image
                   src={persona.icon}
                   alt={persona.title}
@@ -45,10 +45,10 @@ export function SledgeFor() {
                   className="object-contain"
                 />
               </div>
-              <h3 className="text-[#f5a623] font-semibold text-base sm:text-lg md:text-xl mb-2 whitespace-pre-line">
+              <h3 className="text-[#e3b02f] font-semibold text-base sm:text-lg md:text-xl mb-2 whitespace-pre-line">
                 {persona.title}
               </h3>
-              <p className="text-gray-400 text-xs sm:text-sm md:text-base">
+              <p className="text-white text-xs sm:text-sm md:text-base">
                 {persona.description}
               </p>
             </div>

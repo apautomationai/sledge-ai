@@ -11,7 +11,7 @@ export function AiAccount() {
             AI Accounts payable. done for you.
           </h2>
 
-          <p className="mt-6 sm:mt-8 text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+          <p className="mt-6 sm:mt-8 text-sm sm:text-base md:text-lg lg:text-xl text-white max-w-3xl mx-auto leading-relaxed">
             Sledge uses autonomous AI to capture invoices from email, parse and
             validate invoice data, route for human approval, and automatically
             sync approved bills into QuickBooks.
@@ -19,7 +19,7 @@ export function AiAccount() {
 
           <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/sign-up" className="w-full sm:w-auto">
-              <div className="px-4 py-3 bg-amber-400 rounded flex justify-center items-center gap-2 overflow-hidden hover:bg-amber-500 transition-colors duration-300">
+              <div className="px-4 py-3 bg-[#E3B02F] rounded flex justify-center items-center gap-2 overflow-hidden hover:bg-amber-500 transition-colors duration-300">
                 <div className="text-center text-stone-800 text-sm sm:text-base font-bold font-['Inter'] uppercase leading-6">
                   start a free trial
                 </div>

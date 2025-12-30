@@ -113,7 +113,7 @@ export function Cards() {
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-bold text-white mb-4 leading-tight sm:leading-tight md:leading-snug">
             YOUR ENTIRE OPERATION, SUPERCHARGED.
           </h2>
-          <p className="text-gray-400 text-sm sm:text-base md:text-lg lg:text-2xl leading-relaxed">
+          <p className="text-white text-sm sm:text-base md:text-lg lg:text-2xl leading-relaxed">
             Sledge is built as a unified AI platform that supports every part of
             the construction back office.
           </p>

@@ -10,7 +10,7 @@ export default function ImportantTask() {
           </h2>
         </div>
         <div>
-          <p className="text-gray-300 text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed">
+          <p className="text-white text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed">
             Manual invoice processing is one of the most time-consuming tasks in
             construction back offices. AI-powered tools automate document
             routing, data entry, approval flows, and accounting rework — saving

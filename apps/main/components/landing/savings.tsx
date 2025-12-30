@@ -137,7 +137,7 @@ export default function Savings() {
                   className="object-contain"
                 />
               </div>
-              <div className="text-amber-400 text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold font-league-spartan">
+              <div className="text-[#e3b02f] text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold font-league-spartan">
                 ${annualSavings.toLocaleString()}
               </div>
             </div>
@@ -157,20 +157,20 @@ export default function Savings() {
                   className="object-contain"
                 />
               </div>
-              <div className="text-amber-400 text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold font-league-spartan">
+              <div className="text-[#e3b02f] text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold font-league-spartan">
                 {hoursPerYear.toLocaleString()} HOURS
               </div>
             </div>
           </div>
 
-          <div className="self-stretch text-center text-zinc-400 text-xs font-medium font-sans">
+          <div className="self-stretch text-center text-white text-xs font-medium font-sans">
             Estimates vary by workflow and volume. Actual savings depend on
             usage and approval patterns.
           </div>
 
           {/* CTA Buttons */}
           <div className="w-full flex flex-col justify-center items-center gap-4">
-            <button className="self-stretch px-3 sm:px-4 py-3 bg-amber-400 hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors">
+            <button className="self-stretch px-3 sm:px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors">
               <span className="cursor-pointer text-center text-stone-800 text-[11px] sm:text-sm md:text-xs lg:text-base font-semibold uppercase leading-tight">
                 SEE HOW SLEDGE AUTOMATES PAYABLES
               </span>

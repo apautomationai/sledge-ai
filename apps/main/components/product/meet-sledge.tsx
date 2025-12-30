@@ -14,7 +14,7 @@ export function MeetSledge() {
             The Builder&apos;s AI Office.
           </h3>
 
-          <p className="mt-6 lg:mt-8 text-base sm:text-lg md:text-xl lg:text-[24px] font-normal font-sans text-gray-300 mx-auto leading-relaxed">
+          <p className="mt-6 lg:mt-8 text-base sm:text-lg md:text-xl lg:text-[24px] font-normal font-sans text-white mx-auto leading-relaxed">
             An AI-first construction back-office platform, built from the ground
             up to automate how work is captured, understood, and executed —
             starting with Accounts Payable.
@@ -27,7 +27,7 @@ export function MeetSledge() {
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/sign-up" className="w-full sm:w-auto">
-              <div className="px-4 py-3 bg-amber-400 rounded flex justify-center items-center gap-2 overflow-hidden hover:bg-amber-500 transition-colors duration-300">
+              <div className="px-4 py-3 bg-[#e3b02f] rounded flex justify-center items-center gap-2 overflow-hidden hover:bg-amber-500 transition-colors duration-300">
                 <div className="text-center text-stone-800 text-base font-bold font-['Inter'] uppercase leading-6">
                   start a free trial
                 </div>

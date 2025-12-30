@@ -38,7 +38,7 @@ export function AIFoundationWorking() {
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white uppercase tracking-wide mb-3 sm:mb-4 leading-tight sm:leading-tight md:leading-snug">
             How the AI Foundation Works
           </h2>
-          <p className="text-gray-400 text-sm sm:text-base md:text-lg max-w-3xl mx-auto leading-relaxed">
+          <p className="text-white text-sm sm:text-base md:text-lg max-w-3xl mx-auto leading-relaxed">
             These core AI capabilities power the platform today and serve as the
             base layer for the full Builder&apos;s AI Office.
           </p>
@@ -68,7 +68,7 @@ export function AIFoundationWorking() {
               </h3>
 
               {/* Description */}
-              <p className="text-gray-400 text-xs sm:text-sm md:text-base leading-relaxed">
+              <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed">
                 {step.description}
               </p>
             </div>
