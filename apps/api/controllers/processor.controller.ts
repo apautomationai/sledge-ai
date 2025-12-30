@@ -4,6 +4,7 @@ import { attachmentServices } from "@/services/attachment.services";
 import { invoiceServices } from "@/services/invoice.services";
 import { projectsServices } from "@/services/projects.services";
 import { vendorsService } from "@/services/vendors.service";
+import { customersService } from "@/services/customers.service";
 import { getWebSocketService } from "@/services/websocket.service";
 
 // import fs from 'fs';
@@ -111,6 +112,41 @@ class ProcessorController {
         }
       }
 
+      // OPTIMIZATION: Deduplicate customers before processing to avoid race conditions
+      // Extract unique customers from all invoices
+      const uniqueCustomers = new Map<string, {
+        customer_name: string;
+        customer_address?: string;
+        customer_phone?: string;
+        customer_email?: string;
+      }>();
+
+      for (const invoice of invoices) {
+        if (invoice.customer_name) {
+          const customerKey = invoice.customer_name.trim().toLowerCase();
+          if (!uniqueCustomers.has(customerKey)) {
+            uniqueCustomers.set(customerKey, {
+              customer_name: invoice.customer_name,
+              customer_address: invoice.customer_address,
+              customer_phone: invoice.customer_phone,
+              customer_email: invoice.customer_email,
+            });
+          }
+        }
+      }
+
+      // Create/find all unique customers upfront
+      const customerIdMap = new Map<string, number>();
+      for (const [customerKey, customerData] of uniqueCustomers.entries()) {
+        try {
+          const customerId = await customersService.findOrCreateCustomer(resolvedUserId, customerData);
+          customerIdMap.set(customerKey, customerId);
+        } catch (error: any) {
+          console.error(`Error creating/finding customer ${customerData.customer_name}:`, error);
+          // Continue processing other customers
+        }
+      }
+
       // Process each invoice and collect results
       const results: any[] = [];
       const wsService = getWebSocketService();
@@ -121,11 +157,16 @@ class ProcessorController {
           const vendorKey = invoice.vendor_name?.trim().toLowerCase();
           const preResolvedVendorId = vendorKey ? vendorIdMap.get(vendorKey) : undefined;
 
-          // Process the invoice with pre-resolved vendor ID
+          // Get pre-resolved customer ID from map
+          const customerKey = invoice.customer_name?.trim().toLowerCase();
+          const preResolvedCustomerId = customerKey ? customerIdMap.get(customerKey) : undefined;
+
+          // Process the invoice with pre-resolved vendor and customer IDs
           const { result, userId: invoiceUserId } = await self.processSingleInvoice(
             invoice,
             resolvedUserId,
-            preResolvedVendorId
+            preResolvedVendorId,
+            preResolvedCustomerId
           );
           const { invoice: createdInvoice, operation } = result;
 
@@ -279,12 +320,16 @@ class ProcessorController {
   private async processSingleInvoice(
     invoiceData: any,
     userId: number | null = null,
-    preResolvedVendorId?: number
+    preResolvedVendorId?: number,
+    preResolvedCustomerId?: number
   ) {
     // Extract data from invoice object
     const {
       invoice_number,
       customer_name,
+      customer_address,
+      customer_phone,
+      customer_email,
       vendor_name,
       vendor_address,
       vendor_phone,
@@ -338,6 +383,14 @@ class ProcessorController {
       vendor_email,
     });
 
+    // Resolve customer ID from customer name (use pre-resolved if available)
+    const customerId = preResolvedCustomerId ?? await customersService.findOrCreateCustomer(resolvedUserId, {
+      customer_name,
+      customer_address,
+      customer_phone,
+      customer_email,
+    });
+
     // Parse dates
     const parsedInvoiceDate = new Date(invoice_date);
     const parsedDueDate = due_date ? new Date(due_date) : null;
@@ -360,6 +413,7 @@ class ProcessorController {
       vendorAddress: vendor_address,
       vendorPhone: vendor_phone,
       vendorEmail: vendor_email,
+      customerId: customerId,
       customerName: customer_name,
       invoiceDate: parsedInvoiceDate,
       dueDate: parsedDueDate,
