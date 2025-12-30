@@ -25,8 +25,8 @@ const personas = [
 
 export function SledgeFor() {
   return (
-    <section className="w-full py-12 sm:py-16 md:py-24">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="w-full py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
+      <div className="max-w-7xl mx-auto">
         <h2 className="text-center text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-8 sm:mb-10 md:mb-12 tracking-wide leading-tight sm:leading-tight md:leading-snug">
           WHO SLEDGE IS FOR
         </h2>
@@ -48,7 +48,9 @@ export function SledgeFor() {
               <h3 className="text-[#f5a623] font-semibold text-base sm:text-lg md:text-xl mb-2 whitespace-pre-line">
                 {persona.title}
               </h3>
-              <p className="text-gray-400 text-xs sm:text-sm md:text-base">{persona.description}</p>
+              <p className="text-gray-400 text-xs sm:text-sm md:text-base">
+                {persona.description}
+              </p>
             </div>
           ))}
         </div>

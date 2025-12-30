@@ -12,7 +12,7 @@ const features = [
 
 export default function WhatSledgeAutomate() {
   return (
-    <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 md:px-12 lg:px-20">
+    <section className="py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 sm:gap-12 lg:gap-20">
         {/* Left Content */}
         <div className="flex-1">
@@ -28,9 +28,14 @@ export default function WhatSledgeAutomate() {
           </p>
           <ul className="space-y-2 sm:space-y-3">
             {features.map((feature, index) => (
-              <li key={index} className="flex items-start gap-2 sm:gap-3 text-white">
+              <li
+                key={index}
+                className="flex items-start gap-2 sm:gap-3 text-white"
+              >
                 <span className="text-white mt-1 sm:mt-1.5">•</span>
-                <span className="text-xs sm:text-sm md:text-base">{feature}</span>
+                <span className="text-xs sm:text-sm md:text-base">
+                  {feature}
+                </span>
               </li>
             ))}
           </ul>

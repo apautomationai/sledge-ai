@@ -35,7 +35,7 @@ export default function ProductOverview() {
             zIndex: -1,
           }}
         />
-        <div className="relative w-full max-w-8xl mx-auto">
+        <div className="relative">
           <MeetSledge />
           <Video />
           <Foundation />

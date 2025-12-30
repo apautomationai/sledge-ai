@@ -4,8 +4,8 @@ import Link from "next/link";
 
 export function MeetSledge() {
   return (
-    <section className="relative py-20 md:py-28 ">
-      <div className="relative px-4 sm:px-6 lg:px-8">
+    <section className="py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center">
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[64px] font-bold font-league-spartan tracking-tight text-white uppercase leading-none">
             Meet Sledge.
