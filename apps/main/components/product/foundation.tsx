@@ -9,7 +9,7 @@ export function Foundation() {
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase leading-tight mb-6">
             An AI Foundation Built for the Construction Back Office
           </h2>
-          <p className="text-base sm:text-[16px] md:text-[18px] font-normal font-sans text-gray-300 mb-6 leading-relaxed">
+          <p className="text-base sm:text-[16px] md:text-[18px] font-normal font-sans text-white mb-6 leading-relaxed">
             Sledge is built on an autonomous, event-driven AI foundation that
             operates behind the scenes. AI continuously monitors incoming work,
             interprets unstructured data, executes workflows automatically, and

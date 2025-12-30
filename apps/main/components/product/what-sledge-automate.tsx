@@ -13,15 +13,15 @@ const features = [
 export default function WhatSledgeAutomate() {
   return (
     <section className="py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 sm:gap-12 lg:gap-20">
+      <div className="max-w-7xl mx-auto flex flex-col xl:flex-row items-center gap-8 sm:gap-12 xl:gap-20">
         {/* Left Content */}
-        <div className="flex-1">
+        <div className="xl:flex-1">
           <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight sm:leading-tight md:leading-snug mb-4 sm:mb-6">
-            WHAT SLEDGE AUTOMATES
+            <span className="md:whitespace-nowrap">WHAT SLEDGE AUTOMATES</span>
             <br />
             TODAY
           </h2>
-          <p className="text-gray-400 text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-xl leading-relaxed">
+          <p className="text-white text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-xl leading-relaxed">
             Sledge automates the full Accounts Payable lifecycle using
             autonomous AI. From invoice intake to accounting sync, AI executes
             the work automatically and waits only for approval when required.
@@ -42,7 +42,7 @@ export default function WhatSledgeAutomate() {
         </div>
 
         {/* Right Image */}
-        <div className="flex-1 flex justify-center lg:justify-end">
+        <div className="xl:flex-1 flex justify-center xl:justify-end">
           <Image
             src="/images/product/Frame 103.png"
             alt="Sledge AI Accounts Payable automation workflow"

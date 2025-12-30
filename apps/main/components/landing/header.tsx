@@ -11,7 +11,7 @@ import { checkSession } from "./action";
 const navigation = [
   { name: "Products", href: "/#products" },
   { name: "Industries", href: "/#industries" },
-  { name: "Pricing", href: "/#pricing" },
+  { name: "Pricing", href: "/pricing" },
 ];
 
 export function Header() {
@@ -126,7 +126,7 @@ export function Header() {
           Log In
         </Link>
         <Link href="/sign-up">
-          <div className="px-4 py-3 bg-amber-400 rounded flex justify-start items-start gap-2 overflow-hidden hover:bg-amber-500 transition-colors">
+          <div className="px-4 py-3 bg-[#e3b02f] rounded flex justify-start items-start gap-2 overflow-hidden hover:bg-amber-500 transition-colors">
             <div className="text-center justify-start text-stone-800 text-base font-bold font-['Inter'] uppercase leading-6">
               start a free trial
             </div>
