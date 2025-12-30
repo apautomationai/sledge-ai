@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function AiOffice() {
   return (
-    <section className="py-12 sm:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
+    <section className="py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-12">
         {/* Left Content */}
         <div className="flex-1 text-white">
@@ -17,10 +17,6 @@ export function AiOffice() {
             Our vision is a single AI-powered office where core operational work
             runs automatically and teams stay in control through approvals and
             oversight.
-          </p>
-          <p className="text-gray-300 leading-relaxed text-sm sm:text-base md:text-lg">
-            Sledge is building toward that future — starting with Accounts
-            Payable and expanding outward.
           </p>
         </div>
 

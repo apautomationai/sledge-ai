@@ -40,7 +40,7 @@ export default function Home() {
           />
 
           {/* Scrollable content with background */}
-          <div className="relative">
+          <div className="relative ">
             <IntegrationShowcase />
             <SeeTheDifference />
             <Cards />

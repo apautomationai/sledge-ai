@@ -4,8 +4,8 @@ import Link from "next/link";
 
 export function BuiltToRun() {
   return (
-    <section className="relative py-20 md:py-28 ">
-      <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <section className="relative py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
+      <div className="relative mx-auto max-w-7xl">
         <div className="text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white uppercase leading-tight sm:leading-tight md:leading-snug">
             Built to run your back office.

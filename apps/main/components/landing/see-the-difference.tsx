@@ -39,8 +39,8 @@ export default function SeeTheDifference() {
   };
 
   return (
-    <div className="flex flex-col gap-8 items-center px-8 md:px-16 mt-14">
-      <div className="flex flex-col gap-4">
+    <div className="  flex flex-col gap-8 items-center py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16">
+      <div className="flex flex-col gap-4 px-4 sm:px-6 lg:px-8">
         <div className="self-stretch text-center justify-start text-white text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-bold font-['League_Spartan'] uppercase leading-tight sm:leading-tight md:leading-[52px] lg:leading-none">
           SEE THE DIFFERENCE WITH SLEDGE.
         </div>

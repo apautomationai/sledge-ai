@@ -19,7 +19,7 @@ export function Testimonial() {
   ];
 
   return (
-    <section className="py-3 sm:py-10 md:py-16 px-4">
+    <section className="px-4 sm:px-6 md:px-12 lg:px-20 py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16">
       <div className="max-w-7xl mx-auto">
         <div className="self-stretch text-center justify-start text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold font-['League_Spartan'] uppercase mb-2 sm:mb-6 md:mb-10 leading-tight">
           WHAT OUR CUSTOMERS ARE SAYING.

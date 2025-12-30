@@ -1,6 +1,6 @@
 export default function IntegrationShowcase() {
   return (
-    <div className="w-full px-4 sm:px-8 md:px-16 lg:px-52 py-8 flex flex-col justify-center items-center gap-6 overflow-hidden">
+    <div className=" px-4 sm:px-6 lg:px-8 py-8 flex flex-col justify-center items-center gap-6 overflow-hidden">
       <div className="flex flex-col justify-center items-center gap-2">
         <div className="text-center text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold font-league-spartan uppercase leading-tight sm:leading-tight md:leading-snug">
           Sledge connects directly with the tools construction teams already

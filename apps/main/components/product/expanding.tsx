@@ -31,7 +31,7 @@ export function Expanding() {
   };
 
   return (
-    <section className="py-12 sm:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
+    <section className="py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center uppercase tracking-wide mb-8 sm:mb-10 md:mb-12 leading-tight sm:leading-tight md:leading-snug">
