@@ -40,9 +40,9 @@ export default function Savings() {
       </div>
 
       {/* Content Grid */}
-      <div className="self-stretch inline-flex flex-col md:flex-row justify-center md:items-center md:justify-center gap-8 md:gap-12 lg:gap-12 xl:gap-24">
+      <div className="self-stretch inline-flex flex-col md:flex-row justify-center items-center gap-8 md:gap-12 lg:gap-12 xl:gap-24">
         {/* Left Column - Input Form */}
-        <div className="w-full max-w-72 md:max-w-80 lg:max-w-96 shrink-0 p-6 sm:p-8 md:p-8 lg:p-12 bg-zinc-900 rounded-lg outline-1 -outline-offset-1 outline-neutral-700 inline-flex flex-col justify-start items-start gap-4">
+        <div className="w-full md:max-w-80 lg:max-w-96 shrink-0 p-6 sm:p-8 md:p-8 lg:p-12 bg-zinc-900 rounded-lg outline-1 -outline-offset-1 outline-neutral-700 inline-flex flex-col justify-start items-start gap-4">
           <div className="self-stretch flex flex-col justify-start items-start gap-1">
             <div className="self-stretch text-white text-sm font-medium font-sans">
               Invoices per month
@@ -118,13 +118,13 @@ export default function Savings() {
         </div>
 
         {/* Right Column - Results */}
-        <div className="w-full max-w-72 md:max-w-80 lg:max-w-96 shrink-0 inline-flex flex-col justify-center items-center gap-6">
+        <div className="w-full md:max-w-80 lg:max-w-96 shrink-0 inline-flex flex-col justify-center items-center gap-6">
           <div className="self-stretch text-center text-white text-sm font-normal font-sans leading-6">
             Estimated impact after automating payables with AI.
           </div>
 
           {/* Annual Savings */}
-          <div className="w-full max-w-72 flex flex-col justify-start items-center gap-3">
+          <div className="w-full flex flex-col justify-start items-center gap-3">
             <div className="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-medium font-sans">
               Annual Savings
             </div>
@@ -144,7 +144,7 @@ export default function Savings() {
           </div>
 
           {/* Annual Time Saved */}
-          <div className="w-full max-w-80 flex flex-col justify-start items-center gap-4">
+          <div className="w-full flex flex-col justify-start items-center gap-4">
             <div className="self-stretch text-center text-white text-base sm:text-lg md:text-xl lg:text-2xl font-medium font-sans">
               Annual Time Saved
             </div>

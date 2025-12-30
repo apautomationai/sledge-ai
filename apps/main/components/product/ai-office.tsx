@@ -9,11 +9,11 @@ export function AiOffice() {
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold uppercase leading-tight sm:leading-tight md:leading-snug mb-4 sm:mb-6">
             The Builder&apos;s AI Office
           </h2>
-          <p className="text-gray-300 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base md:text-lg">
+          <p className="text-gray-300 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base ">
             Construction back offices are fragmented across inboxes, accounting
             systems, spreadsheets, and disconnected tools.
           </p>
-          <p className="text-gray-300 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base md:text-lg">
+          <p className="text-gray-300 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base">
             Our vision is a single AI-powered office where core operational work
             runs automatically and teams stay in control through approvals and
             oversight.

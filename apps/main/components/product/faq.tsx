@@ -47,7 +47,7 @@ export function FAQ() {
 
   return (
     <section className="relative py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 bg-neutral-900">
-      <div className="relative mx-auto max-w-4xl xl:max-w-6xl 2xl:max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-4xl max-w-7xl px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white uppercase leading-tight sm:leading-tight md:leading-snug text-center mb-8 sm:mb-10 md:mb-12">
           Frequently Asked Questions.
         </h2>
@@ -68,14 +68,14 @@ export function FAQ() {
                 <ChevronDown
                   className={cn(
                     "w-4 h-4 sm:w-5 sm:h-5 text-amber-400 transition-transform duration-300 flex-shrink-0",
-                    openIndex === index ? "rotate-180" : ""
+                    openIndex === index ? "rotate-180" : "",
                   )}
                 />
               </button>
               <div
                 className={cn(
                   "overflow-hidden transition-all duration-300 ease-in-out",
-                  openIndex === index ? "max-h-96 pb-4 sm:pb-5" : "max-h-0"
+                  openIndex === index ? "max-h-96 pb-4 sm:pb-5" : "max-h-0",
                 )}
               >
                 <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed">

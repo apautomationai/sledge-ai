@@ -35,7 +35,7 @@ export function SledgeFor() {
           {personas.map((persona, index) => (
             <div
               key={index}
-              className="bg-[#2a2a2a] rounded-2xl p-4 sm:p-6 flex flex-col items-center text-center hover:bg-[#333333] transition-colors"
+              className="bg-[#2a2a2a] rounded-2xl p-4 sm:p-6 flex flex-col items-center text-center hover:bg-[#333333] transition-colors aspect-ratio-1"
             >
               <div className="w-[225px] h-[225px] mb-3 sm:mb-4 relative">
                 <Image

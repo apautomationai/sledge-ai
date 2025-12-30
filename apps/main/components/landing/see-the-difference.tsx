@@ -31,7 +31,7 @@ export default function SeeTheDifference() {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = Math.max(
       0,
-      Math.min(e.touches[0].clientX - rect.left, rect.width)
+      Math.min(e.touches[0].clientX - rect.left, rect.width),
     );
     const percent = Math.max(0, Math.min((x / rect.width) * 100, 100));
 
@@ -39,7 +39,7 @@ export default function SeeTheDifference() {
   };
 
   return (
-    <div className="  flex flex-col gap-8 items-center py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16">
+    <div className="flex flex-col gap-8 items-center py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 max-w-8xl overflow-hidden px-4 md:px-14 ">
       <div className="flex flex-col gap-4 px-4 sm:px-6 lg:px-8">
         <div className="self-stretch text-center justify-start text-white text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-bold font-['League_Spartan'] uppercase leading-tight sm:leading-tight md:leading-[52px] lg:leading-none">
           SEE THE DIFFERENCE WITH SLEDGE.

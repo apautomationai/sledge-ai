@@ -289,7 +289,7 @@ export function Header() {
                   >
                     {item.name}
                   </a>
-                )
+                ),
               )}
             </div>
 
@@ -332,11 +332,11 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-gray-900 shadow-2xl shadow-yellow-500/20 border-l-4 border-yellow-600/30 lg:hidden"
+              className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-neutral-900 shadow-2xl shadow-yellow-500/20 border-l-4 border-yellow-600/30 lg:hidden"
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b-2 border-yellow-600/30 bg-gray-900">
+                <div className="flex items-center justify-between p-6 border-b-2 border-yellow-600/30 bg-neutral-900">
                   <Link
                     href="/"
                     className="flex items-center gap-3"
@@ -349,7 +349,7 @@ export function Header() {
                   </Link>
                   <button
                     type="button"
-                    className="rounded-md p-2 text-gray-300 hover:bg-gray-800 hover:text-yellow-400 transition-colors"
+                    className="rounded-md p-2 text-gray-300 hover:bg-neutral-800 hover:text-yellow-400 transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                     aria-label="Close menu"
                   >
@@ -358,14 +358,14 @@ export function Header() {
                 </div>
 
                 {/* Navigation Links */}
-                <div className="flex-1 overflow-y-auto py-6 bg-gray-900">
+                <div className="flex-1 overflow-y-auto py-6 bg-neutral-900">
                   <div className="px-6 space-y-2">
                     {navigation.map((item) =>
                       item.name === "Products" ? (
                         <div key={item.name}>
                           <button
                             onClick={() => setDropdownOpen(!dropdownOpen)}
-                            className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
+                            className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
                           >
                             {item.name}
                             <img
@@ -379,10 +379,13 @@ export function Header() {
                           </button>
                           {dropdownOpen && (
                             <div className="mt-2 ml-4 space-y-2">
-                              <a
-                                href="#product-overview"
-                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
-                                onClick={() => setDropdownOpen(false)}
+                              <Link
+                                href="/product-overview"
+                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                onClick={() => {
+                                  setDropdownOpen(false);
+                                  setMobileMenuOpen(false);
+                                }}
                               >
                                 <img
                                   src="/images/logos/roadmap.svg"
@@ -394,11 +397,14 @@ export function Header() {
                                   }}
                                 />
                                 Product overview
-                              </a>
-                              <a
-                                href="#ai-accounts"
-                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
-                                onClick={() => setDropdownOpen(false)}
+                              </Link>
+                              <Link
+                                href="/ai-account-payable"
+                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                onClick={() => {
+                                  setDropdownOpen(false);
+                                  setMobileMenuOpen(false);
+                                }}
                               >
                                 <img
                                   src="/images/logos/DocumentScan.svg"
@@ -410,11 +416,14 @@ export function Header() {
                                   }}
                                 />
                                 AI Accounts Payable
-                              </a>
-                              <a
-                                href="#integrations"
-                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
-                                onClick={() => setDropdownOpen(false)}
+                              </Link>
+                              <Link
+                                href="/integration"
+                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                onClick={() => {
+                                  setDropdownOpen(false);
+                                  setMobileMenuOpen(false);
+                                }}
                               >
                                 <img
                                   src="/images/logos/Connect.svg"
@@ -426,7 +435,7 @@ export function Header() {
                                   }}
                                 />
                                 Integrations
-                              </a>
+                              </Link>
                             </div>
                           )}
                         </div>
@@ -436,7 +445,7 @@ export function Header() {
                             onClick={() =>
                               setIndustriesDropdownOpen(!industriesDropdownOpen)
                             }
-                            className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
+                            className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
                           >
                             {item.name}
                             <img
@@ -454,15 +463,21 @@ export function Header() {
                             <div className="mt-2 ml-4 space-y-2">
                               <a
                                 href="#construction"
-                                className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
-                                onClick={() => setIndustriesDropdownOpen(false)}
+                                className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                onClick={() => {
+                                  setIndustriesDropdownOpen(false);
+                                  setMobileMenuOpen(false);
+                                }}
                               >
                                 Construction
                               </a>
                               <a
                                 href="#concrete"
-                                className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
-                                onClick={() => setIndustriesDropdownOpen(false)}
+                                className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                onClick={() => {
+                                  setIndustriesDropdownOpen(false);
+                                  setMobileMenuOpen(false);
+                                }}
                               >
                                 Concrete
                               </a>
@@ -473,7 +488,7 @@ export function Header() {
                         <a
                           key={item.name}
                           href={item.href}
-                          className="block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-gray-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase"
+                          className="block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase"
                           onClick={(e) => {
                             e.preventDefault();
                             setMobileMenuOpen(false);
@@ -488,13 +503,13 @@ export function Header() {
                         >
                           {item.name}
                         </a>
-                      )
+                      ),
                     )}
                   </div>
                 </div>
 
                 {/* Auth Buttons */}
-                <div className="p-6 border-t-2 border-yellow-600/30 bg-gray-800">
+                <div className="p-6 border-t-2 border-yellow-600/30 bg-neutral-800">
                   <div className="space-y-3">
                     <AuthButtons />
                   </div>
