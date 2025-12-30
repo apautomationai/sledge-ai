@@ -108,11 +108,11 @@ const FormField = ({
         <Input
           id={fieldKey}
           name={fieldKey}
-          value={inputValue}
+          value={isDateField ? (formatDate(value as string) ?? "") : inputValue}
           readOnly={!isEditing || isArrayField || isBooleanField || isTotalAmountField}
           onChange={handleChange}
           onBlur={handleBlur}
-          className="h-8 read-only:bg-muted/50 read-only:border-dashed"
+          className="h-8 read-only:bg-muted/50 read-only:border-dashed read-only:cursor-not-allowed"
         />
       )}
     </div>
@@ -166,6 +166,9 @@ export default function InvoiceDetailsForm({
   const [localInvoiceDetails, setLocalInvoiceDetails] = useState<InvoiceDetails>(invoiceDetails);
   const [isQuickBooksConnected, setIsQuickBooksConnected] = useState<boolean | null>(null);
   const [lineItemChanges, setLineItemChanges] = useState<Record<number, Partial<LineItem>>>({});
+
+  // Check if invoice is finalized (approved or rejected)
+  const isInvoiceFinalized = invoiceDetails.status === "approved" || invoiceDetails.status === "rejected";
   const [selectedLineItems, setSelectedLineItems] = useState<Set<number>>(new Set());
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -630,7 +633,7 @@ export default function InvoiceDetailsForm({
                         fieldKey={key}
                         label={formatLabel(key)}
                         value={value ?? null}
-                        isEditing={true}
+                        isEditing={!isInvoiceFinalized}
                         onChange={onDetailsChange}
                         onDateChange={handleDateChange}
                       />
@@ -688,7 +691,7 @@ export default function InvoiceDetailsForm({
                       onUpdate={handleLineItemUpdate}
                       onChange={handleLineItemChange}
                       onDelete={handleLineItemDelete}
-                      isEditing={true}
+                      isEditing={!isInvoiceFinalized}
                       isQuickBooksConnected={isQuickBooksConnected}
                       selectedItems={selectedLineItems}
                       onSelectionChange={setSelectedLineItems}

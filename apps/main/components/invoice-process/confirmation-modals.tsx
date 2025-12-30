@@ -90,6 +90,7 @@ export default function ConfirmationModals({
   const [isApproving, setIsApproving] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [isReopening, setIsReopening] = useState(false);
   const [isQuickBooksErrorOpen, setIsQuickBooksErrorOpen] = useState(false);
   const [isLineItemsErrorOpen, setIsLineItemsErrorOpen] = useState(false);
   const [incompleteLineItems, setIncompleteLineItems] = useState<string[]>([]);
@@ -127,6 +128,29 @@ export default function ConfirmationModals({
     setIsSaving(true);
     await onSave();
     setIsSaving(false);
+  };
+
+  const handleReopenForReview = async () => {
+    setIsReopening(true);
+    try {
+      const invoiceId = invoiceDetails.id;
+      const statusUpdateResponse: any = await client.patch(`/api/v1/invoice/${invoiceId}/status`, {
+        status: "pending"
+      });
+
+      if (onInvoiceDetailsUpdate && statusUpdateResponse.success) {
+        const updatedDetails = { ...invoiceDetails, status: "pending" };
+        onInvoiceDetailsUpdate(updatedDetails as InvoiceDetails);
+      }
+
+      toast.success("Invoice reopened for review");
+    } catch (error: any) {
+      console.error("Error reopening invoice:", error);
+      toast.error("Failed to reopen invoice", {
+        description: error.response?.data?.error || error.message
+      });
+    }
+    setIsReopening(false);
   };
 
   const checkQuickBooksIntegration = async (): Promise<boolean> => {
@@ -370,6 +394,9 @@ export default function ConfirmationModals({
     setIsRejecting(true);
 
     try {
+      // Save invoice changes first
+      await onSave();
+
       const invoiceId = invoiceDetails.id;
       const recipientEmail = getRecipientEmail();
 
@@ -424,9 +451,15 @@ export default function ConfirmationModals({
   return (
     <div className="flex justify-between mt-4">
       <div className="flex gap-2">
-        <Button onClick={handleSaveChanges} disabled={isSaving} variant="outline">
-          {isSaving ? "Saving..." : "Save Changes"}
-        </Button>
+        {isInvoiceFinalized ? (
+          <Button onClick={handleReopenForReview} disabled={isReopening} variant="outline">
+            {isReopening ? "Reopening..." : "Reopen for Review"}
+          </Button>
+        ) : (
+          <Button onClick={handleSaveChanges} disabled={isSaving} variant="outline">
+            {isSaving ? "Saving..." : "Save Changes"}
+          </Button>
+        )}
       </div>
       {!isInvoiceFinalized && (
         <div className="flex gap-2">
