@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function ReadyToRun() {
   return (
     <section className="px-4 sm:px-6 lg:px-8 py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16">
-      <div className="max-w-4xl mx-auto text-center">
+      <div className="max-w-8xl mx-auto text-center">
         <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight sm:leading-tight md:leading-snug">
           READY TO RUN YOUR BUSINESS BETTER?
         </h2>

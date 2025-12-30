@@ -11,25 +11,25 @@ export default function IntegrationShowcase() {
           workflows.
         </div>
       </div>
-      <div className="flex justify-center items-center gap-8 md:gap-16 flex-wrap">
+      <div className="flex justify-center items-center gap-4 sm:gap-8 md:gap-16">
         <img
-          className="h-12 object-contain"
+          className="h-6 sm:h-8 md:h-12 object-contain"
           src="/images/Stripe wordmark - White 1.png"
           alt="Stripe"
         />
 
         <img
-          className="h-12 object-contain"
+          className="h-6 sm:h-8 md:h-12 object-contain"
           src="/images/128px-Gmail_icon_(2020).svg 1.png"
           alt="Gmail"
         />
         <img
-          className="h-12 object-contain"
+          className="h-6 sm:h-8 md:h-12 object-contain"
           src="/images/1024px-Microsoft_Outlook_logo_(2024–2025).svg 1.png"
           alt="Microsoft Outlook"
         />
         <img
-          className="h-12 object-contain"
+          className="h-6 sm:h-8 md:h-12 object-contain"
           src="/images/quickbooks-brand-preferred-logo-50-50-white-external 1.png"
           alt="QuickBooks"
         />

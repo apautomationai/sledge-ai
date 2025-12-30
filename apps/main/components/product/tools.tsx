@@ -33,15 +33,15 @@ const tools = [
 
 export function Tools() {
   return (
-    <section className="py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 max-w-7xl mx-auto">
+      <div className="mx-auto">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-10 md:mb-12">
           <p className="text-white text-xs sm:text-sm tracking-widest uppercase mb-3 sm:mb-4">
             CONSTRUCTION SOFTWARE INTEGRATIONS | AI-POWERED INTEGRATIONS –
             SLEDGE
           </p>
-          <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-[64px] font-bold uppercase mb-4 sm:mb-6 leading-tight sm:leading-tight md:leading-snug ">
+          <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-[58px] font-bold uppercase mb-4 sm:mb-6 leading-tight sm:leading-tight md:leading-snug ">
             WORKS WITH TOOLS YOU ALREADY USE
           </h2>
           <p className="text-white text-sm sm:text-base md:text-lg lg:text-2xl max-w-3xl lg:max-w-none mx-auto leading-relaxed">
@@ -56,9 +56,9 @@ export function Tools() {
           {tools.map((tool) => (
             <div
               key={tool.name}
-              className="border border-gray-700 rounded-lg p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center text-center min-h-[180px] sm:min-h-[200px] hover:border-gray-500 transition-colors"
+              className="h-80 p-8 bg-stone-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-600 inline-flex flex-col justify-center items-center gap-4 overflow-hidden hover:outline-neutral-500 transition-colors"
             >
-              <div className="h-16 sm:h-20 flex items-center justify-center mb-3 sm:mb-4">
+              <div className="w-48 h-16 relative overflow-hidden flex items-center justify-center">
                 <Image
                   src={tool.logo}
                   alt={`${tool.name} logo`}
@@ -67,21 +67,17 @@ export function Tools() {
                   className="object-contain"
                 />
               </div>
-              <h3 className="text-white font-semibold text-sm sm:text-base mb-1 sm:mb-2">
-                {tool.name}
-              </h3>
-              <p className="text-white text-xs sm:text-sm">
-                {tool.description}
-              </p>
+              <div className="self-stretch flex flex-col justify-center items-center gap-2">
+                <div className="self-stretch text-center text-white text-2xl font-normal font-sans">
+                  {tool.name}
+                </div>
+                <p className="text-white text-sm text-center">
+                  {tool.description}
+                </p>
+              </div>
             </div>
           ))}
         </div>
-
-        {/* Footer text */}
-        <p className="text-center text-white text-xs sm:text-sm">
-          New integrations are added continuously as we expand the
-          Builder&apos;s AI Office.
-        </p>
       </div>
     </section>
   );

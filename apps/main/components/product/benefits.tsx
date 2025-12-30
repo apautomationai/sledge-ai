@@ -13,12 +13,12 @@ export default function Benefits() {
     <section className="py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 sm:gap-12 lg:gap-20">
         {/* Left Image */}
-        <div className="flex-1 flex justify-center lg:justify-start">
+        <div className="flex-1 flex justify-center ">
           <Image
             src="/images/product/Frame 104.png"
             alt="Built for accuracy, control, and scale badge"
-            width={300}
-            height={400}
+            width={600}
+            height={800}
             className="object-contain w-full max-w-[220px] sm:max-w-[260px] md:max-w-[300px]"
           />
         </div>
