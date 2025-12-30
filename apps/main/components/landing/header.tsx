@@ -163,7 +163,7 @@ export function Header() {
                   <div key={item.name} className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setDropdownOpen(!dropdownOpen)}
-                      className="text-gray-300 font-medium transition-colors duration-300 uppercase text-sm flex items-center gap-2 cursor-pointer"
+                      className="text-white font-medium transition-colors duration-300 uppercase text-sm flex items-center gap-2 cursor-pointer"
                     >
                       {item.name}
                       <img
@@ -244,7 +244,7 @@ export function Header() {
                       onClick={() =>
                         setIndustriesDropdownOpen(!industriesDropdownOpen)
                       }
-                      className="text-gray-300 font-medium transition-colors duration-300 uppercase text-sm flex items-center gap-2 cursor-pointer"
+                      className="text-white font-medium transition-colors duration-300 uppercase text-sm flex items-center gap-2 cursor-pointer"
                     >
                       {item.name}
                       <img
@@ -285,7 +285,7 @@ export function Header() {
                   <a
                     key={item.name}
                     href={item.href}
-                    className="text-gray-300 font-medium transition-colors duration-300 uppercase text-sm"
+                    className="text-white font-medium transition-colors duration-300 uppercase text-sm"
                   >
                     {item.name}
                   </a>
@@ -300,7 +300,7 @@ export function Header() {
             <div className="flex lg:hidden">
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-md p-2.5 text-gray-300 hover:text-yellow-400 z-50 relative"
+                className="inline-flex items-center justify-center rounded-md p-2.5 text-white hover:text-yellow-400 z-50 relative"
                 onClick={() => setMobileMenuOpen(true)}
                 aria-label="Open menu"
               >
