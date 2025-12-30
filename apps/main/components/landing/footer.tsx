@@ -55,7 +55,7 @@ export function Footer() {
           {/* Brand Section */}
           <div className="col-span-2 lg:col-span-2">
             <div className="flex flex-col gap-2 mb-4">
-              <div className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2">
                 <div className="relative">
                   <div className="w-full h-full rounded-lg flex items-center justify-center shadow-lg">
                     <Image
@@ -79,7 +79,7 @@ export function Footer() {
                 >
                   SLEDGE
                 </span>
-              </div>
+              </Link>
               <h3 className="text-lg font-semibold text-white">
                 The Builder's AI Office.
               </h3>
