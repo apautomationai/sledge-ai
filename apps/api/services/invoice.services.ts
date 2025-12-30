@@ -345,6 +345,7 @@ export class InvoiceServices {
         .select({
           ...getTableColumns(invoiceModel),
           sourcePdfUrl: attachmentsModel.fileUrl,
+          senderEmail: attachmentsModel.sender,
           // Vendor data from quickbooks_vendors table
           vendorData: {
             id: quickbooksVendorsModel.id,
