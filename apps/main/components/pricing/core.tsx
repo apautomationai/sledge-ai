@@ -36,7 +36,7 @@ export function PricingCore() {
 
         {/* Pricing Card */}
         <div className="flex justify-center">
-          <div className="relative w-[468px] h-[706px]">
+          <div className="relative w-full max-w-[468px] aspect-[468/706]">
             {/* Background Image */}
             <Image
               src="/images/Pricing Card.png"
@@ -47,24 +47,24 @@ export function PricingCore() {
               priority
             />
             {/* Content */}
-            <div className="relative z-10 h-full flex flex-col px-8 pt-8 pb-6">
+            <div className="relative z-10 h-full flex flex-col px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6">
               {/* Plan Name */}
-              <h3 className="text-[32px] font-semibold font-sans text-[#e3b02f] text-center mb-3">
+              <h3 className="text-2xl sm:text-[32px] font-semibold font-sans text-[#e3b02f] text-center mb-2 sm:mb-3">
                 Core
               </h3>
 
               {/* Price */}
-              <div className="text-center mb-3">
-                <span className="text-5xl font-bold text-[#e3b02f]">$299</span>
-                <span className="text-lg text-white">/month</span>
+              <div className="text-center mb-2 sm:mb-3">
+                <span className="text-3xl sm:text-5xl font-bold text-[#e3b02f]">$299</span>
+                <span className="text-base sm:text-lg text-white">/month</span>
               </div>
 
               {/* Trial Info */}
-              <div className="text-center mb-4">
-                <p className="text-[16px] font-semibold text-white">
+              <div className="text-center mb-3 sm:mb-4">
+                <p className="text-sm sm:text-[16px] font-semibold text-white">
                   1-Month Free Trial
                 </p>
-                <p className="text-[16px] font-semibold text-white">
+                <p className="text-sm sm:text-[16px] font-semibold text-white">
                   100% Money-Back Guarantee
                 </p>
               </div>
@@ -72,14 +72,14 @@ export function PricingCore() {
               {/* CTA Button */}
               <Link
                 href="/sign-up"
-                className="w-full block text-center cursor-pointer bg-[#e3b02f] hover:bg-amber-500 text-black font-semibold py-3 px-6 rounded transition-colors duration-200 mb-4 uppercase text-[16px] tracking-wide"
+                className="w-full block text-center cursor-pointer bg-[#e3b02f] hover:bg-amber-500 text-black font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded transition-colors duration-200 mb-3 sm:mb-4 uppercase text-sm sm:text-[16px] tracking-wide"
               >
                 Start Free Trial
               </Link>
 
               {/* Description */}
-              <div className="mb-4">
-                <p className="text-[16px] text-white">
+              <div className="mb-3 sm:mb-4">
+                <p className="text-sm sm:text-[16px] text-white">
                   Ideal for growing businesses.
                   <br />
                   Advanced industry-leading capabilities.
@@ -87,11 +87,11 @@ export function PricingCore() {
               </div>
 
               {/* Features List */}
-              <ul className="space-y-1.5 flex-1">
+              <ul className="space-y-1 sm:space-y-1.5 flex-1 overflow-hidden">
                 {features.map((feature, index) => (
                   <li key={index} className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <span className="text-[15px] text-white">{feature}</span>
+                    <Check className="w-3 h-3 sm:w-4 sm:h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <span className="text-xs sm:text-[15px] text-white">{feature}</span>
                   </li>
                 ))}
               </ul>

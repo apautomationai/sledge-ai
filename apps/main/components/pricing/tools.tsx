@@ -32,12 +32,12 @@ export function PricingTools() {
     <section className="py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <h2 className="text-[32px] font-bold font-league-spartan text-white uppercase text-center mb-8 sm:mb-10 md:mb-12">
+        <h2 className="text-xl sm:text-2xl md:text-[32px] font-bold font-league-spartan text-white uppercase text-center mb-8 sm:mb-10 md:mb-12">
           Built to work with tools you use
         </h2>
 
         {/* Tools Logos */}
-        <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 md:gap-16 lg:gap-20">
+        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 md:gap-12 lg:gap-16 xl:gap-20">
           {tools.map((tool, index) => (
             <div key={index} className="flex items-center justify-center">
               <Image
@@ -45,7 +45,7 @@ export function PricingTools() {
                 alt={tool.alt}
                 width={tool.width}
                 height={tool.height}
-                className="object-contain"
+                className="object-contain w-auto h-8 sm:h-10 md:h-12 lg:h-16"
               />
             </div>
           ))}
