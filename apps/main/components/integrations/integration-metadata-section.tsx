@@ -50,18 +50,19 @@ export function IntegrationMetadataSection({
   const displayMetadata: Record<string, any> = {};
   
   if (backendName === "gmail" || backendName === "outlook") {
-    // For Gmail/Outlook: show lastReadAt, startRead (from startReading), lastProcessedAt
-    // Support both lastReadAt (new) and lastRead (legacy) for backward compatibility
-    if (hasValue(metadata.lastReadAt)) {
-      displayMetadata.lastReadAt = metadata.lastReadAt;
-    } else if (hasValue(metadata.lastRead)) {
-      displayMetadata.lastReadAt = metadata.lastRead;
-    }
+    // For Gmail/Outlook: show startRead, lastProcessedAt, lastReadAt
+    // Order: Start At > Processed At > Read At (top to bottom)
     if (hasValue(metadata.startReading)) {
       displayMetadata.startRead = metadata.startReading;
     }
     if (hasValue(metadata.lastProcessedAt)) {
       displayMetadata.lastProcessedAt = metadata.lastProcessedAt;
+    }
+    // Support both lastReadAt (new) and lastRead (legacy) for backward compatibility
+    if (hasValue(metadata.lastReadAt)) {
+      displayMetadata.lastReadAt = metadata.lastReadAt;
+    } else if (hasValue(metadata.lastRead)) {
+      displayMetadata.lastReadAt = metadata.lastRead;
     }
   } else if (backendName === "quickbooks") {
     // For QuickBooks: show only lastSyncedAt
