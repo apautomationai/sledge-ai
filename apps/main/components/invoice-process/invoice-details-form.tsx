@@ -637,7 +637,7 @@ export default function InvoiceDetailsForm({
                     fieldKey="invoiceNumber"
                     label="Invoice Number"
                     value={localInvoiceDetails.invoiceNumber ?? null}
-                    isEditing={true}
+                    isEditing={!isInvoiceFinalized}
                     onChange={onDetailsChange}
                     onDateChange={handleDateChange}
                     highlighted={true}
@@ -648,7 +648,7 @@ export default function InvoiceDetailsForm({
                     fieldKey="totalAmount"
                     label="Total Amount"
                     value={localInvoiceDetails.totalAmount ?? null}
-                    isEditing={true}
+                    isEditing={!isInvoiceFinalized}
                     onChange={onDetailsChange}
                     onDateChange={handleDateChange}
                     highlighted={true}
@@ -659,7 +659,7 @@ export default function InvoiceDetailsForm({
                     fieldKey="totalTax"
                     label="Total Tax"
                     value={localInvoiceDetails.totalTax ?? null}
-                    isEditing={true}
+                    isEditing={!isInvoiceFinalized}
                     onChange={onDetailsChange}
                     onDateChange={handleDateChange}
                     highlighted={true}
@@ -670,7 +670,7 @@ export default function InvoiceDetailsForm({
                     fieldKey="invoiceDate"
                     label="Invoice Date"
                     value={localInvoiceDetails.invoiceDate ?? null}
-                    isEditing={true}
+                    isEditing={!isInvoiceFinalized}
                     onChange={onDetailsChange}
                     onDateChange={handleDateChange}
                     highlighted={true}
@@ -687,7 +687,8 @@ export default function InvoiceDetailsForm({
                       value={vendorData.displayName}
                       onChange={(e) => handleVendorDataChange('displayName', e.target.value)}
                       placeholder="Enter vendor name"
-                      className="h-8"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
                   </div>
 
@@ -702,7 +703,8 @@ export default function InvoiceDetailsForm({
                       value={vendorData.primaryEmail}
                       onChange={(e) => handleVendorDataChange('primaryEmail', e.target.value)}
                       placeholder="Enter vendor email"
-                      className="h-8"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
                   </div>
 
@@ -717,7 +719,8 @@ export default function InvoiceDetailsForm({
                       value={vendorData.primaryPhone}
                       onChange={(e) => handleVendorDataChange('primaryPhone', e.target.value)}
                       placeholder="Enter vendor phone"
-                      className="h-8"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
                   </div>
 
@@ -731,7 +734,8 @@ export default function InvoiceDetailsForm({
                       value={vendorData.billAddrLine1}
                       onChange={(e) => handleVendorDataChange('billAddrLine1', e.target.value)}
                       placeholder="Enter vendor address"
-                      className="h-8"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
                   </div>
 
@@ -747,7 +751,8 @@ export default function InvoiceDetailsForm({
                         value={customerData.displayName}
                         onChange={(e) => handleCustomerDataChange('displayName', e.target.value)}
                         placeholder="Enter customer name"
-                        className="h-8"
+                        className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                        readOnly={isInvoiceFinalized}
                       />
                     </div>
                   )}
@@ -768,7 +773,7 @@ export default function InvoiceDetailsForm({
                           fieldKey={key}
                           label={formatLabel(key)}
                           value={value ?? null}
-                          isEditing={true}
+                          isEditing={!isInvoiceFinalized}
                           onChange={onDetailsChange}
                           onDateChange={handleDateChange}
                           highlighted={false}
