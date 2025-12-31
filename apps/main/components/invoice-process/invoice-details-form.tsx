@@ -27,8 +27,8 @@ import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select";
 import { LineItemAutocomplete } from "./line-item-autocomplete-simple";
-import { fetchQuickBooksAccounts, fetchQuickBooksItems } from "@/lib/services/quickbooks.service";
-import type { QuickBooksAccount, QuickBooksItem, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
+import { fetchQuickBooksAccountsFromDB, fetchQuickBooksProductsFromDB } from "@/lib/services/quickbooks.service";
+import type { DBQuickBooksAccount, DBQuickBooksProduct, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
 import { useQuickBooksData } from "./quickbooks-data-provider";
 
 const FormField = ({
@@ -38,6 +38,7 @@ const FormField = ({
   isEditing,
   onChange,
   onDateChange,
+  highlighted = false,
 }: {
   fieldKey: string;
   label: string;
@@ -45,6 +46,7 @@ const FormField = ({
   isEditing: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDateChange?: (fieldKey: string, dateString: string | undefined) => void;
+  highlighted?: boolean;
 }) => {
   const isDateField = fieldKey === 'invoiceDate' || fieldKey === 'dueDate';
   const isBooleanField = typeof value === 'boolean';
@@ -92,6 +94,7 @@ const FormField = ({
         className="text-xs font-medium"
       >
         {label}
+        {highlighted && <span className="text-red-500 ml-1">*</span>}
         {isTotalAmountField && (
           <span className="ml-1 text-xs text-muted-foreground font-normal">(Auto-calculated)</span>
         )}
@@ -127,7 +130,7 @@ interface InvoiceDetailsFormProps {
   onDetailsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   selectedFields: string[];
   setSelectedFields: React.Dispatch<React.SetStateAction<string[]>>;
-  onSave: () => Promise<void>;
+  onSave: (vendorData?: any, customerData?: any) => Promise<void>;
   onReject: () => Promise<void>;
   onApprove: () => Promise<void>;
   onCancel: () => void;
@@ -173,6 +176,8 @@ export default function InvoiceDetailsForm({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showChangeTypeDialog, setShowChangeTypeDialog] = useState(false);
+  // Accordion state management
+  const [accordionValue, setAccordionValue] = useState<string[]>(["invoice-info", "line-items"]);
   // Use shared QuickBooks data from context
   const { customers: bulkCustomers, isLoadingCustomers, loadCustomers } = useQuickBooksData();
 
@@ -241,6 +246,7 @@ export default function InvoiceDetailsForm({
   // Method to save all line item changes
   const saveLineItemChanges = async () => {
     const changeEntries = Object.entries(lineItemChanges);
+
     if (changeEntries.length === 0) {
       return; // No changes to save
     }
@@ -248,9 +254,9 @@ export default function InvoiceDetailsForm({
     try {
       // Save all line item changes in parallel
       await Promise.all(
-        changeEntries.map(([lineItemId, changes]) =>
-          client.patch(`/api/v1/invoice/line-items/${lineItemId}`, changes)
-        )
+        changeEntries.map(([lineItemId, changes]) => {
+          return client.patch(`/api/v1/invoice/line-items/${lineItemId}`, changes);
+        })
       );
 
       // Clear the changes after successful save
@@ -316,7 +322,7 @@ export default function InvoiceDetailsForm({
   const loadBulkAccounts = async () => {
     setIsLoadingBulkData(true);
     try {
-      const accountsData = await fetchQuickBooksAccounts();
+      const accountsData = await fetchQuickBooksAccountsFromDB();
       setBulkAccounts(accountsData);
     } catch (error) {
       console.error("Error loading accounts:", error);
@@ -330,7 +336,7 @@ export default function InvoiceDetailsForm({
   const loadBulkItems = async () => {
     setIsLoadingBulkData(true);
     try {
-      const itemsData = await fetchQuickBooksItems();
+      const itemsData = await fetchQuickBooksProductsFromDB();
       setBulkItems(itemsData);
     } catch (error) {
       console.error("Error loading products/services:", error);
@@ -348,13 +354,16 @@ export default function InvoiceDetailsForm({
 
     setIsApplyingBulkChange(true);
     try {
+      // bulkResourceId and bulkCustomerId now already contain quickbooks_id values
+      // No need to extract them again since we store them directly in state
+
       // Update all selected line items in parallel
       await Promise.all(
         Array.from(selectedLineItems).map((lineItemId) =>
           client.patch(`/api/v1/invoice/line-items/${lineItemId}`, {
             itemType: bulkItemType,
-            resourceId: bulkResourceId,
-            customerId: bulkCustomerId, // Apply customer to all selected items
+            resourceId: bulkResourceId, // Already contains quickbooks_id
+            customerId: bulkCustomerId, // Already contains quickbooks_id
           })
         )
       );
@@ -518,6 +527,64 @@ export default function InvoiceDetailsForm({
     onDetailsChange(syntheticEvent);
   };
 
+  // Local state for customer data
+  const [customerData, setCustomerData] = useState({
+    displayName: localInvoiceDetails.customerData?.displayName || localInvoiceDetails.customerData?.companyName || '',
+  });
+
+  // Update customer data when invoice details change
+  useEffect(() => {
+    if (localInvoiceDetails.customerData) {
+      setCustomerData({
+        displayName: localInvoiceDetails.customerData.displayName || localInvoiceDetails.customerData.companyName || '',
+      });
+    }
+  }, [localInvoiceDetails.customerData]);
+
+  // Handle customer data changes
+  const handleCustomerDataChange = (field: string, value: string) => {
+    setCustomerData(prev => ({ ...prev, [field]: value }));
+
+    // Notify parent that there are unsaved changes
+    if (onFieldChange) {
+      onFieldChange();
+    }
+  };
+  const [vendorData, setVendorData] = useState({
+    displayName: localInvoiceDetails.vendorData?.displayName || localInvoiceDetails.vendorData?.companyName || '',
+    primaryEmail: localInvoiceDetails.vendorData?.primaryEmail || '',
+    primaryPhone: localInvoiceDetails.vendorData?.primaryPhone || '',
+    billAddrLine1: localInvoiceDetails.vendorData?.billAddrLine1 || '',
+    billAddrCity: localInvoiceDetails.vendorData?.billAddrCity || '',
+    billAddrState: localInvoiceDetails.vendorData?.billAddrState || '',
+    billAddrPostalCode: localInvoiceDetails.vendorData?.billAddrPostalCode || '',
+  });
+
+  // Update vendor data when invoice details change
+  useEffect(() => {
+    if (localInvoiceDetails.vendorData) {
+      setVendorData({
+        displayName: localInvoiceDetails.vendorData.displayName || localInvoiceDetails.vendorData.companyName || '',
+        primaryEmail: localInvoiceDetails.vendorData.primaryEmail || '',
+        primaryPhone: localInvoiceDetails.vendorData.primaryPhone || '',
+        billAddrLine1: localInvoiceDetails.vendorData.billAddrLine1 || '',
+        billAddrCity: localInvoiceDetails.vendorData.billAddrCity || '',
+        billAddrState: localInvoiceDetails.vendorData.billAddrState || '',
+        billAddrPostalCode: localInvoiceDetails.vendorData.billAddrPostalCode || '',
+      });
+    }
+  }, [localInvoiceDetails.vendorData]);
+
+  // Handle vendor data changes
+  const handleVendorDataChange = (field: string, value: string) => {
+    setVendorData(prev => ({ ...prev, [field]: value }));
+
+    // Notify parent that there are unsaved changes
+    if (onFieldChange) {
+      onFieldChange();
+    }
+  };
+
   const allFields = Object.keys(invoiceDetails || {});
 
   const hiddenFields = [
@@ -535,9 +602,14 @@ export default function InvoiceDetailsForm({
     "deletedAt",
     'vendorId',
     'vendorData',
+    'customerId',
+    'customerData',
     'vendorAddress',
     'vendorPhone',
-    'vendorEmail'
+    'vendorEmail',
+    'rejectionEmailSender',
+    'rejectionReason',
+    'senderEmail'
   ];
   const fieldsToDisplay = allFields.filter(key => !hiddenFields.includes(key));
 
@@ -545,7 +617,12 @@ export default function InvoiceDetailsForm({
     <div className="h-full flex flex-col gap-2">
       {/* Accordion Sections */}
       <div className="flex-1 overflow-hidden min-h-0">
-        <Accordion type="multiple" defaultValue={["invoice-info", "line-items"]} className="h-full flex flex-col gap-2">
+        <Accordion
+          type="multiple"
+          value={accordionValue}
+          onValueChange={setAccordionValue}
+          className="h-full flex flex-col gap-2"
+        >
           {/* Section 1: Invoice Information - 50% height when expanded */}
           <AccordionItem value="invoice-info" className="border rounded-lg bg-card flex-1 min-h-0 flex flex-col data-[state=closed]:flex-none overflow-hidden">
             <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
@@ -554,20 +631,63 @@ export default function InvoiceDetailsForm({
             <AccordionContent className="px-4 pb-3 flex-1 min-h-0 overflow-hidden data-[state=open]:flex data-[state=open]:flex-col h-full">
               <ScrollArea className="flex-1 pr-2 h-full">
                 <div className="space-y-2.5 py-2">
-                  {/* Custom Vendor Fields - Read Only */}
+                  {/* Highlighted Fields - At the Top */}
+                  <FormField
+                    key="invoiceNumber"
+                    fieldKey="invoiceNumber"
+                    label="Invoice Number"
+                    value={localInvoiceDetails.invoiceNumber ?? null}
+                    isEditing={true}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  <FormField
+                    key="totalAmount"
+                    fieldKey="totalAmount"
+                    label="Total Amount"
+                    value={localInvoiceDetails.totalAmount ?? null}
+                    isEditing={true}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  <FormField
+                    key="totalTax"
+                    fieldKey="totalTax"
+                    label="Total Tax"
+                    value={localInvoiceDetails.totalTax ?? null}
+                    isEditing={true}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  <FormField
+                    key="invoiceDate"
+                    fieldKey="invoiceDate"
+                    label="Invoice Date"
+                    value={localInvoiceDetails.invoiceDate ?? null}
+                    isEditing={true}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  {/* Vendor Information Section */}
                   <div className="space-y-1">
                     <Label htmlFor="vendorName" className="text-xs font-medium">
                       Vendor Name
                     </Label>
                     <Input
                       id="vendorName"
-                      value={
-                        localInvoiceDetails.vendorData?.displayName ||
-                        localInvoiceDetails.vendorData?.companyName ||
-                        'No vendor assigned'
-                      }
-                      readOnly
-                      className="!bg-muted/90 cursor-not-allowed"
+                      name="vendorName"
+                      value={vendorData.displayName}
+                      onChange={(e) => handleVendorDataChange('displayName', e.target.value)}
+                      placeholder="Enter vendor name"
+                      className="h-8"
                     />
                   </div>
 
@@ -577,9 +697,12 @@ export default function InvoiceDetailsForm({
                     </Label>
                     <Input
                       id="vendorEmail"
-                      value={localInvoiceDetails.vendorData?.primaryEmail || 'No email available'}
-                      readOnly
-                      className="!bg-muted/90 cursor-not-allowed"
+                      name="vendorEmail"
+                      type="email"
+                      value={vendorData.primaryEmail}
+                      onChange={(e) => handleVendorDataChange('primaryEmail', e.target.value)}
+                      placeholder="Enter vendor email"
+                      className="h-8"
                     />
                   </div>
 
@@ -589,9 +712,12 @@ export default function InvoiceDetailsForm({
                     </Label>
                     <Input
                       id="vendorPhone"
-                      value={localInvoiceDetails.vendorData?.primaryPhone || 'No phone available'}
-                      readOnly
-                      className="!bg-muted/90 cursor-not-allowed"
+                      name="vendorPhone"
+                      type="tel"
+                      value={vendorData.primaryPhone}
+                      onChange={(e) => handleVendorDataChange('primaryPhone', e.target.value)}
+                      placeholder="Enter vendor phone"
+                      className="h-8"
                     />
                   </div>
 
@@ -601,44 +727,54 @@ export default function InvoiceDetailsForm({
                     </Label>
                     <Input
                       id="vendorAddress"
-                      value={
-                        localInvoiceDetails.vendorData?.billAddrLine1
-                          ? `${localInvoiceDetails.vendorData.billAddrLine1}${localInvoiceDetails.vendorData.billAddrCity
-                            ? `, ${localInvoiceDetails.vendorData.billAddrCity}`
-                            : ''
-                          }${localInvoiceDetails.vendorData.billAddrState
-                            ? `, ${localInvoiceDetails.vendorData.billAddrState}`
-                            : ''
-                          }${localInvoiceDetails.vendorData.billAddrPostalCode
-                            ? ` ${localInvoiceDetails.vendorData.billAddrPostalCode}`
-                            : ''
-                          }`
-                          : 'No address available'
-                      }
-                      readOnly
-                      className="!bg-muted/90 cursor-not-allowed"
+                      name="vendorAddress"
+                      value={vendorData.billAddrLine1}
+                      onChange={(e) => handleVendorDataChange('billAddrLine1', e.target.value)}
+                      placeholder="Enter vendor address"
+                      className="h-8"
                     />
                   </div>
 
-                  {fieldsToDisplay.map((key) => {
-                    const value = localInvoiceDetails[key as keyof InvoiceDetails];
-                    // Skip if the value is an object (like vendorData)
-                    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                      return null;
-                    }
-
-                    return (
-                      <FormField
-                        key={key}
-                        fieldKey={key}
-                        label={formatLabel(key)}
-                        value={value ?? null}
-                        isEditing={!isInvoiceFinalized}
-                        onChange={onDetailsChange}
-                        onDateChange={handleDateChange}
+                  {/* Customer Name Field */}
+                  {localInvoiceDetails.customerData && (
+                    <div className="space-y-1">
+                      <Label htmlFor="customerName" className="text-xs font-medium">
+                        Customer Name
+                      </Label>
+                      <Input
+                        id="customerName"
+                        name="customerName"
+                        value={customerData.displayName}
+                        onChange={(e) => handleCustomerDataChange('displayName', e.target.value)}
+                        placeholder="Enter customer name"
+                        className="h-8"
                       />
-                    );
-                  })}
+                    </div>
+                  )}
+
+                  {/* Rest of the fields (excluding highlighted fields since they're shown at top) */}
+                  {fieldsToDisplay
+                    .filter(key => !['invoiceNumber', 'totalAmount', 'totalTax', 'invoiceDate'].includes(key)) // Exclude highlighted fields since they're shown at top
+                    .map((key) => {
+                      const value = localInvoiceDetails[key as keyof InvoiceDetails];
+                      // Skip if the value is an object (like vendorData)
+                      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                        return null;
+                      }
+
+                      return (
+                        <FormField
+                          key={key}
+                          fieldKey={key}
+                          label={formatLabel(key)}
+                          value={value ?? null}
+                          isEditing={true}
+                          onChange={onDetailsChange}
+                          onDateChange={handleDateChange}
+                          highlighted={false}
+                        />
+                      );
+                    })}
                 </div>
               </ScrollArea>
             </AccordionContent>
@@ -646,37 +782,42 @@ export default function InvoiceDetailsForm({
 
           {/* Section 2: Line Items - 50% height when expanded */}
           <AccordionItem value="line-items" className="border rounded-lg bg-card flex-1 min-h-0 flex flex-col data-[state=closed]:flex-none overflow-hidden">
-            <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
-              <div className="flex items-center gap-2 flex-1">
-                <span className="text-sm font-semibold">Line Items ({lineItems.length})</span>
-                {selectedLineItems.size > 0 && (
-                  <div className="flex items-center gap-2 ml-4">
-                    <span className="text-xs text-muted-foreground">({selectedLineItems.size} selected)</span>
-                    <Button
-                      size="sm"
-                      className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
-                      onClick={() => {
-                        setShowDeleteDialog(true);
-                      }}
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => {
-                        setShowChangeTypeDialog(true);
-                      }}
-                    >
-                      Change Type
-                    </Button>
-                  </div>
+            <div className="relative">
+              <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-sm font-semibold">Line Items ({lineItems.length})</span>
+                </div>
+                {isLoadingLineItems && (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 )}
-              </div>
-              {isLoadingLineItems && (
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </AccordionTrigger>
+              {/* Move buttons outside of AccordionTrigger */}
+              {selectedLineItems.size > 0 && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10 bg-card px-2 py-1 rounded">
+                  <span className="text-xs text-muted-foreground">({selectedLineItems.size} selected)</span>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowChangeTypeDialog(true);
+                    }}
+                  >
+                    Change Type
+                  </Button>
+                </div>
               )}
-            </AccordionTrigger>
+            </div>
             <AccordionContent className="px-2 pb-3 flex-1 min-h-0 overflow-hidden data-[state=open]:flex data-[state=open]:flex-col h-full">
               <div className="flex flex-col flex-1 min-h-0 h-full">
                 <ScrollArea className="flex-1">
@@ -730,6 +871,8 @@ export default function InvoiceDetailsForm({
           onApprovalSuccess={onApprovalSuccess}
           onInvoiceDetailsUpdate={onInvoiceDetailsUpdate}
           onFieldChange={onFieldChange}
+          vendorData={vendorData}
+          customerData={customerData}
         />
       </div>
 
@@ -748,6 +891,13 @@ export default function InvoiceDetailsForm({
         onOpenChange={(open) => {
           setShowChangeTypeDialog(open);
           if (open) {
+            // Ensure line-items accordion stays open when dialog opens
+            setAccordionValue(prev => {
+              if (!prev.includes("line-items")) {
+                return [...prev, "line-items"];
+              }
+              return prev;
+            });
             loadCustomers();
             if (bulkItemType) {
               if (bulkItemType === 'account' && bulkAccounts.length === 0) {
@@ -761,7 +911,7 @@ export default function InvoiceDetailsForm({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Change Item Type</DialogTitle>
+            <DialogTitle>Change Cost Type</DialogTitle>
             <DialogDescription>
               Select the item type and category to apply to {selectedLineItems.size} selected line item(s).
             </DialogDescription>
@@ -769,7 +919,7 @@ export default function InvoiceDetailsForm({
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Item Type</Label>
+              <Label>Cost Type</Label>
               <Select
                 value={bulkItemType || ""}
                 onValueChange={(value) => {
@@ -784,69 +934,77 @@ export default function InvoiceDetailsForm({
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select item type" />
+                  <SelectValue placeholder="Select cost type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="account">Account</SelectItem>
-                  <SelectItem value="product">Product/Service</SelectItem>
+                  <SelectItem value="product">Cost Code</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {bulkItemType && (
               <div className="space-y-2">
-                <Label>{bulkItemType === 'account' ? 'Account' : 'Product/Service'}</Label>
+                <Label>{bulkItemType === 'account' ? 'Account' : 'Cost Code'}</Label>
                 {bulkItemType === 'account' ? (
                   <LineItemAutocomplete
                     items={bulkAccounts}
                     value={bulkResourceId}
-                    onSelect={(id) => setBulkResourceId(id)}
+                    onSelect={(id, account) => {
+                      // Store quickbooks_id in state for UI matching
+                      const quickbooksId = account?.quickbooksId || null;
+                      setBulkResourceId(quickbooksId);
+                    }}
                     placeholder="Search accounts..."
                     isLoading={isLoadingBulkData}
-                    getDisplayName={(account: QuickBooksAccount) =>
-                      `${account.Name}${account.AccountType ? ` (${account.AccountType})` : ''}`
+                    getDisplayName={(account: any) =>
+                      account.fullyQualifiedName || account.name || 'Unknown Account'
                     }
                   />
                 ) : (
                   <LineItemAutocomplete
                     items={bulkItems}
                     value={bulkResourceId}
-                    onSelect={(id) => setBulkResourceId(id)}
-                    placeholder="Search products/services..."
+                    onSelect={(id, item) => {
+                      // Store quickbooks_id in state for UI matching
+                      const quickbooksId = item?.quickbooksId || null;
+                      setBulkResourceId(quickbooksId);
+                    }}
+                    placeholder="Search cost codes..."
                     isLoading={isLoadingBulkData}
-                    getDisplayName={(item: QuickBooksItem) =>
-                      `${item.Name}${item.Type ? ` (${item.Type})` : ''}`
+                    getDisplayName={(item: any) =>
+                      item.fullyQualifiedName || item.name || 'Unknown Product'
                     }
                   />
                 )}
               </div>
             )}
 
-            {/* Customer Dropdown */}
+            {/* Job Dropdown */}
             <div className="space-y-2">
-              <Label>Customer (Optional)</Label>
+              <Label>Job (Optional)</Label>
               <LineItemAutocomplete
                 items={bulkCustomers}
                 value={bulkCustomerId}
-                onSelect={(id) => {
-                  console.log('🎯 Customer selected:', id);
-                  setBulkCustomerId(id);
+                onSelect={(id, customer) => {
+                  // Store quickbooksId for customers (they use quickbooksId field)
+                  const quickbooksId = customer?.quickbooksId || null;
+                  setBulkCustomerId(quickbooksId);
                 }}
-                placeholder="Search customers..."
+                placeholder="Search jobs..."
                 isLoading={isLoadingCustomers}
                 getDisplayName={(customer: QuickBooksCustomer) => {
-                  const name = customer.DisplayName || customer.CompanyName || `Customer ${customer.Id}`;
-                  console.log('📝 Display name for customer:', customer.Id, '=', name);
+                  const name = customer.displayName || customer.companyName || `Customer ${customer.quickbooksId}`;
                   return name;
                 }}
               />
               {bulkCustomers.length > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  {bulkCustomers.length} customers available
+                  {bulkCustomers.length} jobs available
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                This customer will be applied to all selected line items
+                This job will be applied to all selected line items
               </p>
             </div>
           </div>

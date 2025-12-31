@@ -59,10 +59,8 @@ export interface InvoiceDetails {
   userId: number;
   attachmentId: number;
   invoiceNumber: string;
-  vendorAddress: string | null;
-  vendorPhone: string | null;
-  vendorEmail: string | null;
-  customerName: string | null;
+  vendorId?: number | null;
+  customerId: number | null;
   invoiceDate: string | null;
   dueDate: string | null;
   totalAmount: string | null;
@@ -80,6 +78,9 @@ export interface InvoiceDetails {
   updatedAt: string;
   fileUrl: string;
   sourcePdfUrl: string | null;
+  senderEmail?: string | null;
+  vendorData?: any | null;
+  customerData?: any | null;
 }
 
 export interface DashboardMetrics {

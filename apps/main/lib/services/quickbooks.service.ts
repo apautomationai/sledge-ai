@@ -1,6 +1,63 @@
 import { client } from "@/lib/axios-client";
 
-// QuickBooks Account type
+// Database structure types
+export interface DBQuickBooksAccount {
+  id: number;
+  userId: number;
+  quickbooksId: string;
+  name: string | null;
+  subAccount: boolean | null;
+  parentRefValue: string | null;
+  fullyQualifiedName: string | null;
+  active: boolean | null;
+  classification: string | null;
+  accountType: string | null;
+  accountSubType: string | null;
+  currentBalance: string | null;
+  currentBalanceWithSubAccounts: string | null;
+  currencyRefValue: string | null;
+  currencyRefName: string | null;
+  domain: string | null;
+  sparse: boolean | null;
+  syncToken: string | null;
+  metaDataCreateTime: Date | null;
+  metaDataLastUpdatedTime: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DBQuickBooksProduct {
+  id: number;
+  userId: number;
+  quickbooksId: string;
+  name: string | null;
+  description: string | null;
+  active: boolean | null;
+  fullyQualifiedName: string | null;
+  taxable: boolean | null;
+  unitPrice: string | null;
+  type: string | null;
+  incomeAccountValue: string | null;
+  incomeAccountName: string | null;
+  purchaseDesc: string | null;
+  purchaseCost: string | null;
+  expenseAccountValue: string | null;
+  expenseAccountName: string | null;
+  assetAccountValue: string | null;
+  assetAccountName: string | null;
+  trackQtyOnHand: boolean | null;
+  qtyOnHand: string | null;
+  invStartDate: Date | null;
+  domain: string | null;
+  sparse: boolean | null;
+  syncToken: string | null;
+  metaDataCreateTime: Date | null;
+  metaDataLastUpdatedTime: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// QuickBooks Account type (legacy - for backward compatibility)
 export interface QuickBooksAccount {
   Id: string;
   Name: string;
@@ -16,7 +73,7 @@ export interface QuickBooksAccount {
   };
 }
 
-// QuickBooks Product/Item type
+// QuickBooks Product/Item type (legacy - for backward compatibility)
 export interface QuickBooksItem {
   Id: string;
   Name: string;
@@ -34,22 +91,29 @@ export interface QuickBooksItem {
   TrackQtyOnHand?: boolean;
 }
 
-// QuickBooks Customer type
+// QuickBooks Customer type (database structure)
 export interface QuickBooksCustomer {
-  Id: string;
-  DisplayName: string;
-  FullyQualifiedName?: string;
-  CompanyName?: string;
-  GivenName?: string;
-  FamilyName?: string;
-  Active: boolean;
-  PrimaryEmailAddr?: {
-    Address: string;
-  };
-  PrimaryPhone?: {
-    FreeFormNumber: string;
-  };
-  Balance?: number;
+  id: number;
+  userId: number;
+  quickbooksId: string;
+  displayName: string | null;
+  companyName: string | null;
+  givenName: string | null;
+  familyName: string | null;
+  primaryEmail: string | null;
+  primaryPhone: string | null;
+  billAddrLine1: string | null;
+  billAddrCity: string | null;
+  billAddrState: string | null;
+  billAddrPostalCode: string | null;
+  billAddrCountry: string | null;
+  balance: string | null;
+  active: boolean | null;
+  syncToken: string | null;
+  metaDataCreateTime: Date | null;
+  metaDataLastUpdatedTime: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // API Response types
@@ -73,16 +137,63 @@ interface QuickBooksItemsResponse {
 
 interface QuickBooksCustomersResponse {
   success: boolean;
-  data: {
-    QueryResponse?: {
-      Customer?: QuickBooksCustomer[];
-    };
-  };
+  data: QuickBooksCustomer[];
+}
+
+// Database API Response types
+interface DBQuickBooksAccountsResponse {
+  success: boolean;
+  data: DBQuickBooksAccount[];
+}
+
+interface DBQuickBooksProductsResponse {
+  success: boolean;
+  data: DBQuickBooksProduct[];
 }
 
 /**
- * Fetch all accounts from QuickBooks
+ * Fetch all accounts from QuickBooks database (raw structure)
  */
+export async function fetchQuickBooksAccountsFromDB(): Promise<DBQuickBooksAccount[]> {
+  try {
+    const response = await client.get<DBQuickBooksAccountsResponse>("/api/v1/quickbooks/db/accounts");
+
+    if (response.data?.success && Array.isArray(response.data?.data)) {
+      return response.data.data;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data as DBQuickBooksAccount[];
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching QuickBooks accounts from database:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch all products from QuickBooks database (raw structure)
+ */
+export async function fetchQuickBooksProductsFromDB(): Promise<DBQuickBooksProduct[]> {
+  try {
+    const response = await client.get<DBQuickBooksProductsResponse>("/api/v1/quickbooks/db/products");
+
+    if (response.data?.success && Array.isArray(response.data?.data)) {
+      return response.data.data;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data as DBQuickBooksProduct[];
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching QuickBooks products from database:", error);
+    throw error;
+  }
+}
 export async function fetchQuickBooksAccounts(): Promise<QuickBooksAccount[]> {
   try {
     const response = await client.get<QuickBooksAccountsResponse>("/api/v1/quickbooks/accounts");
@@ -147,35 +258,20 @@ export async function fetchQuickBooksItems(): Promise<QuickBooksItem[]> {
 }
 
 /**
- * Fetch all customers from QuickBooks
+ * Fetch all customers from QuickBooks database
  */
 export async function fetchQuickBooksCustomers(): Promise<QuickBooksCustomer[]> {
   try {
     const response = await client.get<QuickBooksCustomersResponse>("/api/v1/quickbooks/customers");
 
-    // Handle { data: { QueryResponse: { Customer: [...] } } } structure (what we're getting)
-    if ((response.data as any)?.QueryResponse?.Customer) {
-      const customers = (response.data as any).QueryResponse.Customer;
-      return customers;
-    }
-
-    // Handle nested response structure: { success: true, data: { QueryResponse: { Customer: [...] } } }
-    if (response.data?.success && response.data?.data?.QueryResponse?.Customer) {
-      return response.data.data.QueryResponse.Customer;
-    }
-
-    // Handle { success: true, data: [...] } structure
+    // Handle { success: true, data: [...] } structure (new database format)
     if (response.data?.success && Array.isArray(response.data?.data)) {
-      return response.data.data as QuickBooksCustomer[];
+      return response.data.data;
     }
 
     // Fallback: try direct array access
-    if (Array.isArray(response.data?.data)) {
-      return response.data.data as QuickBooksCustomer[];
-    }
-
     if (Array.isArray(response.data)) {
-      return response.data as QuickBooksCustomer[];
+      return response.data;
     }
 
     return [];
@@ -231,7 +327,13 @@ interface SyncResponse {
       updated: number;
       skipped: number;
       total: number;
-    }
+    };
+    customers: {
+      inserted: number;
+      updated: number;
+      skipped: number;
+      total: number;
+    };
   };
 }
 

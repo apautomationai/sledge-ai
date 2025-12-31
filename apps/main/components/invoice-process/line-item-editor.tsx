@@ -7,8 +7,8 @@ import { Label } from "@workspace/ui/components/label";
 import { Input } from "@workspace/ui/components/input";
 import { Button } from "@workspace/ui/components/button";
 import { LineItemAutocomplete } from "./line-item-autocomplete-simple";
-import { fetchQuickBooksAccounts, fetchQuickBooksItems, updateLineItem } from "@/lib/services/quickbooks.service";
-import type { QuickBooksAccount, QuickBooksItem } from "@/lib/services/quickbooks.service";
+import { fetchQuickBooksAccountsFromDB, fetchQuickBooksProductsFromDB, updateLineItem } from "@/lib/services/quickbooks.service";
+import type { DBQuickBooksAccount, DBQuickBooksProduct } from "@/lib/services/quickbooks.service";
 import type { LineItem } from "@/lib/types/invoice";
 import { toast } from "sonner";
 import { client } from "@/lib/axios-client";
@@ -36,8 +36,8 @@ interface LineItemEditorProps {
 export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditing = false, isQuickBooksConnected = null }: LineItemEditorProps) {
   const router = useRouter();
   const [itemType, setItemType] = useState<'account' | 'product' | null>(lineItem.itemType || null);
-  const [accounts, setAccounts] = useState<QuickBooksAccount[]>([]);
-  const [items, setItems] = useState<QuickBooksItem[]>([]);
+  const [accounts, setAccounts] = useState<DBQuickBooksAccount[]>([]);
+  const [items, setItems] = useState<DBQuickBooksProduct[]>([]);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -108,8 +108,7 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
     console.log("💰 Loading accounts...");
     setIsLoadingAccounts(true);
     try {
-      const fetchedAccounts = await fetchQuickBooksAccounts();
-      console.log("💰 Loaded accounts:", fetchedAccounts.length, "accounts");
+      const fetchedAccounts = await fetchQuickBooksAccountsFromDB();
       setAccounts(fetchedAccounts);
     } catch (error) {
       console.error("Error loading accounts:", error);
@@ -123,8 +122,7 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
     console.log("🛍️ Loading products/services...");
     setIsLoadingItems(true);
     try {
-      const fetchedItems = await fetchQuickBooksItems();
-      console.log("🛍️ Loaded products/services:", fetchedItems.length, "items");
+      const fetchedItems = await fetchQuickBooksProductsFromDB();
       setItems(fetchedItems);
     } catch (error) {
       console.error("Error loading items:", error);
@@ -153,36 +151,38 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
     }
   };
 
-  const handleAccountSelect = (accountId: string, _account?: QuickBooksAccount) => {
-    setSelectedResourceId(accountId);
+  const handleAccountSelect = (accountId: string, account?: DBQuickBooksAccount) => {
+    const quickbooksId = account?.quickbooksId || null;
+    setSelectedResourceId(quickbooksId);
 
     // Notify parent of changes without saving
     if (onChange) {
       onChange(lineItem.id, {
         itemType: 'account',
-        resourceId: accountId,
+        resourceId: quickbooksId,
       });
     }
   };
 
-  const handleProductSelect = (productId: string, _product?: QuickBooksItem) => {
-    setSelectedResourceId(productId);
+  const handleProductSelect = (productId: string, product?: DBQuickBooksProduct) => {
+    const quickbooksId = product?.quickbooksId || null;
+    setSelectedResourceId(quickbooksId);
 
     // Notify parent of changes without saving
     if (onChange) {
       onChange(lineItem.id, {
         itemType: 'product',
-        resourceId: productId,
+        resourceId: quickbooksId,
       });
     }
   };
 
-  const getAccountDisplayName = (account: QuickBooksAccount) => {
-    return account.FullyQualifiedName || account.Name;
+  const getAccountDisplayName = (account: DBQuickBooksAccount) => {
+    return account.fullyQualifiedName || account.name || 'Unknown Account';
   };
 
-  const getItemDisplayName = (item: QuickBooksItem) => {
-    return item.FullyQualifiedName || item.Name;
+  const getItemDisplayName = (item: DBQuickBooksProduct) => {
+    return item.fullyQualifiedName || item.name || 'Unknown Product';
   };
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -345,7 +345,7 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
       {/* Item Type Selector */}
       <div className="space-y-2">
         <Label htmlFor={`item-type-${lineItem.id}`} className="text-xs">
-          Item Type
+          Cost Type
         </Label>
         {isQuickBooksConnected === false ? (
           <div
@@ -370,7 +370,7 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="account">Account</SelectItem>
-              <SelectItem value="product">Product/Service</SelectItem>
+              <SelectItem value="product">Cost Code</SelectItem>
             </SelectContent>
           </Select>
         )}
@@ -380,7 +380,7 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
       {itemType && (
         <div className="space-y-2">
           <Label htmlFor={`autocomplete-${lineItem.id}`} className="text-xs">
-            {itemType === 'account' ? 'Account' : 'Product/Service'}
+            {itemType === 'account' ? 'Account' : 'Cost Code'}
           </Label>
           {itemType === 'account' ? (
             <LineItemAutocomplete

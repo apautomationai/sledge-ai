@@ -214,7 +214,7 @@ class VendorsService {
                 id: invoiceModel.id,
                 invoiceNumber: invoiceModel.invoiceNumber,
                 vendorId: invoiceModel.vendorId,
-                customerName: invoiceModel.customerName,
+                customerId: invoiceModel.customerId,
                 invoiceDate: invoiceModel.invoiceDate,
                 dueDate: invoiceModel.dueDate,
                 totalAmount: invoiceModel.totalAmount,
@@ -309,7 +309,7 @@ class VendorsService {
     ): Promise<number> {
         // Trim vendor name for consistent matching
         const trimmedVendorName = vendorData.vendor_name.trim();
-        
+
         // Search for existing vendor by displayName or companyName (case-insensitive)
         const existingVendors = await db
             .select()
@@ -334,7 +334,7 @@ class VendorsService {
         // Format: LOCAL_<timestamp>_<short-uuid> (max 50 chars)
         const shortUuid = uuidv4().replace(/-/g, '').substring(0, 20); // 20 chars
         const quickbooksId = `LOCAL_${Date.now()}_${shortUuid}`; // ~35 chars total
-        
+
         try {
             const [newVendor] = await db
                 .insert(quickbooksVendorsModel)
@@ -376,6 +376,24 @@ class VendorsService {
             }
 
             // If still not found, rethrow the original error
+            throw error;
+        }
+    }
+
+    async updateVendor(vendorId: number, updateData: any) {
+        try {
+            const [updatedVendor] = await db
+                .update(quickbooksVendorsModel)
+                .set({
+                    ...updateData,
+                    updatedAt: new Date(),
+                })
+                .where(eq(quickbooksVendorsModel.id, vendorId))
+                .returning();
+
+            return updatedVendor;
+        } catch (error) {
+            console.error('Error updating vendor:', error);
             throw error;
         }
     }
