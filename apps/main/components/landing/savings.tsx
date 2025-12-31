@@ -118,72 +118,145 @@ export default function Savings() {
         </div>
 
         {/* Right Column - Results */}
-        <div className="w-full md:max-w-80 lg:max-w-96 shrink-0 inline-flex flex-col justify-center items-center gap-6">
-          <div className="self-stretch text-center text-white text-sm font-normal font-sans leading-6">
-            Estimated impact after automating payables with AI.
-          </div>
+        <div className="w-full md:max-w-80 lg:max-w-96 shrink-0">
+          {/* Mobile Results Design */}
+          <div className="md:hidden px-4 flex flex-col justify-center items-center gap-6">
+            <div className="self-stretch text-center text-white text-sm font-normal font-sans leading-6">
+              Estimated impact after automating payables with AI.
+            </div>
 
-          {/* Annual Savings */}
-          <div className="w-full flex flex-col justify-start items-center gap-3">
-            <div className="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-medium font-sans">
-              Annual Savings
-            </div>
-            <div className="self-stretch inline-flex justify-center items-center gap-2">
-              <div className="w-12 h-12 sm:w-12 md:w-14 sm:h-12 md:h-14 lg:w-16 lg:h-16 relative overflow-hidden flex-shrink-0">
-                <Image
-                  src="/images/Vector.png"
-                  alt="Savings icon"
-                  fill
-                  className="object-contain"
-                />
+            {/* Annual Savings */}
+            <div className="w-72 flex flex-col justify-start items-center gap-3">
+              <div className="text-white text-2xl font-medium font-sans">
+                Annual Savings
               </div>
-              <div className="text-[#e3b02f] text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold font-league-spartan">
-                ${annualSavings.toLocaleString()}
-              </div>
-            </div>
-          </div>
-
-          {/* Annual Time Saved */}
-          <div className="w-full flex flex-col justify-start items-center gap-4">
-            <div className="self-stretch text-center text-white text-base sm:text-lg md:text-xl lg:text-2xl font-medium font-sans">
-              Annual Time Saved
-            </div>
-            <div className="self-stretch inline-flex justify-center items-center gap-2">
-              <div className="w-12 h-12 sm:w-12 md:w-14 sm:h-12 md:h-14 lg:w-16 lg:h-16 relative overflow-hidden flex-shrink-0">
-                <Image
-                  src="/images/Vector (1).png"
-                  alt="Time saved icon"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <div className="text-[#e3b02f] text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold font-league-spartan">
-                {hoursPerYear.toLocaleString()} HOURS
+              <div className="self-stretch inline-flex justify-start items-center gap-2">
+                <div className="w-16 h-16 relative overflow-hidden flex-shrink-0">
+                  <Image
+                    src="/images/Vector.png"
+                    alt="Savings icon"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <div className="text-amber-400 text-5xl font-bold font-league-spartan">
+                  ${annualSavings.toLocaleString()}
+                </div>
               </div>
             </div>
+
+            {/* Annual Time Saved */}
+            <div className="w-80 flex flex-col justify-start items-center gap-4">
+              <div className="self-stretch text-center text-white text-2xl font-medium font-sans">
+                Annual Time Saved
+              </div>
+              <div className="self-stretch inline-flex justify-start items-center gap-2">
+                <div className="w-16 h-16 relative overflow-hidden flex-shrink-0">
+                  <Image
+                    src="/images/Vector (1).png"
+                    alt="Time saved icon"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <div className="text-amber-400 text-5xl font-bold font-league-spartan">
+                  {hoursPerYear.toLocaleString()} HOURS
+                </div>
+              </div>
+            </div>
+
+            <div className="self-stretch text-center text-white text-xs font-medium font-sans">
+              Estimates vary by workflow and volume. Actual savings depend on
+              usage and approval patterns.
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="self-stretch flex flex-col justify-center items-center gap-4">
+              <button className="self-stretch px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors">
+                <span className="cursor-pointer text-center text-stone-800 text-xs font-semibold font-sans uppercase leading-5">
+                  SEE HOW SLEDGE AUTOMATES PAYABLES
+                </span>
+              </button>
+
+              <Link
+                href="/sign-up"
+                className="cursor-pointer self-stretch px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors"
+              >
+                <span className="text-center text-zinc-100 text-xs font-bold font-sans uppercase leading-5">
+                  START A FREE TRIAL
+                </span>
+              </Link>
+            </div>
           </div>
 
-          <div className="self-stretch text-center text-white text-xs font-medium font-sans">
-            Estimates vary by workflow and volume. Actual savings depend on
-            usage and approval patterns.
-          </div>
+          {/* Desktop Results Design */}
+          <div className="hidden md:flex flex-col justify-center items-center gap-6">
+            <div className="self-stretch text-center text-white text-sm font-normal font-sans leading-6">
+              Estimated impact after automating payables with AI.
+            </div>
 
-          {/* CTA Buttons */}
-          <div className="w-full flex flex-col justify-center items-center gap-4">
-            <button className="self-stretch px-3 sm:px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors">
-              <span className="cursor-pointer text-center text-stone-800 text-[11px] sm:text-sm md:text-xs lg:text-base font-semibold uppercase leading-tight">
-                SEE HOW SLEDGE AUTOMATES PAYABLES
-              </span>
-            </button>
+            {/* Annual Savings */}
+            <div className="w-full flex flex-col justify-start items-center gap-3">
+              <div className="text-white text-xl lg:text-2xl font-medium font-sans">
+                Annual Savings
+              </div>
+              <div className="self-stretch inline-flex justify-center items-center gap-2">
+                <div className="w-14 h-14 lg:w-16 lg:h-16 relative overflow-hidden flex-shrink-0">
+                  <Image
+                    src="/images/Vector.png"
+                    alt="Savings icon"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <div className="text-[#e3b02f] text-3xl lg:text-5xl font-bold font-league-spartan">
+                  ${annualSavings.toLocaleString()}
+                </div>
+              </div>
+            </div>
 
-            <Link
-              href="/sign-up"
-              className="cursor-pointer self-stretch px-3 sm:px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors"
-            >
-              <span className="text-center text-zinc-100 text-[11px] sm:text-sm md:text-xs lg:text-base font-bold font-sans uppercase leading-tight">
-                START A FREE TRIAL
-              </span>
-            </Link>
+            {/* Annual Time Saved */}
+            <div className="w-full flex flex-col justify-start items-center gap-4">
+              <div className="self-stretch text-center text-white text-xl lg:text-2xl font-medium font-sans">
+                Annual Time Saved
+              </div>
+              <div className="self-stretch inline-flex justify-center items-center gap-2">
+                <div className="w-14 h-14 lg:w-16 lg:h-16 relative overflow-hidden flex-shrink-0">
+                  <Image
+                    src="/images/Vector (1).png"
+                    alt="Time saved icon"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <div className="text-[#e3b02f] text-3xl lg:text-5xl font-bold font-league-spartan">
+                  {hoursPerYear.toLocaleString()} HOURS
+                </div>
+              </div>
+            </div>
+
+            <div className="self-stretch text-center text-white text-xs font-medium font-sans">
+              Estimates vary by workflow and volume. Actual savings depend on
+              usage and approval patterns.
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="w-full flex flex-col justify-center items-center gap-4">
+              <button className="self-stretch px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors">
+                <span className="cursor-pointer text-center text-stone-800 text-xs lg:text-base font-semibold uppercase leading-tight">
+                  SEE HOW SLEDGE AUTOMATES PAYABLES
+                </span>
+              </button>
+
+              <Link
+                href="/sign-up"
+                className="cursor-pointer self-stretch px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors"
+              >
+                <span className="text-center text-zinc-100 text-xs lg:text-base font-bold font-sans uppercase leading-tight">
+                  START A FREE TRIAL
+                </span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
