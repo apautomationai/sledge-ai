@@ -13,6 +13,7 @@ import { Readable } from "stream";
 import { generateS3PublicUrl } from "@/lib/utils/s3";
 import { QuickBooksService } from "@/services/quickbooks.service";
 import { emailService } from "@/services/email.service";
+import { usersModel } from "@/models/users.model";
 const { v4: uuidv4 } = require("uuid");
 
 const quickbooksService = new QuickBooksService();
@@ -983,6 +984,11 @@ export class InvoiceServices {
             active: quickbooksVendorsModel.active,
             quickbooksId: quickbooksVendorsModel.quickbooksId,
           },
+          userData: {
+            firstName: usersModel.firstName,
+            lastName: usersModel.lastName,
+            companyName: usersModel.businessName,
+          },
         })
         .from(invoiceModel)
         .leftJoin(
@@ -992,6 +998,10 @@ export class InvoiceServices {
         .leftJoin(
           quickbooksVendorsModel,
           eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
+        )
+        .leftJoin(
+          usersModel,
+          eq(invoiceModel.userId, usersModel.id),
         )
         .where(
           and(
@@ -1006,12 +1016,16 @@ export class InvoiceServices {
 
       // Send rejection email if status is "rejected" and recipient emails are provided
       if (status === "rejected" && recipientEmails && recipientEmails.length > 0) {
+        const senderName = `${updatedInvoiceWithVendor?.userData?.firstName} ${updatedInvoiceWithVendor?.userData?.lastName}`.trim() || 'Me';
+        const senderCompany = updatedInvoiceWithVendor?.userData?.companyName || 'My Company';
         try {
           await emailService.sendInvoiceRejectionEmail({
             to: recipientEmails,
             invoiceNumber: updatedInvoiceWithVendor.invoiceNumber || `INV-${invoiceId}`,
             vendorName: updatedInvoiceWithVendor.vendorData?.displayName || undefined,
             rejectionReason: rejectionReason,
+            senderName: senderName,
+            senderCompany: senderCompany,
           });
           console.log(`Rejection email sent to ${recipientEmails.join(', ')} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
         } catch (emailError) {
