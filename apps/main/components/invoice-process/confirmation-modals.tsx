@@ -68,7 +68,7 @@ interface ConfirmationModalsProps {
   invoiceDetails: InvoiceDetails;
   originalInvoiceDetails: InvoiceDetails;
   selectedFields: string[];
-  onSave: (vendorData?: any) => Promise<void>;
+  onSave: (vendorData?: any, customerData?: any) => Promise<void>;
   onReject: () => Promise<void>;
   onApprove: () => Promise<void>;
   onCancel: () => void;
@@ -76,6 +76,7 @@ interface ConfirmationModalsProps {
   onInvoiceDetailsUpdate?: (updatedDetails: InvoiceDetails) => void;
   onFieldChange?: () => void;
   vendorData?: any;
+  customerData?: any;
 }
 
 export default function ConfirmationModals({
@@ -85,6 +86,7 @@ export default function ConfirmationModals({
   onApprovalSuccess,
   onInvoiceDetailsUpdate,
   vendorData,
+  customerData,
 }: ConfirmationModalsProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
@@ -127,7 +129,7 @@ export default function ConfirmationModals({
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
-    await onSave(vendorData);
+    await onSave(vendorData, customerData);
     setIsSaving(false);
   };
 
@@ -184,7 +186,7 @@ export default function ConfirmationModals({
     // Step 0: Auto-save if there are unsaved changes (check if onFieldChange was called)
     // We'll always save before approval to ensure latest changes are persisted
     setIsSaving(true);
-    await onSave(vendorData);
+    await onSave(vendorData, customerData);
     setIsSaving(false);
 
     // Step 1: Validate line items first
@@ -430,38 +432,38 @@ export default function ConfirmationModals({
                       <SelectValue placeholder="Select recipient email" />
                     </SelectTrigger>
                     <SelectContent>
-                        {invoiceDetails.senderEmail && (
-                          isAutomatedEmail(invoiceDetails.senderEmail) ? (
+                      {invoiceDetails.senderEmail && (
+                        isAutomatedEmail(invoiceDetails.senderEmail) ? (
+                          <div
+                            title="This appears to be an automated email address that cannot receive replies"
+                            className="relative flex w-full cursor-not-allowed select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-muted-foreground opacity-50"
+                          >
+                            Sender: {invoiceDetails.senderEmail}
+                          </div>
+                        ) : (
+                          <SelectItem value={invoiceDetails.senderEmail}>
+                            Sender: {invoiceDetails.senderEmail}
+                          </SelectItem>
+                        )
+                      )}
+                      {(invoiceDetails.vendorData?.primaryEmail) && (
+                        (() => {
+                          const vendorEmail = invoiceDetails.vendorData?.primaryEmail ?? "vendor";
+                          return isAutomatedEmail(vendorEmail) ? (
                             <div
                               title="This appears to be an automated email address that cannot receive replies"
                               className="relative flex w-full cursor-not-allowed select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-muted-foreground opacity-50"
                             >
-                              Sender: {invoiceDetails.senderEmail}
+                              Vendor: {vendorEmail}
                             </div>
                           ) : (
-                            <SelectItem value={invoiceDetails.senderEmail}>
-                              Sender: {invoiceDetails.senderEmail}
+                            <SelectItem value={vendorEmail}>
+                              Vendor: {vendorEmail}
                             </SelectItem>
-                          )
-                        )}
-                        {(invoiceDetails.vendorData?.primaryEmail || invoiceDetails.vendorEmail) && (
-                          (() => {
-                            const vendorEmail = invoiceDetails.vendorData?.primaryEmail ?? invoiceDetails.vendorEmail ?? "vendor";
-                            return isAutomatedEmail(vendorEmail) ? (
-                              <div
-                                title="This appears to be an automated email address that cannot receive replies"
-                                className="relative flex w-full cursor-not-allowed select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-muted-foreground opacity-50"
-                              >
-                                Vendor: {vendorEmail}
-                              </div>
-                            ) : (
-                              <SelectItem value={vendorEmail}>
-                                Vendor: {vendorEmail}
-                              </SelectItem>
-                            );
-                          })()
-                        )}
-                        <SelectItem value="custom">Custom email</SelectItem>
+                          );
+                        })()
+                      )}
+                      <SelectItem value="custom">Custom email</SelectItem>
                     </SelectContent>
                   </Select>
                   {selectedRecipientEmail === "custom" && (

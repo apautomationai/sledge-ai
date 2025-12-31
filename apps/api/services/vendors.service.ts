@@ -214,7 +214,7 @@ class VendorsService {
                 id: invoiceModel.id,
                 invoiceNumber: invoiceModel.invoiceNumber,
                 vendorId: invoiceModel.vendorId,
-                customerName: invoiceModel.customerName,
+                customerId: invoiceModel.customerId,
                 invoiceDate: invoiceModel.invoiceDate,
                 dueDate: invoiceModel.dueDate,
                 totalAmount: invoiceModel.totalAmount,

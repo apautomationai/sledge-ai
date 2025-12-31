@@ -88,12 +88,13 @@ const FormField = ({
   };
 
   return (
-    <div className={`space-y-1.5 ${highlighted ? 'p-2 bg-amber-50 border border-amber-200 rounded-md' : ''}`}>
+    <div className="space-y-1.5">
       <Label
         htmlFor={fieldKey}
-        className={`text-xs font-medium ${highlighted ? 'text-amber-800' : ''}`}
+        className="text-xs font-medium"
       >
         {label}
+        {highlighted && <span className="text-red-500 ml-1">*</span>}
         {isTotalAmountField && (
           <span className="ml-1 text-xs text-muted-foreground font-normal">(Auto-calculated)</span>
         )}
@@ -104,7 +105,7 @@ const FormField = ({
           value={dateStringValue}
           onDateChange={(dateString) => onDateChange?.(fieldKey, dateString)}
           placeholder={`Select ${label.toLowerCase()}`}
-          className={`h-8 ${highlighted ? 'border-2 border-amber-400' : ''}`}
+          className="h-8"
         />
       ) : (
         <Input
@@ -115,10 +116,6 @@ const FormField = ({
           onChange={handleChange}
           onBlur={handleBlur}
           className="h-8 read-only:bg-muted/50 read-only:border-dashed"
-          style={highlighted ? {
-            border: '2px solid #fbbf24',
-            boxShadow: '0 0 0 2px rgba(251, 191, 36, 0.2)'
-          } : {}}
         />
       )}
     </div>
@@ -133,7 +130,7 @@ interface InvoiceDetailsFormProps {
   onDetailsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   selectedFields: string[];
   setSelectedFields: React.Dispatch<React.SetStateAction<string[]>>;
-  onSave: (vendorData?: any) => Promise<void>;
+  onSave: (vendorData?: any, customerData?: any) => Promise<void>;
   onReject: () => Promise<void>;
   onApprove: () => Promise<void>;
   onCancel: () => void;
@@ -527,7 +524,29 @@ export default function InvoiceDetailsForm({
     onDetailsChange(syntheticEvent);
   };
 
-  // Local state for vendor data
+  // Local state for customer data
+  const [customerData, setCustomerData] = useState({
+    displayName: localInvoiceDetails.customerData?.displayName || localInvoiceDetails.customerData?.companyName || '',
+  });
+
+  // Update customer data when invoice details change
+  useEffect(() => {
+    if (localInvoiceDetails.customerData) {
+      setCustomerData({
+        displayName: localInvoiceDetails.customerData.displayName || localInvoiceDetails.customerData.companyName || '',
+      });
+    }
+  }, [localInvoiceDetails.customerData]);
+
+  // Handle customer data changes
+  const handleCustomerDataChange = (field: string, value: string) => {
+    setCustomerData(prev => ({ ...prev, [field]: value }));
+
+    // Notify parent that there are unsaved changes
+    if (onFieldChange) {
+      onFieldChange();
+    }
+  };
   const [vendorData, setVendorData] = useState({
     displayName: localInvoiceDetails.vendorData?.displayName || localInvoiceDetails.vendorData?.companyName || '',
     primaryEmail: localInvoiceDetails.vendorData?.primaryEmail || '',
@@ -580,6 +599,8 @@ export default function InvoiceDetailsForm({
     "deletedAt",
     'vendorId',
     'vendorData',
+    'customerId',
+    'customerData',
     'vendorAddress',
     'vendorPhone',
     'vendorEmail',
@@ -711,6 +732,23 @@ export default function InvoiceDetailsForm({
                     />
                   </div>
 
+                  {/* Customer Name Field */}
+                  {localInvoiceDetails.customerData && (
+                    <div className="space-y-1">
+                      <Label htmlFor="customerName" className="text-xs font-medium">
+                        Customer Name
+                      </Label>
+                      <Input
+                        id="customerName"
+                        name="customerName"
+                        value={customerData.displayName}
+                        onChange={(e) => handleCustomerDataChange('displayName', e.target.value)}
+                        placeholder="Enter customer name"
+                        className="h-8"
+                      />
+                    </div>
+                  )}
+
                   {/* Rest of the fields (excluding highlighted fields since they're shown at top) */}
                   {fieldsToDisplay
                     .filter(key => !['invoiceNumber', 'totalAmount', 'totalTax', 'invoiceDate'].includes(key)) // Exclude highlighted fields since they're shown at top
@@ -831,6 +869,7 @@ export default function InvoiceDetailsForm({
           onInvoiceDetailsUpdate={onInvoiceDetailsUpdate}
           onFieldChange={onFieldChange}
           vendorData={vendorData}
+          customerData={customerData}
         />
       </div>
 

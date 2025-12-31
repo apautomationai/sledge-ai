@@ -2,6 +2,24 @@
 
 import { VendorData } from "@/hooks/use-jobs";
 
+export type CustomerData = {
+  id: number | null;
+  displayName: string | null;
+  companyName: string | null;
+  givenName: string | null;
+  familyName: string | null;
+  primaryEmail: string | null;
+  primaryPhone: string | null;
+  billAddrLine1: string | null;
+  billAddrCity: string | null;
+  billAddrState: string | null;
+  billAddrPostalCode: string | null;
+  billAddrCountry: string | null;
+  balance: string | null;
+  active: boolean | null;
+  quickbooksId: string | null;
+};
+
 export type Attachment = {
   id: string;
   userId: number;
@@ -39,10 +57,7 @@ export interface InvoiceDetails {
   attachmentId: number;
   invoiceNumber: string;
   vendorId?: number | null;
-  vendorAddress: string | null;
-  vendorPhone: string | null;
-  vendorEmail: string | null;
-  customerName: string | null;
+  customerId: number | null;
   invoiceDate: string | null;
   dueDate: string | null;
   totalAmount: string | null;
@@ -62,6 +77,7 @@ export interface InvoiceDetails {
   sourcePdfUrl: string | null;
   senderEmail?: string | null;
   vendorData?: VendorData | null;
+  customerData?: CustomerData | null;
 }
 
 

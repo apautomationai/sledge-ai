@@ -338,6 +338,9 @@ class ProcessorController {
       vendor_email,
     });
 
+    // TO DO
+    const customerId = 1;
+
     // Parse dates
     const parsedInvoiceDate = new Date(invoice_date);
     const parsedDueDate = due_date ? new Date(due_date) : null;
@@ -357,10 +360,7 @@ class ProcessorController {
       attachmentId: attachment_id,
       invoiceNumber: invoice_number,
       vendorId: vendorId,
-      vendorAddress: vendor_address,
-      vendorPhone: vendor_phone,
-      vendorEmail: vendor_email,
-      customerName: customer_name,
+      customerId: customerId,
       invoiceDate: parsedInvoiceDate,
       dueDate: parsedDueDate,
       totalAmount: total_amount ? total_amount.toString() : null,
