@@ -11,7 +11,8 @@
     "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit",
     "storybook": "storybook dev -p 9000",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "chromatic": "npx chromatic"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -61,6 +62,7 @@
     "@vitest/coverage-v8": "^4.0.16",
     "@workspace/eslint-config": "workspace:^",
     "@workspace/typescript-config": "workspace:*",
+    "chromatic": "^13.3.4",
     "eslint-plugin-storybook": "^10.1.11",
     "playwright": "^1.57.0",
     "storybook": "^10.1.11",

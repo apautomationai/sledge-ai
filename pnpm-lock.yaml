@@ -389,6 +389,9 @@ importers:
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
+      chromatic:
+        specifier: ^13.3.4
+        version: 13.3.4
       eslint-plugin-storybook:
         specifier: ^10.1.11
         version: 10.1.11(eslint@9.39.1(jiti@2.6.1))(storybook@10.1.11(@testing-library/dom@10.4.1)(prettier@3.7.4)(react-dom@19.1.2(react@19.1.2))(react@19.1.2))(typescript@5.9.3)
