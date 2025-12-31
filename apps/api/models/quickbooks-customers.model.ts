@@ -19,7 +19,7 @@ export const quickbooksCustomersModel = pgTable(
     {
         id: serial("id").primaryKey(),
         userId: integer("user_id").notNull().references(() => usersModel.id),
-        quickbooksId: varchar("quickbooks_id", { length: 50 }).notNull(),
+        quickbooksId: varchar("quickbooks_id", { length: 50 }),
         displayName: varchar("display_name", { length: 500 }),
         companyName: varchar("company_name", { length: 100 }),
         givenName: varchar("given_name", { length: 100 }),

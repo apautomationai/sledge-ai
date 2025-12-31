@@ -13,6 +13,7 @@ import {
 import { usersModel } from "./users.model";
 import { attachmentsModel } from "./attachments.model";
 import { quickbooksVendorsModel } from "./quickbooks-vendors.model";
+import { quickbooksCustomersModel } from "./quickbooks-customers.model";
 export const invoiceStatusEnum = pgEnum("invoice_status", [
   "pending",
   "approved",
@@ -90,6 +91,11 @@ export const invoiceRelations = relations(invoiceModel, ({ one, many }) => ({
   vendor: one(quickbooksVendorsModel, {
     fields: [invoiceModel.vendorId],
     references: [quickbooksVendorsModel.id],
+  }),
+
+  customer: one(quickbooksCustomersModel, {
+    fields: [invoiceModel.customerId],
+    references: [quickbooksCustomersModel.id],
   }),
 
   lineItems: many(lineItemsModel, {

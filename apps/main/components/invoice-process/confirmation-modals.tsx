@@ -25,6 +25,7 @@ import {
 } from "@workspace/ui/components/select";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import { Checkbox } from "@workspace/ui/components/checkbox";
 import { InvoiceDetails } from "@/lib/types/invoice";
 import { formatLabel, renderValue, formatDate } from "@/lib/utility/formatters";
 
@@ -94,12 +95,14 @@ export default function ConfirmationModals({
   const [isApproving, setIsApproving] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [isReopening, setIsReopening] = useState(false);
   const [isQuickBooksErrorOpen, setIsQuickBooksErrorOpen] = useState(false);
   const [isLineItemsErrorOpen, setIsLineItemsErrorOpen] = useState(false);
   const [incompleteLineItems, setIncompleteLineItems] = useState<string[]>([]);
   const [rejectionReason, setRejectionReason] = useState("");
   const [selectedRecipientEmail, setSelectedRecipientEmail] = useState("");
   const [customEmail, setCustomEmail] = useState("");
+  const [skipEmail, setSkipEmail] = useState(false);
   const [formErrors, setFormErrors] = useState<{ email?: string; reason?: string }>({});
 
   const getRecipientEmail = (): string => {
@@ -110,6 +113,12 @@ export default function ConfirmationModals({
   };
 
   const validateForm = (): boolean => {
+    // Skip all validation if skipEmail is checked (reason is optional)
+    if (skipEmail) {
+      setFormErrors({});
+      return true;
+    }
+
     const email = getRecipientEmail();
     const result = rejectionFormSchema.safeParse({ email, reason: rejectionReason });
 
@@ -131,6 +140,29 @@ export default function ConfirmationModals({
     setIsSaving(true);
     await onSave(vendorData, customerData);
     setIsSaving(false);
+  };
+
+  const handleReopenForReview = async () => {
+    setIsReopening(true);
+    try {
+      const invoiceId = invoiceDetails.id;
+      const statusUpdateResponse: any = await client.patch(`/api/v1/invoice/${invoiceId}/status`, {
+        status: "pending"
+      });
+
+      if (onInvoiceDetailsUpdate && statusUpdateResponse.success) {
+        const updatedDetails = { ...invoiceDetails, status: "pending" };
+        onInvoiceDetailsUpdate(updatedDetails as InvoiceDetails);
+      }
+
+      toast.success("Invoice reopened for review");
+    } catch (error: any) {
+      console.error("Error reopening invoice:", error);
+      toast.error("Failed to reopen invoice", {
+        description: error.response?.data?.error || error.message
+      });
+    }
+    setIsReopening(false);
   };
 
   const checkQuickBooksIntegration = async (): Promise<boolean> => {
@@ -341,14 +373,17 @@ export default function ConfirmationModals({
     setIsRejecting(true);
 
     try {
-      const invoiceId = invoiceDetails.id;
-      const recipientEmail = getRecipientEmail();
+      // Save invoice changes first
+      await onSave();
 
-      // Update invoice status to rejected with reason and recipient email
+      const invoiceId = invoiceDetails.id;
+      const recipientEmail = skipEmail ? null : getRecipientEmail();
+
+      // Update invoice status to rejected with reason and optionally recipient email
       const statusUpdateResponse: any = await client.patch(`/api/v1/invoice/${invoiceId}/status`, {
         status: "rejected",
         rejectionReason: rejectionReason,
-        recipientEmail: recipientEmail
+        ...(recipientEmail && { recipientEmail })
       });
 
       // Update local invoice details state
@@ -358,13 +393,14 @@ export default function ConfirmationModals({
       }
 
       toast.dismiss();
-      toast.success(`Invoice rejected. Notification sent to ${recipientEmail}`);
+      toast.success(skipEmail ? "Invoice rejected" : `Invoice rejected. Notification sent to ${recipientEmail}`);
 
       // Close the dialog and reset form
       setIsRejectDialogOpen(false);
       setRejectionReason("");
       setSelectedRecipientEmail("");
       setCustomEmail("");
+      setSkipEmail(false);
       setFormErrors({});
 
     } catch (error: any) {
@@ -387,6 +423,7 @@ export default function ConfirmationModals({
     // Reset form state and open the reject dialog
     setRejectionReason("");
     setSelectedRecipientEmail("");
+    setSkipEmail(false);
     setCustomEmail("");
     setFormErrors({});
     setIsRejectDialogOpen(true);
@@ -395,9 +432,15 @@ export default function ConfirmationModals({
   return (
     <div className="flex justify-between mt-4">
       <div className="flex gap-2">
-        <Button onClick={handleSaveChanges} disabled={isSaving} variant="outline">
-          {isSaving ? "Saving..." : "Save Changes"}
-        </Button>
+        {isInvoiceFinalized ? (
+          <Button onClick={handleReopenForReview} disabled={isReopening} variant="outline">
+            {isReopening ? "Reopening..." : "Reopen for Review"}
+          </Button>
+        ) : (
+          <Button onClick={handleSaveChanges} disabled={isSaving} variant="outline">
+            {isSaving ? "Saving..." : "Save Changes"}
+          </Button>
+        )}
       </div>
       {!isInvoiceFinalized && (
         <div className="flex gap-2">
@@ -417,90 +460,109 @@ export default function ConfirmationModals({
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    Send email to <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={selectedRecipientEmail}
-                    onValueChange={(value) => {
-                      setSelectedRecipientEmail(value);
-                      setFormErrors((prev) => ({ ...prev, email: undefined }));
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="skipEmail"
+                    checked={skipEmail}
+                    onCheckedChange={(checked) => {
+                      setSkipEmail(checked === true);
+                      if (checked) {
+                        setFormErrors((prev) => ({ ...prev, email: undefined }));
+                      }
                     }}
-                  >
-                    <SelectTrigger className={`w-full ${formErrors.email && selectedRecipientEmail !== "custom" ? "border-red-500" : ""}`}>
-                      <SelectValue placeholder="Select recipient email" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {invoiceDetails.senderEmail && (
-                        isAutomatedEmail(invoiceDetails.senderEmail) ? (
-                          <div
-                            title="This appears to be an automated email address that cannot receive replies"
-                            className="relative flex w-full cursor-not-allowed select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-muted-foreground opacity-50"
-                          >
-                            Sender: {invoiceDetails.senderEmail}
-                          </div>
-                        ) : (
-                          <SelectItem value={invoiceDetails.senderEmail}>
-                            Sender: {invoiceDetails.senderEmail}
-                          </SelectItem>
-                        )
-                      )}
-                      {(invoiceDetails.vendorData?.primaryEmail) && (
-                        (() => {
-                          const vendorEmail = invoiceDetails.vendorData?.primaryEmail ?? "vendor";
-                          return isAutomatedEmail(vendorEmail) ? (
+                  />
+                  <Label htmlFor="skipEmail" className="text-sm font-medium cursor-pointer">
+                    Don't send rejection email
+                  </Label>
+                </div>
+                {!skipEmail && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Send email to <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={selectedRecipientEmail}
+                      onValueChange={(value) => {
+                        setSelectedRecipientEmail(value);
+                        setFormErrors((prev) => ({ ...prev, email: undefined }));
+                      }}
+                    >
+                      <SelectTrigger className={`w-full ${formErrors.email && selectedRecipientEmail !== "custom" ? "border-red-500" : ""}`}>
+                        <SelectValue placeholder="Select recipient email" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {invoiceDetails.senderEmail && (
+                          isAutomatedEmail(invoiceDetails.senderEmail) ? (
                             <div
                               title="This appears to be an automated email address that cannot receive replies"
                               className="relative flex w-full cursor-not-allowed select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-muted-foreground opacity-50"
                             >
-                              Vendor: {vendorEmail}
+                              Sender: {invoiceDetails.senderEmail}
                             </div>
                           ) : (
-                            <SelectItem value={vendorEmail}>
-                              Vendor: {vendorEmail}
+                            <SelectItem value={invoiceDetails.senderEmail}>
+                              Sender: {invoiceDetails.senderEmail}
                             </SelectItem>
-                          );
-                        })()
-                      )}
-                      <SelectItem value="custom">Custom email</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {selectedRecipientEmail === "custom" && (
-                    <div className="mt-2">
-                      <Input
-                        type="email"
-                        value={customEmail}
-                        onChange={(e) => {
-                          setCustomEmail(e.target.value);
-                          setFormErrors((prev) => ({ ...prev, email: undefined }));
-                        }}
-                        placeholder="Enter email address"
-                        className={formErrors.email ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
-                      />
-                    </div>
-                  )}
-                  {formErrors.email && (
-                    <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    Reason for rejection <span className="text-red-500">*</span>
-                  </Label>
-                  <textarea
-                    value={rejectionReason}
-                    onChange={(e) => {
-                      setRejectionReason(e.target.value);
-                      setFormErrors((prev) => ({ ...prev, reason: undefined }));
-                    }}
-                    placeholder="Enter the reason for rejecting this invoice..."
-                    className={`w-full px-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px] resize-none ${formErrors.reason ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
-                  />
-                  {formErrors.reason && (
-                    <p className="text-red-500 text-xs mt-1">{formErrors.reason}</p>
-                  )}
-                </div>
+                          )
+                        )}
+                        {(invoiceDetails.vendorData?.primaryEmail) && (
+                          (() => {
+                            const vendorEmail = invoiceDetails.vendorData?.primaryEmail ?? "vendor";
+                            return isAutomatedEmail(vendorEmail) ? (
+                              <div
+                                title="This appears to be an automated email address that cannot receive replies"
+                                className="relative flex w-full cursor-not-allowed select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-muted-foreground opacity-50"
+                              >
+                                Vendor: {vendorEmail}
+                              </div>
+                            ) : (
+                              <SelectItem value={vendorEmail}>
+                                Vendor: {vendorEmail}
+                              </SelectItem>
+                            );
+                          })()
+                        )}
+                        <SelectItem value="custom">Custom email</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {selectedRecipientEmail === "custom" && (
+                      <div className="mt-2">
+                        <Input
+                          type="email"
+                          value={customEmail}
+                          onChange={(e) => {
+                            setCustomEmail(e.target.value);
+                            setFormErrors((prev) => ({ ...prev, email: undefined }));
+                          }}
+                          placeholder="Enter email address"
+                          className={formErrors.email ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
+                        />
+                      </div>
+                    )}
+                    {formErrors.email && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
+                    )}
+                  </div>
+                )}
+                {!skipEmail && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Reason for rejection <span className="text-red-500">*</span>
+                    </Label>
+                    <textarea
+                      value={rejectionReason}
+                      onChange={(e) => {
+                        setRejectionReason(e.target.value);
+                        setFormErrors((prev) => ({ ...prev, reason: undefined }));
+                      }}
+                      placeholder="Enter the reason for rejecting this invoice..."
+                      className={`w-full px-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px] resize-none ${formErrors.reason ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
+                    />
+                    {formErrors.reason && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.reason}</p>
+                    )}
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <DialogClose asChild>
