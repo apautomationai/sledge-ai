@@ -669,7 +669,7 @@ export default function ConfirmationModals({
                   </h3>
                   <div className="mt-2 text-sm text-orange-700">
                     <p className="mb-2">
-                      The following line items need both an item type (Account or Product/Service) and a selection:
+                      The following line items need both an item type (Account or Cost Code) and a selection:
                     </p>
                     <ul className="list-disc list-inside space-y-1">
                       {incompleteLineItems.map((itemName, index) => (

@@ -274,7 +274,7 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="itemType">Type</Label>
+                                <Label htmlFor="itemType">Cost Type</Label>
                                 {isQuickBooksConnected === false ? (
                                     <div className="text-xs text-muted-foreground p-2 border rounded-md bg-muted">
                                         Connect QuickBooks to use types
@@ -295,11 +295,11 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                                         disabled={isSubmitting}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select type..." />
+                                            <SelectValue placeholder="Select cost type..." />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="account">Account</SelectItem>
-                                            <SelectItem value="product">Product</SelectItem>
+                                            <SelectItem value="product">Cost Code</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -340,10 +340,10 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="customer">Customer</Label>
+                            <Label htmlFor="customer">Job</Label>
                             {isQuickBooksConnected === false ? (
                                 <div className="text-xs text-muted-foreground p-2 border rounded-md bg-muted">
-                                    Connect QuickBooks to select customers
+                                    Connect QuickBooks to select jobs
                                 </div>
                             ) : isQuickBooksConnected === null ? (
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground p-2 border rounded-md bg-muted">
@@ -361,7 +361,7 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                                     isLoading={isLoadingCustomers}
                                     disabled={isSubmitting}
                                     getDisplayName={getCustomerDisplayName}
-                                    placeholder="Select customer..."
+                                    placeholder="Select job..."
                                 />
                             )}
                         </div>

@@ -908,7 +908,7 @@ export default function InvoiceDetailsForm({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Change Item Type</DialogTitle>
+            <DialogTitle>Change Cost Type</DialogTitle>
             <DialogDescription>
               Select the item type and category to apply to {selectedLineItems.size} selected line item(s).
             </DialogDescription>
@@ -916,7 +916,7 @@ export default function InvoiceDetailsForm({
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Item Type</Label>
+              <Label>Cost Type</Label>
               <Select
                 value={bulkItemType || ""}
                 onValueChange={(value) => {
@@ -931,18 +931,18 @@ export default function InvoiceDetailsForm({
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select item type" />
+                  <SelectValue placeholder="Select cost type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="account">Account</SelectItem>
-                  <SelectItem value="product">Product/Service</SelectItem>
+                  <SelectItem value="product">Cost Code</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {bulkItemType && (
               <div className="space-y-2">
-                <Label>{bulkItemType === 'account' ? 'Account' : 'Product/Service'}</Label>
+                <Label>{bulkItemType === 'account' ? 'Account' : 'Cost Code'}</Label>
                 {bulkItemType === 'account' ? (
                   <LineItemAutocomplete
                     items={bulkAccounts}
@@ -967,7 +967,7 @@ export default function InvoiceDetailsForm({
                       const quickbooksId = item?.quickbooksId || null;
                       setBulkResourceId(quickbooksId);
                     }}
-                    placeholder="Search products/services..."
+                    placeholder="Search cost codes..."
                     isLoading={isLoadingBulkData}
                     getDisplayName={(item: any) =>
                       item.fullyQualifiedName || item.name || 'Unknown Product'
@@ -977,9 +977,9 @@ export default function InvoiceDetailsForm({
               </div>
             )}
 
-            {/* Customer Dropdown */}
+            {/* Job Dropdown */}
             <div className="space-y-2">
-              <Label>Customer (Optional)</Label>
+              <Label>Job (Optional)</Label>
               <LineItemAutocomplete
                 items={bulkCustomers}
                 value={bulkCustomerId}
@@ -988,7 +988,7 @@ export default function InvoiceDetailsForm({
                   const quickbooksId = customer?.quickbooksId || null;
                   setBulkCustomerId(quickbooksId);
                 }}
-                placeholder="Search customers..."
+                placeholder="Search jobs..."
                 isLoading={isLoadingCustomers}
                 getDisplayName={(customer: QuickBooksCustomer) => {
                   const name = customer.displayName || customer.companyName || `Customer ${customer.quickbooksId}`;
@@ -997,11 +997,11 @@ export default function InvoiceDetailsForm({
               />
               {bulkCustomers.length > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  {bulkCustomers.length} customers available
+                  {bulkCustomers.length} jobs available
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                This customer will be applied to all selected line items
+                This job will be applied to all selected line items
               </p>
             </div>
           </div>
