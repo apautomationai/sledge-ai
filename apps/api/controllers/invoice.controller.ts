@@ -491,7 +491,7 @@ class InvoiceController {
       //@ts-ignore
       const userId = req.user.id;
       const { id } = req.params;
-      const { status, rejectionReason, recipientEmail } = req.body;
+      const { status, rejectionReason, recipientEmail, recipientEmails } = req.body;
 
       if (!id) {
         throw new BadRequestError("Invoice ID is required");
@@ -501,7 +501,10 @@ class InvoiceController {
         throw new BadRequestError("Status is required");
       }
 
-      const updatedInvoice = await invoiceServices.updateInvoiceStatus(parseInt(id), status, rejectionReason, recipientEmail);
+      // Support both single email (legacy) and multiple emails
+      const emails = recipientEmails || (recipientEmail ? [recipientEmail] : undefined);
+
+      const updatedInvoice = await invoiceServices.updateInvoiceStatus(parseInt(id), status, rejectionReason, emails);
 
       // Emit WebSocket event for status update
       const wsService = getWebSocketService();

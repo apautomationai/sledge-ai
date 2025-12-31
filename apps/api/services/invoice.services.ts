@@ -948,14 +948,17 @@ export class InvoiceServices {
     }
   }
 
-  async updateInvoiceStatus(invoiceId: number, status: string, rejectionReason?: string, recipientEmail?: string) {
+  async updateInvoiceStatus(invoiceId: number, status: string, rejectionReason?: string, recipientEmails?: string[]) {
     try {
+      // Store comma-separated emails for backward compatibility in DB
+      const emailsString = recipientEmails?.join(', ') || null;
+
       // Update the invoice status
       await db
         .update(invoiceModel)
         .set({
           status: status as any,
-          rejectionEmailSender: recipientEmail || null,
+          rejectionEmailSender: emailsString,
           rejectionReason: rejectionReason || null,
           updatedAt: new Date()
         })
@@ -1001,16 +1004,16 @@ export class InvoiceServices {
         throw new NotFoundError("Invoice not found after update");
       }
 
-      // Send rejection email if status is "rejected" and recipient email is provided
-      if (status === "rejected" && recipientEmail) {
+      // Send rejection email if status is "rejected" and recipient emails are provided
+      if (status === "rejected" && recipientEmails && recipientEmails.length > 0) {
         try {
           await emailService.sendInvoiceRejectionEmail({
-            to: recipientEmail,
+            to: recipientEmails,
             invoiceNumber: updatedInvoiceWithVendor.invoiceNumber || `INV-${invoiceId}`,
             vendorName: updatedInvoiceWithVendor.vendorData?.displayName || undefined,
             rejectionReason: rejectionReason,
           });
-          console.log(`Rejection email sent to ${recipientEmail} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
+          console.log(`Rejection email sent to ${recipientEmails.join(', ')} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
         } catch (emailError) {
           console.error("Failed to send rejection email:", emailError);
         }

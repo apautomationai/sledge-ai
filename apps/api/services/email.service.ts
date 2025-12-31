@@ -55,9 +55,9 @@ export class EmailService {
         return this.sendEmail({ to, subject, htmlBody, textBody });
     };
 
-    // send invoice rejection email
+    // send invoice rejection email to one or multiple recipients
     sendInvoiceRejectionEmail = async (params: {
-        to: string;
+        to: string | string[];
         invoiceNumber: string;
         vendorName?: string;
         rejectionReason?: string;
