@@ -101,10 +101,10 @@ export function Cards() {
   };
 
   return (
-    <section className="pb-4 md:pb-4 lg:pb-8 xl:pb-16 2xl:pb-16">
+    <section className="w-full py-12 md:py-16">
       <div className="">
         <motion.div
-          className="text-center mb-12 px-4 sm:px-6 lg:px-8"
+          className="text-center mb-12"
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" as const }}
@@ -120,9 +120,9 @@ export function Cards() {
         </motion.div>
 
         {/* Wrapper to center the grid container */}
-        <div className="flex justify-center  lg:px-12 xl:px-0">
+        <div className="flex justify-center px-4 sm:px-0">
           <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 w-fit"
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 w-full sm:w-fit place-items-center"
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -131,7 +131,7 @@ export function Cards() {
             {cards.map((card, index) => (
               <motion.div
                 key={index}
-                className="relative w-[318px] h-[346px] group cursor-pointer overflow-hidden rounded-2xl"
+                className="relative w-full max-w-[318px] aspect-[318/346] group cursor-pointer overflow-hidden rounded-2xl"
                 variants={cardVariants}
                 animate="normal"
                 whileHover="hover"

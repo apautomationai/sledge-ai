@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export function AiAccount() {
   return (
-    <section className="relative py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
+    <section className="relative w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
       <div className="relative mx-auto max-w-7xl">
         <div className="text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white uppercase leading-tight sm:leading-tight md:leading-snug">

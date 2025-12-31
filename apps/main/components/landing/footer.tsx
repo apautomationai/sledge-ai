@@ -1,5 +1,3 @@
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
 import { Separator } from "@workspace/ui/components/separator";
 import {
   ProfessionalWave,
@@ -41,7 +39,7 @@ const navigation = {
 
 export function Footer() {
   return (
-    <footer className="bg-neutral-900 text-gray-300 relative overflow-hidden">
+    <footer className="bg-[#141414] text-gray-300 relative overflow-hidden">
       {/* Diamond plate texture - ROUGHER */}
       <div />
 
@@ -50,8 +48,8 @@ export function Footer() {
       {/* Newsletter Section */}
 
       {/* Main Footer */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-16 lg:px-8 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 sm:gap-12">
+      <div className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16 relative z-10">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 sm:gap-12">
           {/* Brand Section */}
           <div className="col-span-2 lg:col-span-2">
             <div className="flex flex-col gap-2 mb-4">
