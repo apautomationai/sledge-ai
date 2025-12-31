@@ -11,6 +11,23 @@ import { PricingTools } from "@/components/pricing/tools";
 import { WhatsIncluded } from "@/components/pricing/whats-included";
 import { MoreComing } from "@/components/pricing/more";
 
+const whatsIncludedTitle = "What's Included";
+const whatsIncludedText =
+  "Built for real construction workflows, not generic accounting software.";
+const whatsIncludedFeatures = [
+  "Unlimited AI invoice processing",
+  "AI Automatic Email Listener",
+  "Gmail, Outlook, & Quickbooks Integration",
+  "Unlimited invoice projects",
+  "No per-invoice fee",
+  "No usage caps",
+];
+
+const builtToRunTitle = "Built to run your back office.";
+const builtToRunSubtitle = "Not just invoices.";
+const builtToRunDescription =
+  "Designed for construction teams and how you work. No contracts.";
+
 export default function Integrations() {
   return (
     <div className="min-h-screen w-full">
@@ -34,9 +51,17 @@ export default function Integrations() {
         <div className="relative">
           <PricingCore />
           <PricingTools />
-          <WhatsIncluded />
+          <WhatsIncluded
+            title={whatsIncludedTitle}
+            text={whatsIncludedText}
+            features={whatsIncludedFeatures}
+          />
           <MoreComing />
-          <BuiltToRun />
+          <BuiltToRun
+            title={builtToRunTitle}
+            subtitle={builtToRunSubtitle}
+            description={builtToRunDescription}
+          />
         </div>
         <FAQ />
       </main>

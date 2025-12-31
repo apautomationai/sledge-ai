@@ -43,8 +43,8 @@ const upcomingFeatures = [
 
 export function MoreComing() {
   return (
-    <section className="py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-10 md:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white uppercase mb-3 sm:mb-4">

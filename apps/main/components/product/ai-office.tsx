@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function AiOffice() {
   return (
-    <section className="py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 px-4 sm:px-6 md:px-12 lg:px-20">
+    <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-12">
         {/* Left Content */}
         <div className="flex-1 text-white">

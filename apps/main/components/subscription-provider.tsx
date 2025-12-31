@@ -68,10 +68,12 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     "/contact-us",
     "/privacy-policy",
     "/terms-conditions",
-    "/product-overview",
-    "/ai-account-payable",
-    "/integration",
+    "/product/overview",
+    "/product/account-payable",
+    "/product/integration",
     "/pricing",
+    "/industries/construction",
+    "/industries/concrete",
   ];
   const isPublicRoute = publicRoutes.some(
     (route) => pathname === route || pathname.startsWith("/auth/")

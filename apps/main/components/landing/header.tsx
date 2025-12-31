@@ -18,6 +18,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [industriesDropdownOpen, setIndustriesDropdownOpen] = useState(false);
   const bodyRef = useRef<HTMLElement | null>(null);
@@ -33,6 +34,7 @@ export function Header() {
     const verifySession = async () => {
       const { isLoggedIn } = await checkSession();
       setIsLoggedIn(isLoggedIn);
+      setIsAuthLoading(false);
     };
     verifySession();
 
@@ -103,8 +105,12 @@ export function Header() {
     };
   }, [mobileMenuOpen]);
 
-  const AuthButtons = () =>
-    isLoggedIn ? (
+  const AuthButtons = () => {
+    if (isAuthLoading) {
+      return null;
+    }
+
+    return isLoggedIn ? (
       <Button
         asChild
         className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-gray-900 font-bold px-6 shadow-lg shadow-yellow-500/30 hover:shadow-xl hover:shadow-yellow-400/40 transition-all duration-300 group uppercase border-2 border-yellow-600"
@@ -134,15 +140,13 @@ export function Header() {
         </Link>
       </div>
     );
+  };
 
   return (
     <>
-      <header className="bg-neutral-900 backdrop-blur-none shadow-[0_4px_20px_rgba(0,0,0,0.9),0_0_30px_rgba(253,176,34,0.2)] border-yellow-600/50 ">
-        <nav
-          className="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 lg:px-8 2xl:px-12"
-          aria-label="Global"
-        >
-          <div className="flex items-center justify-between py-4">
+      <header className="w-full bg-[#141414] backdrop-blur-none shadow-[0_4px_20px_rgba(0,0,0,0.9),0_0_30px_rgba(253,176,34,0.2)] border-yellow-600/50 ">
+        <nav className="w-full px-4 md:px-12" aria-label="Global">
+          <div className="flex items-center justify-between py-3 md:py-[13px]">
             <Link href="/" className="flex items-center gap-3">
               <div className="w-full h-full rounded-xl flex items-center justify-center">
                 <Image
@@ -178,7 +182,7 @@ export function Header() {
                     {dropdownOpen && (
                       <div className="absolute top-full left-0 mt-2 z-50 w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800">
                         <a
-                          href="product-overview"
+                          href="/product/overview"
                           onClick={() => setDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
@@ -196,7 +200,7 @@ export function Header() {
                           </div>
                         </a>
                         <a
-                          href="ai-account-payable"
+                          href="/product/account-payable"
                           onClick={() => setDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
@@ -214,7 +218,7 @@ export function Header() {
                           </div>
                         </a>
                         <a
-                          href="integration"
+                          href="/product/integration"
                           onClick={() => setDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
@@ -261,7 +265,7 @@ export function Header() {
                     {industriesDropdownOpen && (
                       <div className="absolute top-full left-0 mt-2 z-50 w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800 inline-flex flex-col justify-start items-start overflow-hidden">
                         <a
-                          href="#construction"
+                          href="/industries/construction"
                           onClick={() => setIndustriesDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
@@ -270,7 +274,7 @@ export function Header() {
                           </div>
                         </a>
                         <a
-                          href="#concrete"
+                          href="/industries/concrete"
                           onClick={() => setIndustriesDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
@@ -289,7 +293,7 @@ export function Header() {
                   >
                     {item.name}
                   </a>
-                ),
+                )
               )}
             </div>
 
@@ -380,7 +384,7 @@ export function Header() {
                           {dropdownOpen && (
                             <div className="mt-2 ml-4 space-y-2">
                               <Link
-                                href="/product-overview"
+                                href="/product/overview"
                                 className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                                 onClick={() => {
                                   setDropdownOpen(false);
@@ -399,7 +403,7 @@ export function Header() {
                                 Product overview
                               </Link>
                               <Link
-                                href="/ai-account-payable"
+                                href="/product/account-payable"
                                 className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                                 onClick={() => {
                                   setDropdownOpen(false);
@@ -418,7 +422,7 @@ export function Header() {
                                 AI Accounts Payable
                               </Link>
                               <Link
-                                href="/integration"
+                                href="/product/integration"
                                 className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                                 onClick={() => {
                                   setDropdownOpen(false);
@@ -503,7 +507,7 @@ export function Header() {
                         >
                           {item.name}
                         </a>
-                      ),
+                      )
                     )}
                   </div>
                 </div>

@@ -25,7 +25,7 @@ export default function Savings() {
   const annualSavings = numWorkers * 8 * numRate * 5 * 4 * 12;
 
   return (
-    <section className="px-4 sm:px-6 md:px-8 lg:px-8 w-full py-4 md:py-4 lg:py-8 xl:py-16 2xl:py-16 flex flex-col justify-center items-center gap-12">
+    <section className="w-full flex flex-col justify-center items-center gap-12 py-12 md:py-16">
       {/* Header */}
       <div className="self-stretch flex flex-col justify-center items-center gap-2">
         <div className="text-center text-white text-3xl sm:text-4xl lg:text-5xl font-bold font-league-spartan uppercase">

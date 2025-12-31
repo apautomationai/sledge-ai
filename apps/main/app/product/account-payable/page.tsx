@@ -13,6 +13,11 @@ import { HowItWorks } from "@/components/product/how-it-works";
 import WhatSledgeAutomate from "@/components/product/what-sledge-automate";
 import Benefits from "@/components/product/benefits";
 
+const builtToRunTitle = "Built to run your back office.";
+const builtToRunSubtitle = "Not just invoices.";
+const builtToRunDescription =
+  "Designed for construction teams and how you work. No contracts.";
+
 export default function AiAccountPayable() {
   return (
     <div className="min-h-screen w-full">
@@ -40,7 +45,11 @@ export default function AiAccountPayable() {
           <WhatSledgeAutomate />
           <Benefits />
           <Testimonial />
-          <BuiltToRun />
+          <BuiltToRun
+            title={builtToRunTitle}
+            subtitle={builtToRunSubtitle}
+            description={builtToRunDescription}
+          />
         </div>
         <FAQ />
       </main>

@@ -34,7 +34,7 @@ export function Hero() {
     verifySession();
   }, []);
   return (
-    <section className="relative flex items-center justify-center min-h-screen pt-24 pb-16 md:pt-28 md:pb-40 bg-[url('/images/hero-visual.png')] bg-cover bg-center bg-no-repeat bg-gradient-to-br from-gray-900/80 via-black/80 to-gray-800/80">
+    <section className="relative flex items-center justify-center min-h-[412px] md:min-h-screen pt-24 pb-16 md:pt-28 md:pb-40 bg-[url('/images/hero-visual.png')] bg-cover bg-center bg-no-repeat bg-gradient-to-br from-gray-900/80 via-black/80 to-gray-800/80">
       {/* Background Elements */}
 
       <div className="relative mx-auto max-w-7xl px-0 sm:px-6 lg:px-8">
@@ -74,7 +74,8 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-4 sm:mt-6 md:mt-2 text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed sm:leading-relaxed md:leading-[30px] text-gray-300 max-w-3xl mx-auto font-normal px-2 sm:px-0"
           >
-            One intelligent platform that runs your back office so you can run the jobsite.
+            One intelligent platform that runs your back office so you can run
+            the jobsite.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -83,7 +84,7 @@ export function Hero() {
             className="mt-6 sm:mt-8 md:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4 sm:px-0"
           >
             <Link href="/sign-up" className="w-full sm:w-auto">
-              <div className="px-4 py-3 bg-amber-400 rounded flex justify-center items-center gap-2 overflow-hidden hover:bg-amber-500 transition-colors duration-300">
+              <div className="px-4 py-3 bg-[#E3B02F] rounded flex justify-center items-center gap-2 overflow-hidden hover:bg-amber-500 transition-colors duration-300">
                 <div className="text-center text-stone-800 text-base font-bold font-['Inter'] uppercase leading-6">
                   start a free trial
                 </div>

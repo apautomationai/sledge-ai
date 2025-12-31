@@ -9,6 +9,11 @@ import { FAQ } from "@/components/product/faq";
 import { Tools } from "@/components/product/tools";
 import { IntegrationWorking } from "@/components/product/integration-working";
 
+const builtToRunTitle = "Built to run your back office.";
+const builtToRunSubtitle = "Not just invoices.";
+const builtToRunDescription =
+  "Designed for construction teams and how you work. No contracts.";
+
 export default function Integrations() {
   return (
     <div className="min-h-screen w-full">
@@ -32,7 +37,11 @@ export default function Integrations() {
         <div className="relative">
           <Tools />
           <IntegrationWorking />
-          <BuiltToRun />
+          <BuiltToRun
+            title={builtToRunTitle}
+            subtitle={builtToRunSubtitle}
+            description={builtToRunDescription}
+          />
         </div>
         <FAQ />
       </main>
