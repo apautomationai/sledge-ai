@@ -11,7 +11,7 @@ export interface WhatsIncludedProps {
 export function WhatsIncluded({ title, text, features }: WhatsIncludedProps) {
   return (
     <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         {(title || text) && (
           <div className="text-center mb-8 sm:mb-10 md:mb-12">
