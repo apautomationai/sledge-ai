@@ -362,12 +362,18 @@ importers:
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
+      eslint:
+        specifier: ^9.32.0
+        version: 9.39.1(jiti@2.6.1)
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
 
   packages/eslint-config:
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.32.0
+        version: 9.39.1
       '@next/eslint-plugin-next':
         specifier: ^15.4.5
         version: 15.5.7
