@@ -31,7 +31,7 @@ export default function SeeTheDifference() {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = Math.max(
       0,
-      Math.min(e.touches[0].clientX - rect.left, rect.width),
+      Math.min(e.touches[0].clientX - rect.left, rect.width)
     );
     const percent = Math.max(0, Math.min((x / rect.width) * 100, 100));
 
@@ -39,14 +39,15 @@ export default function SeeTheDifference() {
   };
 
   return (
-    <div className="flex flex-col gap-8 items-center w-full overflow-hidden py-12 md:py-16">
-      <div className="flex flex-col gap-4">
-        <div className="self-stretch text-center justify-start text-white text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-bold font-['League_Spartan'] uppercase leading-tight sm:leading-tight md:leading-[52px] lg:leading-none">
+    <div className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="flex flex-col gap-8 w-full max-w-[1400px] mx-auto overflow-hidden">
+        <div className="text-center">
+        <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
           SEE THE DIFFERENCE WITH SLEDGE.
-        </div>
-        <div className="self-stretch text-center justify-start text-white text-base sm:text-lg md:text-xl lg:text-2xl font-normal font-['Inter'] leading-relaxed sm:leading-relaxed md:leading-8">
+        </h2>
+        <p className="mt-2 text-lg md:text-2xl text-white">
           Manual construction back offices vs. AI-powered workflows with Sledge.
-        </div>
+        </p>
       </div>
 
       <div
@@ -103,6 +104,7 @@ export default function SeeTheDifference() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -48,8 +48,8 @@ export function Footer() {
       {/* Newsletter Section */}
 
       {/* Main Footer */}
-      <div className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16 relative z-10">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 sm:gap-12">
+      <div className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16 relative z-10">
+        <div className="max-w-[1400px] mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 sm:gap-12">
           {/* Brand Section */}
           <div className="col-span-2 lg:col-span-2">
             <div className="flex flex-col gap-2 mb-4">
@@ -66,7 +66,7 @@ export function Footer() {
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-emerald-400 to-blue-400 rounded-full animate-pulse" />
                 </div>
                 <span
-                  className="uppercase"
+                  className="uppercase font-['League_Spartan']"
                   style={{
                     color: "#FFF",
                     fontSize: "24px",

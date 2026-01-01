@@ -101,8 +101,8 @@ export function Cards() {
   };
 
   return (
-    <section className="w-full py-12 md:py-16">
-      <div className="">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="max-w-[1400px] mx-auto">
         <motion.div
           className="text-center mb-12"
           initial={{ opacity: 0, y: -20 }}
@@ -110,23 +110,23 @@ export function Cards() {
           transition={{ duration: 0.6, ease: "easeOut" as const }}
           viewport={{ once: true }}
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-bold text-white mb-4 leading-tight sm:leading-tight md:leading-snug">
+          <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
             YOUR ENTIRE OPERATION, SUPERCHARGED.
           </h2>
-          <p className="text-white text-sm sm:text-base md:text-lg lg:text-2xl leading-relaxed">
+          <p className="mt-2 text-lg md:text-2xl text-white">
             Sledge is built as a unified AI platform that supports every part of
             the construction back office.
           </p>
         </motion.div>
 
         {/* Wrapper to center the grid container */}
-        <div className="flex justify-center px-4 sm:px-0">
+        <div className="flex justify-center">
           <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 w-full sm:w-fit place-items-center"
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 w-full place-items-center"
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true, amount: 0.1 }}
           >
             {cards.map((card, index) => (
               <motion.div

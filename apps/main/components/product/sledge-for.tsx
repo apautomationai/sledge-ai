@@ -25,13 +25,13 @@ const personas = [
 
 export function SledgeFor() {
   return (
-    <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-center text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-8 sm:mb-10 md:mb-12 tracking-wide leading-tight sm:leading-tight md:leading-snug">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="max-w-[1400px] mx-auto">
+        <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white text-center uppercase font-['League_Spartan'] mb-12">
           WHO SLEDGE IS FOR
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {personas.map((persona, index) => (
             <div
               key={index}
@@ -45,12 +45,10 @@ export function SledgeFor() {
                   className="object-contain"
                 />
               </div>
-              <h3 className="text-[#e3b02f] font-semibold text-base sm:text-lg md:text-xl mb-2 whitespace-pre-line">
+              <h3 className="text-[#e3b02f] font-semibold text-xl mb-2 whitespace-pre-line">
                 {persona.title}
               </h3>
-              <p className="text-white text-xs sm:text-sm md:text-base">
-                {persona.description}
-              </p>
+              <p className="text-white text-base">{persona.description}</p>
             </div>
           ))}
         </div>

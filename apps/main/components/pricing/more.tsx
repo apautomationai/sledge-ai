@@ -43,14 +43,14 @@ const upcomingFeatures = [
 
 export function MoreComing() {
   return (
-    <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
-      <div className="max-w-5xl mx-auto">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="w-full max-w-[1400px] mx-auto">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-10 md:mb-12">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white uppercase mb-3 sm:mb-4">
+          <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase mb-3 sm:mb-4 font-['League_Spartan']">
             More Coming, At No Extra Cost.
           </h2>
-          <p className="text-sm sm:text-base md:text-lg text-white max-w-3xl mx-auto px-2 sm:px-0">
+          <p className="mt-2 text-base md:text-2xl text-white">
             Sledge is starting with invoicing and payments, but we're building
             toward a complete construction back office.
           </p>

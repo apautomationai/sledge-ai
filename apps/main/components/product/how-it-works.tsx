@@ -4,8 +4,8 @@ import Image from "next/image";
 
 export function HowItWorks() {
   return (
-    <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
-      <div className="max-w-7xl mx-auto">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="max-w-[1400px] mx-auto">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-10 md:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white uppercase tracking-wide leading-tight sm:leading-tight md:leading-snug">

@@ -19,12 +19,12 @@ export function Testimonial() {
   ];
 
   return (
-    <section className="w-full py-12 md:py-16">
-      <div className="max-w-7xl mx-auto">
-        <div className="self-stretch text-center justify-start text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold font-['League_Spartan'] uppercase mb-2 sm:mb-6 md:mb-10 leading-tight">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="max-w-[1400px] mx-auto">
+        <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan'] text-center mb-6 md:mb-10">
           WHAT OUR CUSTOMERS ARE SAYING.
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xl:gap-3 2xl:gap-2">
           {testimonials.map((testimonial, index) => (
             <div key={index}>
               {/* Mobile Card Design */}
@@ -53,7 +53,7 @@ export function Testimonial() {
               </div>
 
               {/* Desktop Image Design */}
-              <div className="hidden md:block relative w-full h-[240px] lg:h-[280px] xl:h-[300px] overflow-hidden group">
+              <div className="hidden md:block relative w-full h-[240px] lg:h-[280px] xl:h-[320px] 2xl:h-[360px] overflow-hidden group">
                 <Image
                   src="/images/image 21 (2).png"
                   alt={testimonial.name}
@@ -62,10 +62,10 @@ export function Testimonial() {
                 />
 
                 {/* Content Overlay */}
-                <div className="absolute inset-0 flex items-center gap-3 lg:gap-4 xl:gap-6 p-4 lg:p-6 xl:p-8">
+                <div className="absolute inset-y-0 left-[3%] right-[3%] lg:left-[5%] lg:right-[5%] xl:left-[8%] xl:right-[8%] 2xl:left-[10%] 2xl:right-[10%] min-[1800px]:left-[14%] min-[1800px]:right-[14%] min-[2300px]:left-[18%] min-[2300px]:right-[18%] flex items-center gap-2 lg:gap-3 xl:gap-3 2xl:gap-3 min-[1800px]:gap-5 min-[2300px]:gap-4 p-3 lg:p-4 xl:p-4 2xl:p-5 min-[1800px]:p-8 min-[2300px]:p-6">
                   {/* Profile Image */}
-                  <div className="flex-shrink-0 ml-2 lg:ml-3 xl:ml-6">
-                    <div className="relative w-20 h-20 lg:w-24 lg:h-24 xl:w-28 xl:h-28 rounded-lg overflow-hidden">
+                  <div className="flex-shrink-0 ml-1 lg:ml-2 xl:ml-2 2xl:ml-2 min-[1800px]:ml-4 min-[2300px]:ml-3">
+                    <div className="relative w-20 h-20 lg:w-24 lg:h-24 xl:w-24 xl:h-24 2xl:w-28 2xl:h-28 min-[1800px]:w-[167px] min-[1800px]:h-[167px] min-[2300px]:w-[140px] min-[2300px]:h-[140px] rounded-lg overflow-hidden">
                       <Image
                         src={testimonial.icon}
                         alt={testimonial.name}
@@ -76,15 +76,15 @@ export function Testimonial() {
                   </div>
 
                   {/* Text Content */}
-                  <div className="flex-1 flex flex-col justify-center pr-3 lg:pr-4 xl:pr-6 overflow-hidden">
-                    <p className="text-white text-xs lg:text-sm xl:text-base mb-2 lg:mb-3 leading-relaxed line-clamp-3 lg:line-clamp-4">
+                  <div className="flex-1 min-w-0 flex flex-col justify-center pr-2 lg:pr-3 xl:pr-4 2xl:pr-5 min-[1800px]:pr-10 min-[2300px]:pr-6 overflow-hidden">
+                    <p className="text-white text-xs lg:text-sm xl:text-sm 2xl:text-base min-[1800px]:text-xl min-[2300px]:text-base mb-2 min-[1800px]:mb-3 min-[2300px]:mb-2 leading-relaxed line-clamp-3 lg:line-clamp-4">
                       "{testimonial.quote}"
                     </p>
                     <div>
-                      <h3 className="text-white font-semibold text-xs lg:text-sm xl:text-base truncate">
+                      <h3 className="text-white font-semibold text-xs lg:text-sm xl:text-sm 2xl:text-base min-[1800px]:text-xl min-[2300px]:text-base truncate">
                         {testimonial.name}
                       </h3>
-                      <p className="text-gray-300 text-xs lg:text-sm line-clamp-2">
+                      <p className="text-gray-300 text-xs lg:text-sm xl:text-sm 2xl:text-base min-[1800px]:text-xl min-[2300px]:text-base line-clamp-2">
                         {testimonial.title}
                       </p>
                     </div>

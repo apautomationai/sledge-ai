@@ -46,9 +46,9 @@ export function FAQ() {
   };
 
   return (
-    <section className="relative w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16 bg-[#141414]">
-      <div className="relative mx-auto max-w-7xl">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white uppercase leading-tight sm:leading-tight md:leading-snug text-center mb-8 sm:mb-10 md:mb-12">
+    <section className="relative w-full px-6 md:px-8 lg:px-12 py-12 md:py-16 bg-[#141414]">
+      <div className="relative mx-auto max-w-[1400px]">
+        <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan'] text-center mb-8 sm:mb-10 md:mb-12">
           Frequently Asked Questions.
         </h2>
 
@@ -62,7 +62,7 @@ export function FAQ() {
                 onClick={() => toggleItem(index)}
                 className="w-full flex items-center justify-between py-4 sm:py-5 text-left group"
               >
-                <span className="text-white text-sm sm:text-base md:text-lg font-medium pr-4">
+                <span className="text-white text-base sm:text-lg md:text-xl font-semibold pr-4">
                   {faq.question}
                 </span>
                 <ChevronDown
