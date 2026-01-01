@@ -31,10 +31,10 @@ export function Expanding() {
   };
 
   return (
-    <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
-      <div className="max-w-7xl mx-auto">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="max-w-[1400px] mx-auto">
         {/* Header */}
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center uppercase tracking-wide mb-8 sm:mb-10 md:mb-12 leading-tight sm:leading-tight md:leading-snug">
+        <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white text-center uppercase font-['League_Spartan'] mb-12">
           Built Today. Expanding Tomorrow.
         </h2>
 

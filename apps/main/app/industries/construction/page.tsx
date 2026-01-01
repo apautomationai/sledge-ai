@@ -55,6 +55,10 @@ const heroImage = {
   alt: "Construction Management Software",
 };
 
+const whatIsItTitle = "AI-Powered Back Office Software for Construction";
+const whatIsItDescription =
+  "Sledge is AI-powered back office software built for construction teams.It automates operational work like document intake, approvals, and accounting workflows using autonomous AI — reducing manual work without changing how teams operate.";
+
 export default function Integrations() {
   return (
     <div className="min-h-screen w-full">
@@ -81,7 +85,7 @@ export default function Integrations() {
           description={heroDescription}
           image={heroImage}
         />
-        <WhatIsIt />
+        <WhatIsIt title={whatIsItTitle} description={whatIsItDescription} />
         <AIFoundationWorking
           title={aiFoundationTitle}
           steps={aiFoundationSteps}

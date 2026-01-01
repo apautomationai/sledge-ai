@@ -7,7 +7,17 @@ import { Footer } from "@/components/landing/footer";
 import { BuiltToRun } from "@/components/product/built-to-run";
 import { FAQ } from "@/components/product/faq";
 import { Tools } from "@/components/product/tools";
-import { IntegrationWorking } from "@/components/product/integration-working";
+import { WhatsIncluded } from "@/components/pricing/whats-included";
+
+const whatsIncludedTitle = "How Sledge Integrations Work";
+const whatsIncludedText =
+  "Sledge integrations are powered by autonomous, event-driven AI. When data enters one system — like an email or accounting platform — AI automatically processes, validates, and syncs information across your back office.";
+const whatsIncludedFeatures = [
+  "Secure, native API connections",
+  "AI-driven data mapping and validation",
+  "Continuous or near-real-time sync",
+  "Human-in-the-loop control",
+];
 
 const builtToRunTitle = "Built to run your back office.";
 const builtToRunSubtitle = "Not just invoices.";
@@ -36,7 +46,11 @@ export default function Integrations() {
         />
         <div className="relative">
           <Tools />
-          <IntegrationWorking />
+          <WhatsIncluded
+            title={whatsIncludedTitle}
+            text={whatsIncludedText}
+            features={whatsIncludedFeatures}
+          />
           <BuiltToRun
             title={builtToRunTitle}
             subtitle={builtToRunSubtitle}

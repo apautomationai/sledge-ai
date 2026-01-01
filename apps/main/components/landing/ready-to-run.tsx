@@ -4,12 +4,12 @@ import Link from "next/link";
 
 export default function ReadyToRun() {
   return (
-    <section className="w-full py-12 md:py-16">
-      <div className="max-w-8xl mx-auto text-center">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight sm:leading-tight md:leading-snug">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="max-w-[1400px] mx-auto text-center">
+        <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
           READY TO RUN YOUR BUSINESS BETTER?
         </h2>
-        <p className="text-white text-sm sm:text-base md:text-lg lg:text-xl mb-8 leading-relaxed">
+        <p className="mt-2 text-lg md:text-2xl text-white mb-8">
           No contracts. No setup fees. Connect to QuickBooks when you're ready.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

@@ -79,7 +79,7 @@
 }
 
 @theme inline {
-  --font-league-spartan: var(--font-league-spartan);
+  --font-family-league-spartan: var(--font-league-spartan);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

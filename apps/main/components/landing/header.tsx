@@ -156,7 +156,7 @@ export function Header() {
                   height={48}
                 />
               </div>
-              <span className="uppercase text-white text-2xl font-bold font-league-spartan leading-6">
+              <span className="uppercase text-white text-2xl font-bold font-['League_Spartan'] leading-6">
                 SLEDGE
               </span>
             </Link>
@@ -182,7 +182,7 @@ export function Header() {
                     {dropdownOpen && (
                       <div className="absolute top-full left-0 mt-2 z-50 w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800">
                         <a
-                          href="/product/overview"
+                          href="/product"
                           onClick={() => setDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
@@ -200,7 +200,7 @@ export function Header() {
                           </div>
                         </a>
                         <a
-                          href="/product/account-payable"
+                          href="/product/ai-account-payable"
                           onClick={() => setDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
@@ -218,7 +218,7 @@ export function Header() {
                           </div>
                         </a>
                         <a
-                          href="/product/integration"
+                          href="/integration"
                           onClick={() => setDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
