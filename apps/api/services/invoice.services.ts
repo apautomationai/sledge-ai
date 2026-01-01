@@ -13,6 +13,7 @@ import { Readable } from "stream";
 import { generateS3PublicUrl } from "@/lib/utils/s3";
 import { QuickBooksService } from "@/services/quickbooks.service";
 import { emailService } from "@/services/email.service";
+import { usersModel } from "@/models/users.model";
 const { v4: uuidv4 } = require("uuid");
 
 const quickbooksService = new QuickBooksService();
@@ -960,14 +961,17 @@ export class InvoiceServices {
     }
   }
 
-  async updateInvoiceStatus(invoiceId: number, status: string, rejectionReason?: string, recipientEmail?: string) {
+  async updateInvoiceStatus(invoiceId: number, status: string, rejectionReason?: string, recipientEmails?: string[]) {
     try {
+      // Store comma-separated emails for backward compatibility in DB
+      const emailsString = recipientEmails?.join(', ') || null;
+
       // Update the invoice status
       await db
         .update(invoiceModel)
         .set({
           status: status as any,
-          rejectionEmailSender: recipientEmail || null,
+          rejectionEmailSender: emailsString,
           rejectionReason: rejectionReason || null,
           updatedAt: new Date()
         })
@@ -992,6 +996,11 @@ export class InvoiceServices {
             active: quickbooksVendorsModel.active,
             quickbooksId: quickbooksVendorsModel.quickbooksId,
           },
+          userData: {
+            firstName: usersModel.firstName,
+            lastName: usersModel.lastName,
+            companyName: usersModel.businessName,
+          },
         })
         .from(invoiceModel)
         .leftJoin(
@@ -1001,6 +1010,10 @@ export class InvoiceServices {
         .leftJoin(
           quickbooksVendorsModel,
           eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
+        )
+        .leftJoin(
+          usersModel,
+          eq(invoiceModel.userId, usersModel.id),
         )
         .where(
           and(
@@ -1013,16 +1026,21 @@ export class InvoiceServices {
         throw new NotFoundError("Invoice not found after update");
       }
 
-      // Send rejection email if status is "rejected" and recipient email is provided
-      if (status === "rejected" && recipientEmail) {
+      // Send rejection email if status is "rejected" and recipient emails are provided
+      if (status === "rejected" && recipientEmails && recipientEmails.length > 0) {
+        const senderName = `${updatedInvoiceWithVendor?.userData?.firstName} ${updatedInvoiceWithVendor?.userData?.lastName}`.trim() || 'Me';
+        const senderCompany = updatedInvoiceWithVendor?.userData?.companyName || 'My Company';
         try {
           await emailService.sendInvoiceRejectionEmail({
-            to: recipientEmail,
+            to: recipientEmails,
             invoiceNumber: updatedInvoiceWithVendor.invoiceNumber || `INV-${invoiceId}`,
             vendorName: updatedInvoiceWithVendor.vendorData?.displayName || undefined,
             rejectionReason: rejectionReason,
+            senderName: senderName,
+            senderCompany: senderCompany,
+            invoiceFileUrl: updatedInvoiceWithVendor.fileUrl || undefined,
           });
-          console.log(`Rejection email sent to ${recipientEmail} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
+          console.log(`Rejection email sent to ${recipientEmails.join(', ')} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
         } catch (emailError) {
           console.error("Failed to send rejection email:", emailError);
         }
