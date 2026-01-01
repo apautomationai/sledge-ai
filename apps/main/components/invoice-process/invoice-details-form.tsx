@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
 import {
   Accordion,
@@ -176,6 +176,10 @@ export default function InvoiceDetailsForm({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showChangeTypeDialog, setShowChangeTypeDialog] = useState(false);
+  const [lineItemsViewMode, setLineItemsViewMode] = useState<'single' | 'expand'>('single');
+
+  // Ref to access single mode save function
+  const singleModeSaveRef = useRef<(() => Promise<void>) | null>(null);
   // Accordion state management
   const [accordionValue, setAccordionValue] = useState<string[]>(["invoice-info", "line-items"]);
   // Use shared QuickBooks data from context
@@ -264,7 +268,11 @@ export default function InvoiceDetailsForm({
 
       // Refresh line items to get updated data
       if (invoiceDetails?.id) {
-        const response: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`);
+        const url = lineItemsViewMode
+          ? `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}?viewType=${lineItemsViewMode}`
+          : `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`;
+
+        const response: any = await client.get(url);
         if (response.success) {
           // Sort line items by name (item_name)
           const sortedLineItems = [...response.data].sort((a, b) => {
@@ -300,7 +308,12 @@ export default function InvoiceDetailsForm({
 
       // Refresh line items to get updated data
       if (invoiceDetails?.id) {
-        const response: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`);
+        const viewType = lineItemsViewMode ? getApiViewType(lineItemsViewMode) : undefined;
+        const url = viewType
+          ? `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}?viewType=${viewType}`
+          : `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`;
+
+        const response: any = await client.get(url);
         if (response.success) {
           const sortedLineItems = [...response.data].sort((a, b) => {
             const nameA = (a.item_name || '').toLowerCase();
@@ -372,7 +385,12 @@ export default function InvoiceDetailsForm({
 
       // Refresh line items to get updated data
       if (invoiceDetails?.id) {
-        const response: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`);
+        const viewType = lineItemsViewMode ? getApiViewType(lineItemsViewMode) : undefined;
+        const url = viewType
+          ? `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}?viewType=${viewType}`
+          : `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`;
+
+        const response: any = await client.get(url);
         if (response.success) {
           const sortedLineItems = [...response.data].sort((a, b) => {
             const nameA = (a.item_name || '').toLowerCase();
@@ -446,33 +464,44 @@ export default function InvoiceDetailsForm({
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
-  // Fetch line items when invoice details change
-  useEffect(() => {
-    const fetchLineItems = async () => {
-      if (!invoiceDetails?.id) return;
+  // Helper function to convert viewMode to API viewType
+  const getApiViewType = (viewMode: 'single' | 'expand'): 'single' | 'expanded' => {
+    return viewMode === 'expand' ? 'expanded' : 'single';
+  };
 
-      setIsLoadingLineItems(true);
-      try {
-        const response: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`);
-        if (response.success) {
-          // Sort line items by name (item_name)
-          const sortedLineItems = [...response.data].sort((a, b) => {
-            const nameA = (a.item_name || '').toLowerCase();
-            const nameB = (b.item_name || '').toLowerCase();
-            return nameA.localeCompare(nameB);
-          });
-          setLineItems(sortedLineItems);
-        }
-      } catch (error) {
-        console.error("Error fetching line items:", error);
-        setLineItems([]);
-      } finally {
-        setIsLoadingLineItems(false);
+  // Function to fetch line items
+  const fetchLineItems = async (viewMode?: 'single' | 'expand') => {
+    if (!invoiceDetails?.id) return;
+
+    setIsLoadingLineItems(true);
+    try {
+      const viewType = viewMode ? getApiViewType(viewMode) : undefined;
+      const url = viewType
+        ? `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}?viewType=${viewType}`
+        : `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`;
+
+      const response: any = await client.get(url);
+      if (response.success) {
+        // Sort line items by name (item_name)
+        const sortedLineItems = [...response.data].sort((a, b) => {
+          const nameA = (a.item_name || '').toLowerCase();
+          const nameB = (b.item_name || '').toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+        setLineItems(sortedLineItems);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching line items:", error);
+      setLineItems([]);
+    } finally {
+      setIsLoadingLineItems(false);
+    }
+  };
 
-    fetchLineItems();
-  }, [invoiceDetails?.id]);
+  // Fetch line items when invoice details change or view mode changes
+  useEffect(() => {
+    fetchLineItems(lineItemsViewMode);
+  }, [invoiceDetails?.id, lineItemsViewMode]);
 
   // Calculate and update total amount whenever line items change
   useEffect(() => {
@@ -786,6 +815,38 @@ export default function InvoiceDetailsForm({
               <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
                 <div className="flex items-center gap-2 flex-1">
                   <span className="text-sm font-semibold">Line Items ({lineItems.length})</span>
+                  {/* Single/Expand Toggle */}
+                  <div className="flex items-center gap-2 ml-4">
+                    <span className="text-xs text-muted-foreground">View:</span>
+                    <div className="flex items-center bg-muted rounded-md p-1">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLineItemsViewMode('single');
+                        }}
+                        className={`px-2 py-1 text-xs rounded transition-colors ${lineItemsViewMode === 'single'
+                          ? 'bg-background text-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                      >
+                        Single
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLineItemsViewMode('expand');
+                        }}
+                        className={`px-2 py-1 text-xs rounded transition-colors ${lineItemsViewMode === 'expand'
+                          ? 'bg-background text-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                      >
+                        Expand
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 {isLoadingLineItems && (
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -836,12 +897,16 @@ export default function InvoiceDetailsForm({
                       isQuickBooksConnected={isQuickBooksConnected}
                       selectedItems={selectedLineItems}
                       onSelectionChange={setSelectedLineItems}
+                      viewMode={lineItemsViewMode}
+                      invoiceDetails={invoiceDetails}
+                      onLineItemsRefresh={() => fetchLineItems(lineItemsViewMode)}
+                      onSingleModeSaveRef={singleModeSaveRef}
                     />
                   )}
                 </ScrollArea>
 
-                {/* Add Line Item Button */}
-                {invoiceDetails?.id && (
+                {/* Add Line Item Button - Only show in expand mode */}
+                {invoiceDetails?.id && lineItemsViewMode === 'expand' && (
                   <div className="mt-2 flex-shrink-0">
                     <AddLineItemDialog
                       invoiceId={invoiceDetails.id}
@@ -873,6 +938,8 @@ export default function InvoiceDetailsForm({
           onFieldChange={onFieldChange}
           vendorData={vendorData}
           customerData={customerData}
+          lineItemsViewMode={lineItemsViewMode}
+          singleModeSaveRef={singleModeSaveRef}
         />
       </div>
 

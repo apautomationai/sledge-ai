@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
     Table,
@@ -46,6 +46,10 @@ interface LineItemsTableProps {
     isQuickBooksConnected?: boolean | null;
     selectedItems?: Set<number>;
     onSelectionChange?: (selectedIds: Set<number>) => void;
+    viewMode?: 'single' | 'expand';
+    invoiceDetails?: any;
+    onLineItemsRefresh?: () => void;
+    onSingleModeSaveRef?: React.MutableRefObject<(() => Promise<void>) | null>;
 }
 
 export function LineItemsTable({
@@ -55,7 +59,11 @@ export function LineItemsTable({
     onChange,
     onDelete,
     isEditing = false,
-    isQuickBooksConnected = null
+    isQuickBooksConnected = null,
+    viewMode = 'single',
+    invoiceDetails,
+    onLineItemsRefresh,
+    onSingleModeSaveRef
 }: LineItemsTableProps) {
     const router = useRouter();
     const [accounts, setAccounts] = useState<DBQuickBooksAccount[]>([]);
@@ -69,11 +77,13 @@ export function LineItemsTable({
     const [isDeleting, setIsDeleting] = useState(false);
     const [internalSelectedItems, setInternalSelectedItems] = useState<Set<number>>(new Set());
 
-    // Use external selection if provided, otherwise use internal
-    const selectedItems = externalSelectedItems || internalSelectedItems;
-    const setSelectedItems = onSelectionChange
-        ? (items: Set<number>) => onSelectionChange(items)
-        : setInternalSelectedItems;
+    // Single mode state for the summary row
+    const [singleModeState, setSingleModeState] = useState({
+        description: "" as string,
+        itemType: null as 'account' | 'product' | null,
+        resourceId: null as string | null,
+        customerId: null as string | null,
+    });
 
     // Local state for each line item - initialize with actual values
     const getInitialStates = () => {
@@ -93,7 +103,6 @@ export function LineItemsTable({
                 rate: item.rate || "0",
                 amount: item.amount || "0",
                 itemType: item.itemType || null,
-                // resourceId should store the quickbooks_id (as saved in database)
                 resourceId: item.resourceId && item.resourceId !== 'undefined' && item.resourceId !== 'null' ? String(item.resourceId) : null,
                 customerId: item.customerId && item.customerId !== 'undefined' && item.customerId !== 'null' ? String(item.customerId) : null,
             };
@@ -103,22 +112,50 @@ export function LineItemsTable({
 
     const [lineItemStates, setLineItemStates] = useState(getInitialStates);
 
+    // Use external selection if provided, otherwise use internal
+    const selectedItems = externalSelectedItems || internalSelectedItems;
+    const setSelectedItems = onSelectionChange
+        ? (items: Set<number>) => onSelectionChange(items)
+        : setInternalSelectedItems;
+
     // Update states when lineItems change
     useEffect(() => {
         setLineItemStates(getInitialStates());
     }, [lineItems.length]); // Only re-initialize when items are added/removed
 
+    // Load existing single mode data when component mounts
+    useEffect(() => {
+        if (viewMode === 'single' && invoiceDetails?.id && lineItems.length === 1) {
+            // If there's exactly one line item, populate single mode state
+            const singleItem = lineItems[0];
+            if (singleItem) {
+                setSingleModeState({
+                    description: singleItem.item_name || singleItem.description || "",
+                    itemType: singleItem.itemType || null,
+                    resourceId: singleItem.resourceId ? String(singleItem.resourceId) : null,
+                    customerId: singleItem.customerId ? String(singleItem.customerId) : null,
+                });
+            }
+        } else if (viewMode === 'single' && lineItems.length === 0) {
+            // Reset single mode state if no line items
+            setSingleModeState({
+                description: "",
+                itemType: null,
+                resourceId: null,
+                customerId: null,
+            });
+        }
+    }, [viewMode, lineItems, invoiceDetails?.id]);
+
     // Load accounts, items, and customers when QuickBooks is connected
     useEffect(() => {
         if (isQuickBooksConnected) {
-            // Always load accounts and products when connected since they're needed for dropdowns
             if (accounts.length === 0 && !isLoadingAccounts) {
                 loadAccounts();
             }
             if (items.length === 0 && !isLoadingItems) {
                 loadItems();
             }
-            // Always load customers if connected and not already loaded
             if (customers.length === 0 && !isLoadingCustomers) {
                 loadCustomers();
             }
@@ -338,6 +375,68 @@ export function LineItemsTable({
         }
     };
 
+    // Single mode handlers
+    const handleSingleModeChange = (field: string, value: any) => {
+        setSingleModeState(prev => ({
+            ...prev,
+            [field]: value,
+            // Reset resourceId when itemType changes
+            ...(field === 'itemType' && { resourceId: null })
+        }));
+    };
+
+    const handleSingleModeResourceSelect = (resourceId: string, type: 'account' | 'product') => {
+        // Find the selected item to get its quickbooks_id
+        let quickbooksId: string | null = null;
+
+        if (type === 'account') {
+            const selectedAccount = accounts.find(account => String(account.id) === resourceId);
+            quickbooksId = selectedAccount?.quickbooksId || null;
+        } else if (type === 'product') {
+            const selectedProduct = items.find(item => String(item.id) === resourceId);
+            quickbooksId = selectedProduct?.quickbooksId || null;
+        }
+
+        setSingleModeState(prev => ({
+            ...prev,
+            resourceId: quickbooksId
+        }));
+    };
+
+    // Function to save single mode data
+    const saveSingleModeData = useCallback(async () => {
+        if (!invoiceDetails?.id || !singleModeState.itemType || !singleModeState.resourceId) {
+            return;
+        }
+
+        try {
+            await client.post(`/api/v1/invoice/line-items/single-mode`, {
+                invoiceId: invoiceDetails.id,
+                itemType: singleModeState.itemType,
+                resourceId: singleModeState.resourceId,
+                customerId: singleModeState.customerId,
+                totalAmount: invoiceDetails.totalAmount || "0",
+                description: singleModeState.description || ""
+            });
+
+            toast.success("Single line item saved successfully");
+
+            if (onLineItemsRefresh) {
+                onLineItemsRefresh();
+            }
+        } catch (error) {
+            console.error('Error saving single mode data:', error);
+            toast.error("Failed to save single line item");
+        }
+    }, [invoiceDetails?.id, singleModeState.itemType, singleModeState.resourceId, singleModeState.customerId, singleModeState.description, invoiceDetails?.totalAmount, onLineItemsRefresh]);
+
+    // Expose saveSingleModeData function to parent component
+    useEffect(() => {
+        if (onSingleModeSaveRef) {
+            onSingleModeSaveRef.current = saveSingleModeData;
+        }
+    }, [onSingleModeSaveRef, saveSingleModeData]);
+
     const getAccountDisplayName = (account: DBQuickBooksAccount) => {
         return account.fullyQualifiedName || account.name || 'Unknown Account';
     };
@@ -350,6 +449,190 @@ export function LineItemsTable({
         return customer.displayName || customer.companyName || 'Unknown';
     };
 
+    // Single mode: Always show one row
+    if (viewMode === 'single') {
+        return (
+            <>
+                <TooltipProvider>
+                    <div className="rounded-lg">
+                        <div className="overflow-x-auto">
+                            <Table className="table-fixed">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-[16%] px-2 py-2">Description</TableHead>
+                                        <TableHead className="w-[8%] px-2 py-2">Qty</TableHead>
+                                        <TableHead className="w-[8%] px-2 py-2">Rate</TableHead>
+                                        <TableHead className="w-[8%] px-2 py-2">Amount</TableHead>
+                                        <TableHead className="w-[12%] px-2 py-2">Cost Type</TableHead>
+                                        <TableHead className="w-[20%] px-2 py-2">Category</TableHead>
+                                        <TableHead className="w-[20%] px-2 py-2">Job</TableHead>
+                                        {isEditing && <TableHead className="w-[8%] px-2 py-2"></TableHead>}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell className="font-medium max-w-0 px-2 py-2">
+                                            <Input
+                                                type="text"
+                                                value={singleModeState.description}
+                                                onChange={(e) => handleSingleModeChange('description', e.target.value)}
+                                                className="h-8 px-2"
+                                                placeholder="Description"
+                                                disabled={!isEditing}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="px-2 py-2">
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                value="1"
+                                                className="h-8 px-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                disabled={true}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="px-2 py-2">
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                value={invoiceDetails?.totalAmount || "0"}
+                                                className="h-8 px-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                disabled={true}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="px-2 py-2">
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                value={invoiceDetails?.totalAmount || "0"}
+                                                className="h-8 px-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                disabled={true}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Select
+                                                value={singleModeState.itemType || undefined}
+                                                onValueChange={(value) => handleSingleModeChange('itemType', value)}
+                                                disabled={!isEditing}
+                                            >
+                                                <SelectTrigger className="h-8">
+                                                    <SelectValue placeholder="Select..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="account">Account</SelectItem>
+                                                    <SelectItem value="product">Cost Code</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </TableCell>
+                                        <TableCell className="px-2 py-2">
+                                            <div className="relative">
+                                                {singleModeState.itemType === 'account' ? (
+                                                    <LineItemAutocomplete
+                                                        items={accounts}
+                                                        value={singleModeState.resourceId}
+                                                        onSelect={(id, account) => handleSingleModeResourceSelect(id, 'account')}
+                                                        isLoading={isLoadingAccounts}
+                                                        disabled={!isEditing}
+                                                        getDisplayName={getAccountDisplayName}
+                                                    />
+                                                ) : singleModeState.itemType === 'product' ? (
+                                                    <LineItemAutocomplete
+                                                        items={items}
+                                                        value={singleModeState.resourceId}
+                                                        onSelect={(id, item) => handleSingleModeResourceSelect(id, 'product')}
+                                                        isLoading={isLoadingItems}
+                                                        disabled={!isEditing}
+                                                        getDisplayName={getItemDisplayName}
+                                                    />
+                                                ) : (
+                                                    <div className="text-xs text-muted-foreground">Select type first</div>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="px-2 py-2">
+                                            <div className="relative">
+                                                {isQuickBooksConnected === false ? (
+                                                    <div
+                                                        className="h-8 px-2 border border-input bg-background rounded-md text-xs text-muted-foreground cursor-pointer hover:bg-accent flex items-center"
+                                                        onClick={() => setIsQuickBooksErrorOpen(true)}
+                                                    >
+                                                        Connect QB
+                                                    </div>
+                                                ) : isQuickBooksConnected === null ? (
+                                                    <div className="h-8 px-2 border border-input bg-background rounded-md text-xs text-muted-foreground flex items-center">
+                                                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                                        Loading...
+                                                    </div>
+                                                ) : (
+                                                    <LineItemAutocomplete<QuickBooksCustomer>
+                                                        items={customers}
+                                                        value={singleModeState.customerId}
+                                                        onSelect={(id) => handleSingleModeChange('customerId', id)}
+                                                        isLoading={isLoadingCustomers}
+                                                        disabled={!isEditing}
+                                                        getDisplayName={getCustomerDisplayName}
+                                                    />
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        {isEditing && <TableCell className="px-2 py-2"></TableCell>}
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </div>
+                </TooltipProvider>
+
+                {/* QuickBooks Integration Error Dialog */}
+                <Dialog open={isQuickBooksErrorOpen} onOpenChange={setIsQuickBooksErrorOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>QuickBooks Integration Required</DialogTitle>
+                            <DialogDescription>
+                                To categorize line items with accounts and products/services, you need to connect your QuickBooks account first.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="my-4">
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <div className="flex items-start">
+                                    <div className="shrink-0">
+                                        <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <h3 className="text-sm font-medium text-yellow-800">
+                                            Integration Not Connected
+                                        </h3>
+                                        <div className="mt-2 text-sm text-yellow-700">
+                                            <p>
+                                                Please connect your QuickBooks account in the integrations page to enable line item categorization.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+                            <Button
+                                onClick={() => {
+                                    setIsQuickBooksErrorOpen(false);
+                                    router.push('/integrations');
+                                }}
+                                className="bg-blue-600 text-white hover:bg-blue-700"
+                            >
+                                Go to Integrations
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </>
+        );
+    }
+
+    // Expand mode or no line items
     if (lineItems.length === 0) {
         return (
             <div className="text-center py-8 text-muted-foreground text-sm">
@@ -358,6 +641,7 @@ export function LineItemsTable({
         );
     }
 
+    // Expand mode with line items
     return (
         <>
             <TooltipProvider>
@@ -670,7 +954,7 @@ export function LineItemsTable({
                     <div className="my-4">
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                             <div className="flex items-start">
-                                <div className="flex-shrink-0">
+                                <div className="shrink-0">
                                     <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
                                         <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                     </svg>

@@ -1092,6 +1092,23 @@ export class QuickBooksService {
         throw new Error("Invalid vendor name after sanitization");
       }
 
+      // First, check if a vendor with this name already exists in QuickBooks
+      try {
+        const existingVendorsResponse = await this.makeApiCall(
+          integration,
+          `query?query=SELECT * FROM Vendor WHERE DisplayName = '${sanitizedName.replace(/'/g, "\\'")}'`
+        );
+
+        if (existingVendorsResponse?.QueryResponse?.Vendor?.length > 0) {
+          // Vendor already exists, return the existing vendor
+          console.log(`Vendor "${sanitizedName}" already exists in QuickBooks, returning existing vendor`);
+          return existingVendorsResponse;
+        }
+      } catch (searchError) {
+        console.warn("Error searching for existing vendor, proceeding with creation:", searchError);
+        // Continue with creation if search fails
+      }
+
       // Build QuickBooks Vendor payload with additional information
       const payload: any = {
         DisplayName: sanitizedName
@@ -1118,7 +1135,25 @@ export class QuickBooksService {
         };
       }
 
-      return this.makeApiCall(integration, "vendor", "POST", payload);
+      try {
+        return await this.makeApiCall(integration, "vendor", "POST", payload);
+      } catch (createError: any) {
+        // If we still get a "name already exists" error, try with a unique suffix
+        if (createError.message?.includes('The name supplied already exists')) {
+          console.log(`Vendor name "${sanitizedName}" conflicts, trying with unique suffix`);
+
+          // Add timestamp suffix to make it unique
+          const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+          const uniqueName = `${sanitizedName.substring(0, 90)} ${timestamp}`.trim(); // Leave room for suffix
+
+          payload.DisplayName = uniqueName;
+
+          return await this.makeApiCall(integration, "vendor", "POST", payload);
+        } else {
+          // Re-throw other errors
+          throw createError;
+        }
+      }
     } catch (error) {
       console.error("Error creating QuickBooks vendor:", error);
       throw error;

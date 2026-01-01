@@ -120,6 +120,27 @@
       "when": 1767150090089,
       "tag": "0018_acoustic_sunfire",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1767196890637,
+      "tag": "0019_gifted_dracula",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1767197299589,
+      "tag": "0020_brave_whistler",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1767214271619,
+      "tag": "0021_dusty_nemesis",
+      "breakpoints": true
     }
   ]
 }

@@ -92,6 +92,9 @@ export interface LineItem {
   itemType?: 'account' | 'product' | null;
   resourceId?: string | null;
   customerId?: string | null;
+  viewType?: 'single' | 'expanded';
+  createdAt?: string;
+  updatedAt?: string;
 }
 /**
  *
