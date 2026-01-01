@@ -1026,6 +1026,7 @@ export class InvoiceServices {
             rejectionReason: rejectionReason,
             senderName: senderName,
             senderCompany: senderCompany,
+            invoiceFileUrl: updatedInvoiceWithVendor.fileUrl || undefined,
           });
           console.log(`Rejection email sent to ${recipientEmails.join(', ')} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
         } catch (emailError) {

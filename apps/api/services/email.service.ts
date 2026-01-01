@@ -1,4 +1,13 @@
 import nodemailer from "nodemailer";
+import https from "https";
+import http from "http";
+
+interface Attachment {
+    filename: string;
+    content?: Buffer;
+    path?: string;
+    contentType?: string;
+}
 
 interface EmailParams {
     to: string | string[];
@@ -6,6 +15,7 @@ interface EmailParams {
     htmlBody?: string;
     textBody?: string;
     from?: string;
+    attachments?: Attachment[];
 }
 
 // temporary using nodemailer to send email
@@ -24,7 +34,7 @@ export class EmailService {
     private notificationFrom = process.env.NOTIFICATION_EMAIL || "";
 
     // send email
-    sendEmail = async ({ to, subject, htmlBody, textBody, from }: EmailParams) => {
+    sendEmail = async ({ to, subject, htmlBody, textBody, from, attachments }: EmailParams) => {
         try {
             const info = await transporter.sendMail({
                 from: from || this.defaultFrom,
@@ -32,6 +42,7 @@ export class EmailService {
                 subject,
                 html: htmlBody,
                 text: textBody,
+                attachments: attachments,
             });
 
             return info;
@@ -39,6 +50,33 @@ export class EmailService {
             console.error("Error sending email:", err);
             throw new Error("Failed to send email");
         }
+    };
+
+    // Download file from URL and return as Buffer
+    private downloadFileFromUrl = (url: string): Promise<Buffer> => {
+        return new Promise((resolve, reject) => {
+            const protocol = url.startsWith('https') ? https : http;
+            protocol.get(url, (response) => {
+                // Handle redirects
+                if (response.statusCode === 301 || response.statusCode === 302) {
+                    const redirectUrl = response.headers.location;
+                    if (redirectUrl) {
+                        this.downloadFileFromUrl(redirectUrl).then(resolve).catch(reject);
+                        return;
+                    }
+                }
+
+                if (response.statusCode !== 200) {
+                    reject(new Error(`Failed to download file: ${response.statusCode}`));
+                    return;
+                }
+
+                const chunks: Buffer[] = [];
+                response.on('data', (chunk) => chunks.push(chunk));
+                response.on('end', () => resolve(Buffer.concat(chunks)));
+                response.on('error', reject);
+            }).on('error', reject);
+        });
     };
 
     // send password reset email
@@ -64,6 +102,7 @@ export class EmailService {
         companyName?: string;
         senderName?: string;
         senderCompany?: string;
+        invoiceFileUrl?: string;
     }) => {
         const {
             to,
@@ -72,7 +111,8 @@ export class EmailService {
             rejectionReason,
             senderName,
             senderCompany,
-            companyName = "Sledge"
+            companyName = "Sledge",
+            invoiceFileUrl
         } = params;
         const from = this.notificationFrom;
         const subject = `Invoice ${invoiceNumber} - Changes Required`;
@@ -116,7 +156,23 @@ export class EmailService {
             ${companyName}: The Builder's AI Office is used to receive, review and process invoices.
             Please do not reply directly to this email.`;
 
-        return this.sendEmail({ to, subject, htmlBody, textBody, from });
+        // Prepare attachments if invoice file URL is provided
+        let attachments: Attachment[] | undefined;
+        if (invoiceFileUrl) {
+            try {
+                const fileBuffer = await this.downloadFileFromUrl(invoiceFileUrl);
+                const filename = `Invoice_${invoiceNumber}.pdf`;
+                attachments = [{
+                    filename,
+                    content: fileBuffer,
+                    contentType: 'application/pdf',
+                }];
+            } catch (error) {
+                console.error("Failed to download invoice attachment:", error);
+            }
+        }
+
+        return this.sendEmail({ to, subject, htmlBody, textBody, from, attachments });
     };
 
     // Generate invoice rejection email HTML for preview (without sending)
