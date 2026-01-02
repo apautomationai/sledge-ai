@@ -107,7 +107,17 @@ export function Header() {
 
   const AuthButtons = () => {
     if (isAuthLoading) {
-      return null;
+      // Reserve space with invisible placeholder to prevent layout shift
+      return (
+        <div className="inline-flex justify-end items-center gap-4 opacity-0 pointer-events-none">
+          <span className="text-base font-medium leading-6">Log In</span>
+          <div className="px-4 py-3 rounded">
+            <span className="text-base font-bold uppercase leading-6">
+              start a free trial
+            </span>
+          </div>
+        </div>
+      );
     }
 
     return isLoggedIn ? (
@@ -146,8 +156,8 @@ export function Header() {
     <>
       <header className="w-full bg-[#141414] backdrop-blur-none shadow-[0_4px_20px_rgba(0,0,0,0.9),0_0_30px_rgba(253,176,34,0.2)] border-yellow-600/50 ">
         <nav className="w-full px-4 md:px-12" aria-label="Global">
-          <div className="flex items-center justify-between py-3 md:py-[13px]">
-            <Link href="/" className="flex items-center gap-3">
+          <div className="relative flex items-center justify-between py-3 md:py-[13px]">
+            <Link href="/" className="flex items-center gap-3 z-10">
               <div className="w-full h-full rounded-xl flex items-center justify-center">
                 <Image
                   src={"/images/logos/logosledge.png"}
@@ -161,7 +171,7 @@ export function Header() {
               </span>
             </Link>
 
-            <div className="hidden lg:flex lg:items-center lg:gap-8 2xl:gap-12">
+            <div className="hidden lg:flex lg:items-center lg:gap-8 2xl:gap-12 absolute left-1/2 -translate-x-1/2">
               {navigation.map((item) =>
                 item.name === "Products" ? (
                   <div key={item.name} className="relative" ref={dropdownRef}>
@@ -297,7 +307,7 @@ export function Header() {
               )}
             </div>
 
-            <div className="hidden lg:flex lg:items-center lg:gap-4 2xl:gap-6">
+            <div className="hidden lg:flex lg:items-center lg:gap-4 2xl:gap-6 z-10">
               <AuthButtons />
             </div>
 
