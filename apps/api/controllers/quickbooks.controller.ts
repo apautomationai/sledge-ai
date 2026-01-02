@@ -742,7 +742,7 @@ export class QuickBooksController {
 
       res.json({
         success: true,
-        data: newVendor,
+        vendor: newVendor,
       });
     } catch (error) {
       next(error);

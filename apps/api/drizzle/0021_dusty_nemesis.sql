@@ -1,0 +1,1 @@
+ALTER TABLE "line_items" DROP COLUMN "quickbooks_id";

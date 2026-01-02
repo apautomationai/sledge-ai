@@ -62,6 +62,7 @@ export class InvoiceServices {
             existingInvoice.invoiceDate?.getTime() !== invoiceData.invoiceDate?.getTime() ||
             existingInvoice.dueDate?.getTime() !== invoiceData.dueDate?.getTime() ||
             existingInvoice.totalAmount !== invoiceData.totalAmount ||
+            existingInvoice.totalQuantity !== invoiceData.totalQuantity ||
             existingInvoice.currency !== invoiceData.currency ||
             existingInvoice.totalTax !== invoiceData.totalTax ||
             existingInvoice.description !== invoiceData.description ||
@@ -79,6 +80,7 @@ export class InvoiceServices {
                 invoiceDate: invoiceData.invoiceDate,
                 dueDate: invoiceData.dueDate,
                 totalAmount: invoiceData.totalAmount,
+                totalQuantity: invoiceData.totalQuantity,
                 currency: invoiceData.currency,
                 totalTax: invoiceData.totalTax,
                 description: invoiceData.description,
@@ -671,12 +673,19 @@ export class InvoiceServices {
     }
   }
 
-  async getInvoiceLineItems(invoiceId: number) {
+  async getInvoiceLineItems(invoiceId: number, viewType?: 'single' | 'expanded') {
     try {
+      const whereConditions = [eq(lineItemsModel.invoiceId, invoiceId)];
+
+      // Filter by view type if specified
+      if (viewType) {
+        whereConditions.push(eq(lineItemsModel.viewType, viewType));
+      }
+
       const lineItems = await db
         .select()
         .from(lineItemsModel)
-        .where(eq(lineItemsModel.invoiceId, invoiceId));
+        .where(and(...whereConditions));
 
       return lineItems;
     } catch (error) {
@@ -992,17 +1001,22 @@ export class InvoiceServices {
     }
   }
 
-  async getLineItemsByInvoiceId(invoiceId: number) {
+  async getLineItemsByInvoiceId(invoiceId: number, viewType?: 'single' | 'expanded') {
     try {
+      const whereConditions = [
+        eq(lineItemsModel.invoiceId, invoiceId),
+        eq(lineItemsModel.isDeleted, false)
+      ];
+
+      // Filter by view type if specified
+      if (viewType) {
+        whereConditions.push(eq(lineItemsModel.viewType, viewType));
+      }
+
       const lineItems = await db
         .select()
         .from(lineItemsModel)
-        .where(
-          and(
-            eq(lineItemsModel.invoiceId, invoiceId),
-            eq(lineItemsModel.isDeleted, false)
-          )
-        );
+        .where(and(...whereConditions));
 
       return lineItems;
     } catch (error) {
@@ -1754,6 +1768,80 @@ export class InvoiceServices {
       .limit(1);
 
     return vendor.length > 0 ? vendor[0] : null;
+  }
+
+  async createOrUpdateSingleModeLineItem(data: {
+    userId: number;
+    invoiceId: number;
+    itemType: 'account' | 'product';
+    resourceId: string;
+    customerId?: string;
+    quantity?: string;
+    rate?: string;
+    totalAmount: string;
+    description: string;
+  }) {
+    try {
+      // Get existing single mode line item for this invoice
+      const [existingSingleItem] = await db
+        .select()
+        .from(lineItemsModel)
+        .where(
+          and(
+            eq(lineItemsModel.invoiceId, data.invoiceId),
+            eq(lineItemsModel.viewType, 'single')
+          )
+        );
+
+      let lineItemData;
+
+      if (existingSingleItem) {
+        // Update existing single mode line item (no QuickBooks item creation needed)
+        const [updatedLineItem] = await db
+          .update(lineItemsModel)
+          .set({
+            item_name: data.description,
+            description: data.description,
+            quantity: data.quantity || "1",
+            rate: data.rate || data.totalAmount,
+            amount: data.totalAmount,
+            itemType: data.itemType,
+            resourceId: data.resourceId,
+            customerId: data.customerId,
+            updatedAt: new Date(),
+          })
+          .where(eq(lineItemsModel.id, existingSingleItem.id))
+          .returning();
+
+        lineItemData = updatedLineItem;
+      } else {
+        // Create new single mode line item (no QuickBooks item creation needed - use existing resourceId)
+        const [newLineItem] = await db
+          .insert(lineItemsModel)
+          .values({
+            invoiceId: data.invoiceId,
+            item_name: data.description,
+            description: data.description,
+            quantity: data.quantity || "1",
+            rate: data.rate || data.totalAmount,
+            amount: data.totalAmount,
+            itemType: data.itemType,
+            resourceId: data.resourceId, // This is already a QuickBooks ID from the dropdown selection
+            customerId: data.customerId,
+            viewType: 'single',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+
+        lineItemData = newLineItem;
+      }
+
+      return lineItemData;
+    } catch (error: any) {
+      console.error("Error in createOrUpdateSingleModeLineItem:", error);
+      throw error;
+    }
   }
 }
 export const invoiceServices = new InvoiceServices();

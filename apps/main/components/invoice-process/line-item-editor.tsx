@@ -369,8 +369,8 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
               <SelectValue placeholder={isQuickBooksConnected === null ? "Checking connection..." : "Select type..."} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="account">Account</SelectItem>
-              <SelectItem value="product">Cost Code</SelectItem>
+              <SelectItem value="account">Indirect</SelectItem>
+              <SelectItem value="product">Job Cost</SelectItem>
             </SelectContent>
           </Select>
         )}
@@ -380,7 +380,7 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
       {itemType && (
         <div className="space-y-2">
           <Label htmlFor={`autocomplete-${lineItem.id}`} className="text-xs">
-            {itemType === 'account' ? 'Account' : 'Cost Code'}
+            {itemType === 'account' ? 'Indirect' : 'Job Cost'}
           </Label>
           {itemType === 'account' ? (
             <LineItemAutocomplete
