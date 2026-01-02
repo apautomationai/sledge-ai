@@ -36,6 +36,7 @@ import {
   FileText,
   MoreVertical,
   RefreshCcw,
+  AlertTriangle,
 } from "lucide-react";
 import { client } from "@/lib/axios-client";
 import { toast } from "sonner";
@@ -52,6 +53,7 @@ interface Invoice {
   invoiceNumber: string;
   totalAmount: string | null;
   status: string | null;
+  isDuplicate: boolean;
   createdAt: string;
   vendorData: VendorData;
 }
@@ -77,6 +79,7 @@ export interface Job {
     pending: number;
   };
   vendorData?: VendorData | null;
+  duplicateInvoices?: number;
 }
 
 interface JobsTableProps {
@@ -443,7 +446,7 @@ export function JobsTable({
                 jobs.map((job) => (
                   <React.Fragment key={job.id}>
                     <TableRow
-                      className={`hover:bg-muted/50 ${job.invoiceCount > 0 && job.jobStatus !== "pending" && job.jobStatus !== "processing" ? "cursor-pointer" : "cursor-default"}`}
+                      className={`hover:bg-muted/50 ${job.invoiceCount > 0 && job.jobStatus !== "pending" && job.jobStatus !== "processing" ? "cursor-pointer" : "cursor-default"} ${job.invoiceCount > 1 && (job.duplicateInvoices ?? 0) > 0 ? "outline outline-1 outline-yellow-500 -outline-offset-1" : ""}`}
                       onClick={() => handleRowClick(job.id, job)}
                     >
                       <TableCell className="font-medium w-[120px] max-w-[120px]">
@@ -628,7 +631,11 @@ export function JobsTable({
                                   {invoicesCache[job.id]?.map((invoice) => (
                                     <div
                                       key={invoice.id}
-                                      className="flex items-center justify-between p-3 bg-background rounded-lg border hover:border-primary/50 transition-colors cursor-pointer"
+                                      className={`flex items-center justify-between p-3 bg-background rounded-lg border transition-colors cursor-pointer ${
+                                        invoice.isDuplicate
+                                          ? "border-orange-500/50 bg-orange-500/5 hover:border-orange-500"
+                                          : "hover:border-primary/50"
+                                      }`}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         onReviewJob(job.id, invoice.id);
@@ -676,6 +683,12 @@ export function JobsTable({
                                               </span>
                                             )}
                                           </div>
+                                          {invoice.isDuplicate && (
+                                            <div className="mt-2 text-xs text-orange-600 font-medium flex items-center gap-1">
+                                              <AlertTriangle className="h-4 w-4 text-orange-500 flex-shrink-0" /> 
+                                              <span>Change invoice number to remove duplicate warning</span>
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
                                       <Button
