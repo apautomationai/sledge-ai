@@ -697,6 +697,8 @@ class InvoiceController {
         itemType,
         resourceId,
         customerId,
+        quantity,
+        rate,
         totalAmount,
         description
       } = req.body;
@@ -711,6 +713,8 @@ class InvoiceController {
         itemType,
         resourceId,
         customerId,
+        quantity: quantity || "1",
+        rate: rate || totalAmount,
         totalAmount,
         description: description || "Invoice Total"
       });

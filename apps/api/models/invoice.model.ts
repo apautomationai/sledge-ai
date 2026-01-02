@@ -42,6 +42,7 @@ export const invoiceModel = pgTable("invoices", {
   invoiceDate: timestamp("invoice_date"),
   dueDate: timestamp("due_date"),
   totalAmount: numeric("total_amount"),
+  totalQuantity: numeric("total_quantity"),
   currency: varchar("currency", { length: 10 }),
   totalTax: numeric("total_tax"),
   description: text("description"),

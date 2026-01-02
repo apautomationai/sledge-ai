@@ -61,6 +61,7 @@ export interface InvoiceDetails {
   invoiceDate: string | null;
   dueDate: string | null;
   totalAmount: string | null;
+  totalQuantity: string | null;
   currency: string | null;
   totalTax: string | null;
   lineItems: string | null;

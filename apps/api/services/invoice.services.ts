@@ -62,6 +62,7 @@ export class InvoiceServices {
             existingInvoice.invoiceDate?.getTime() !== invoiceData.invoiceDate?.getTime() ||
             existingInvoice.dueDate?.getTime() !== invoiceData.dueDate?.getTime() ||
             existingInvoice.totalAmount !== invoiceData.totalAmount ||
+            existingInvoice.totalQuantity !== invoiceData.totalQuantity ||
             existingInvoice.currency !== invoiceData.currency ||
             existingInvoice.totalTax !== invoiceData.totalTax ||
             existingInvoice.description !== invoiceData.description ||
@@ -79,6 +80,7 @@ export class InvoiceServices {
                 invoiceDate: invoiceData.invoiceDate,
                 dueDate: invoiceData.dueDate,
                 totalAmount: invoiceData.totalAmount,
+                totalQuantity: invoiceData.totalQuantity,
                 currency: invoiceData.currency,
                 totalTax: invoiceData.totalTax,
                 description: invoiceData.description,
@@ -1712,6 +1714,8 @@ export class InvoiceServices {
     itemType: 'account' | 'product';
     resourceId: string;
     customerId?: string;
+    quantity?: string;
+    rate?: string;
     totalAmount: string;
     description: string;
   }) {
@@ -1736,8 +1740,8 @@ export class InvoiceServices {
           .set({
             item_name: data.description,
             description: data.description,
-            quantity: "1",
-            rate: data.totalAmount,
+            quantity: data.quantity || "1",
+            rate: data.rate || data.totalAmount,
             amount: data.totalAmount,
             itemType: data.itemType,
             resourceId: data.resourceId,
@@ -1756,8 +1760,8 @@ export class InvoiceServices {
             invoiceId: data.invoiceId,
             item_name: data.description,
             description: data.description,
-            quantity: "1",
-            rate: data.totalAmount,
+            quantity: data.quantity || "1",
+            rate: data.rate || data.totalAmount,
             amount: data.totalAmount,
             itemType: data.itemType,
             resourceId: data.resourceId, // This is already a QuickBooks ID from the dropdown selection

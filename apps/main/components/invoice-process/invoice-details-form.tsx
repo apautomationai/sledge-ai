@@ -684,6 +684,17 @@ export default function InvoiceDetailsForm({
                   />
 
                   <FormField
+                    key="totalQuantity"
+                    fieldKey="totalQuantity"
+                    label="Total Quantity"
+                    value={localInvoiceDetails.totalQuantity ?? null}
+                    isEditing={!isInvoiceFinalized}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  <FormField
                     key="totalTax"
                     fieldKey="totalTax"
                     label="Total Tax"
@@ -788,7 +799,7 @@ export default function InvoiceDetailsForm({
 
                   {/* Rest of the fields (excluding highlighted fields since they're shown at top) */}
                   {fieldsToDisplay
-                    .filter(key => !['invoiceNumber', 'totalAmount', 'totalTax', 'invoiceDate'].includes(key)) // Exclude highlighted fields since they're shown at top
+                    .filter(key => !['invoiceNumber', 'totalAmount', 'totalQuantity', 'totalTax', 'invoiceDate'].includes(key)) // Exclude highlighted fields since they're shown at top
                     .map((key) => {
                       const value = localInvoiceDetails[key as keyof InvoiceDetails];
                       // Skip if the value is an object (like vendorData)
@@ -1009,15 +1020,15 @@ export default function InvoiceDetailsForm({
                   <SelectValue placeholder="Select cost type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="account">Account</SelectItem>
-                  <SelectItem value="product">Cost Code</SelectItem>
+                  <SelectItem value="account">Indirect</SelectItem>
+                  <SelectItem value="product">Job Cost</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {bulkItemType && (
               <div className="space-y-2">
-                <Label>{bulkItemType === 'account' ? 'Account' : 'Cost Code'}</Label>
+                <Label>{bulkItemType === 'account' ? 'Indirect' : 'Job Cost'}</Label>
                 {bulkItemType === 'account' ? (
                   <LineItemAutocomplete
                     items={bulkAccounts}
@@ -1042,7 +1053,7 @@ export default function InvoiceDetailsForm({
                       const quickbooksId = item?.quickbooksId || null;
                       setBulkResourceId(quickbooksId);
                     }}
-                    placeholder="Search cost codes..."
+                    placeholder="Search job costs..."
                     isLoading={isLoadingBulkData}
                     getDisplayName={(item: any) =>
                       item.fullyQualifiedName || item.name || 'Unknown Product'

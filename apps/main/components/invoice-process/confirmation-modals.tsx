@@ -412,7 +412,8 @@ export default function ConfirmationModals({
 
         const totalTaxAmount = parseFloat(invoiceDetails?.totalTax ?? "0") || 0;
 
-        // Check if vendor is a local vendor (starts with "LOCAL_")
+        // Only create vendor in QuickBooks if it's a local vendor (starts with "LOCAL_")
+        // If we already have a real QuickBooks vendor ID, use it directly
         if (vendorId && vendorId.startsWith("LOCAL_")) {
           console.log("Local vendor detected, creating in QuickBooks first...");
 
@@ -474,7 +475,18 @@ export default function ConfirmationModals({
             setIsApproving(false);
             return;
           }
+        } else if (!vendorId) {
+          // If no vendor ID at all, show error
+          toast.dismiss();
+          toast.error("Vendor Missing", {
+            description: "No vendor information found for this invoice. Cannot create bill in QuickBooks.",
+            duration: 7000,
+          });
+          setIsDialogOpen(false);
+          setIsApproving(false);
+          return;
         }
+        // If vendorId exists and doesn't start with "LOCAL_", it's already a valid QuickBooks ID - use it directly
 
         try {
           await client.post("/api/v1/quickbooks/create-bill", {
@@ -1022,12 +1034,12 @@ export default function ConfirmationModals({
                     <p className="mb-2">
                       {lineItemsViewMode === 'single'
                         ? 'Please configure the single line item with:'
-                        : 'The following line items need both an item type (Account or Cost Code) and a selection:'
+                        : 'The following line items need both an item type (Indirect or Job Cost) and a selection:'
                       }
                     </p>
                     {lineItemsViewMode === 'single' ? (
                       <ul className="list-disc list-inside space-y-1">
-                        <li className="font-medium">Cost Type (Account or Cost Code)</li>
+                        <li className="font-medium">Cost Type (Indirect or Job Cost)</li>
                         <li className="font-medium">Category selection based on Cost Type</li>
                       </ul>
                     ) : (

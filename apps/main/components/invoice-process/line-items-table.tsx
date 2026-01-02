@@ -83,6 +83,9 @@ export function LineItemsTable({
         itemType: null as 'account' | 'product' | null,
         resourceId: null as string | null,
         customerId: null as string | null,
+        quantity: "1" as string,
+        rate: "0" as string,
+        amount: "0" as string,
     });
 
     // Local state for each line item - initialize with actual values
@@ -112,6 +115,32 @@ export function LineItemsTable({
 
     const [lineItemStates, setLineItemStates] = useState(getInitialStates);
 
+    // Function to get the appropriate category header text
+    const getCategoryHeaderText = () => {
+        if (viewMode === 'single') {
+            // In single mode, use the selected item type
+            if (singleModeState.itemType === 'account') {
+                return 'Indirect';
+            } else if (singleModeState.itemType === 'product') {
+                return 'Job Cost';
+            }
+            return 'Category';
+        } else {
+            // In expand mode, check if all items have the same type
+            const itemTypes = lineItems.map(item => item.itemType).filter(Boolean);
+            const uniqueTypes = [...new Set(itemTypes)];
+
+            if (uniqueTypes.length === 1) {
+                if (uniqueTypes[0] === 'account') {
+                    return 'Indirect';
+                } else if (uniqueTypes[0] === 'product') {
+                    return 'Job Cost';
+                }
+            }
+            return 'Category';
+        }
+    };
+
     // Use external selection if provided, otherwise use internal
     const selectedItems = externalSelectedItems || internalSelectedItems;
     const setSelectedItems = onSelectionChange
@@ -134,18 +163,28 @@ export function LineItemsTable({
                     itemType: singleItem.itemType || null,
                     resourceId: singleItem.resourceId ? String(singleItem.resourceId) : null,
                     customerId: singleItem.customerId ? String(singleItem.customerId) : null,
+                    quantity: singleItem.quantity || invoiceDetails.totalQuantity || "1",
+                    rate: singleItem.rate || (invoiceDetails.totalQuantity && invoiceDetails.totalAmount
+                        ? (parseFloat(invoiceDetails.totalAmount) / parseFloat(invoiceDetails.totalQuantity)).toFixed(2)
+                        : invoiceDetails.totalAmount || "0"),
+                    amount: singleItem.amount || invoiceDetails.totalAmount || "0",
                 });
             }
         } else if (viewMode === 'single' && lineItems.length === 0) {
-            // Reset single mode state if no line items
+            // Reset single mode state if no line items, but use invoice totals if available
             setSingleModeState({
                 description: "",
                 itemType: null,
                 resourceId: null,
                 customerId: null,
+                quantity: invoiceDetails?.totalQuantity || "1",
+                rate: invoiceDetails?.totalQuantity && invoiceDetails?.totalAmount
+                    ? (parseFloat(invoiceDetails.totalAmount) / parseFloat(invoiceDetails.totalQuantity)).toFixed(2)
+                    : invoiceDetails?.totalAmount || "0",
+                amount: invoiceDetails?.totalAmount || "0",
             });
         }
-    }, [viewMode, lineItems, invoiceDetails?.id]);
+    }, [viewMode, lineItems, invoiceDetails?.id, invoiceDetails?.totalAmount, invoiceDetails?.totalQuantity]);
 
     // Load accounts, items, and customers when QuickBooks is connected
     useEffect(() => {
@@ -385,6 +424,51 @@ export function LineItemsTable({
         }));
     };
 
+    const handleSingleModeQuantityChange = (value: string) => {
+        setSingleModeState(prev => {
+            const newQuantity = value;
+            const rate = prev.rate;
+            let newAmount = prev.amount;
+
+            // Auto-calculate amount if rate is set
+            if (rate && newQuantity) {
+                newAmount = (parseFloat(newQuantity) * parseFloat(rate)).toFixed(2);
+            }
+
+            return {
+                ...prev,
+                quantity: newQuantity,
+                amount: newAmount,
+            };
+        });
+    };
+
+    const handleSingleModeRateChange = (value: string) => {
+        setSingleModeState(prev => {
+            const newRate = value;
+            const quantity = prev.quantity;
+            let newAmount = prev.amount;
+
+            // Auto-calculate amount if quantity is set
+            if (quantity && newRate) {
+                newAmount = (parseFloat(quantity) * parseFloat(newRate)).toFixed(2);
+            }
+
+            return {
+                ...prev,
+                rate: newRate,
+                amount: newAmount,
+            };
+        });
+    };
+
+    const handleSingleModeAmountChange = (value: string) => {
+        setSingleModeState(prev => ({
+            ...prev,
+            amount: value,
+        }));
+    };
+
     const handleSingleModeResourceSelect = (resourceId: string, type: 'account' | 'product') => {
         // Find the selected item to get its quickbooks_id
         let quickbooksId: string | null = null;
@@ -415,7 +499,9 @@ export function LineItemsTable({
                 itemType: singleModeState.itemType,
                 resourceId: singleModeState.resourceId,
                 customerId: singleModeState.customerId,
-                totalAmount: invoiceDetails.totalAmount || "0",
+                quantity: singleModeState.quantity,
+                rate: singleModeState.rate,
+                totalAmount: singleModeState.amount,
                 description: singleModeState.description || ""
             });
 
@@ -428,7 +514,7 @@ export function LineItemsTable({
             console.error('Error saving single mode data:', error);
             toast.error("Failed to save single line item");
         }
-    }, [invoiceDetails?.id, singleModeState.itemType, singleModeState.resourceId, singleModeState.customerId, singleModeState.description, invoiceDetails?.totalAmount, onLineItemsRefresh]);
+    }, [invoiceDetails?.id, singleModeState.itemType, singleModeState.resourceId, singleModeState.customerId, singleModeState.quantity, singleModeState.rate, singleModeState.amount, singleModeState.description, onLineItemsRefresh]);
 
     // Expose saveSingleModeData function to parent component
     useEffect(() => {
@@ -464,7 +550,7 @@ export function LineItemsTable({
                                         <TableHead className="w-[8%] px-2 py-2">Rate</TableHead>
                                         <TableHead className="w-[8%] px-2 py-2">Amount</TableHead>
                                         <TableHead className="w-[12%] px-2 py-2">Cost Type</TableHead>
-                                        <TableHead className="w-[20%] px-2 py-2">Category</TableHead>
+                                        <TableHead className="w-[20%] px-2 py-2">{getCategoryHeaderText()}</TableHead>
                                         <TableHead className="w-[20%] px-2 py-2">Job</TableHead>
                                         {isEditing && <TableHead className="w-[8%] px-2 py-2"></TableHead>}
                                     </TableRow>
@@ -485,27 +571,33 @@ export function LineItemsTable({
                                             <Input
                                                 type="number"
                                                 step="0.01"
-                                                value="1"
+                                                value={singleModeState.quantity}
+                                                onChange={(e) => handleSingleModeQuantityChange(e.target.value)}
                                                 className="h-8 px-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                disabled={true}
+                                                disabled={!isEditing}
+                                                placeholder="Quantity"
                                             />
                                         </TableCell>
                                         <TableCell className="px-2 py-2">
                                             <Input
                                                 type="number"
                                                 step="0.01"
-                                                value={invoiceDetails?.totalAmount || "0"}
+                                                value={singleModeState.rate}
+                                                onChange={(e) => handleSingleModeRateChange(e.target.value)}
                                                 className="h-8 px-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                disabled={true}
+                                                disabled={!isEditing}
+                                                placeholder="Rate"
                                             />
                                         </TableCell>
                                         <TableCell className="px-2 py-2">
                                             <Input
                                                 type="number"
                                                 step="0.01"
-                                                value={invoiceDetails?.totalAmount || "0"}
+                                                value={singleModeState.amount}
+                                                onChange={(e) => handleSingleModeAmountChange(e.target.value)}
                                                 className="h-8 px-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                disabled={true}
+                                                disabled={!isEditing}
+                                                placeholder="Amount"
                                             />
                                         </TableCell>
                                         <TableCell>
@@ -518,8 +610,8 @@ export function LineItemsTable({
                                                     <SelectValue placeholder="Select..." />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="account">Account</SelectItem>
-                                                    <SelectItem value="product">Cost Code</SelectItem>
+                                                    <SelectItem value="account">Indirect</SelectItem>
+                                                    <SelectItem value="product">Job Cost</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </TableCell>
@@ -661,7 +753,7 @@ export function LineItemsTable({
                                     <TableHead className="w-[8%] px-2 py-2">Rate</TableHead>
                                     <TableHead className="w-[8%] px-2 py-2">Amount</TableHead>
                                     <TableHead className="w-[12%] px-2 py-2">Cost Type</TableHead>
-                                    <TableHead className="w-[18%] px-2 py-2">Category</TableHead>
+                                    <TableHead className="w-[18%] px-2 py-2">{getCategoryHeaderText()}</TableHead>
                                     <TableHead className="w-[18%] px-2 py-2">Job</TableHead>
                                     {isEditing && <TableHead className="w-[6%] px-2 py-2"></TableHead>}
                                 </TableRow>
@@ -793,15 +885,15 @@ export function LineItemsTable({
                                                                         <SelectValue placeholder="Select..." />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        <SelectItem value="account">Account</SelectItem>
-                                                                        <SelectItem value="product">Cost Code</SelectItem>
+                                                                        <SelectItem value="account">Indirect</SelectItem>
+                                                                        <SelectItem value="product">Job Cost</SelectItem>
                                                                     </SelectContent>
                                                                 </Select>
                                                             )}
                                                         </div>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
-                                                        Type: {state.itemType === 'account' ? 'Account' : state.itemType === 'product' ? 'Cost Code' : 'Not selected'}
+                                                        Type: {state.itemType === 'account' ? 'Indirect' : state.itemType === 'product' ? 'Job Cost' : 'Not selected'}
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TableCell>
@@ -835,8 +927,8 @@ export function LineItemsTable({
                                                     <TooltipContent>
                                                         {state.resourceId ? (
                                                             state.itemType === 'account'
-                                                                ? `Account: ${accounts.find(a => a.quickbooksId === state.resourceId)?.fullyQualifiedName || accounts.find(a => a.quickbooksId === state.resourceId)?.name || 'Selected'}`
-                                                                : `Cost Code: ${items.find(i => i.quickbooksId === state.resourceId)?.fullyQualifiedName || items.find(i => i.quickbooksId === state.resourceId)?.name || 'Selected'}`
+                                                                ? `Indirect: ${accounts.find(a => a.quickbooksId === state.resourceId)?.fullyQualifiedName || accounts.find(a => a.quickbooksId === state.resourceId)?.name || 'Selected'}`
+                                                                : `Job Cost: ${items.find(i => i.quickbooksId === state.resourceId)?.fullyQualifiedName || items.find(i => i.quickbooksId === state.resourceId)?.name || 'Selected'}`
                                                         ) : 'No category selected'}
                                                     </TooltipContent>
                                                 </Tooltip>
