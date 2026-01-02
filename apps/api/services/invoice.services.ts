@@ -4,7 +4,7 @@ import { attachmentsModel } from "@/models/attachments.model";
 import { invoiceModel, lineItemsModel } from "@/models/invoice.model";
 import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
 import { quickbooksCustomersModel } from "@/models/quickbooks-customers.model";
-import { count, desc, eq, getTableColumns, and, sql, gte, lt, lte, inArray } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, and, sql, gte, lt, lte, inArray, ne } from "drizzle-orm";
 import { PDFDocument } from "pdf-lib";
 import { s3Client, uploadBufferToS3 } from "@/helpers/s3upload";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
@@ -13,6 +13,7 @@ import { Readable } from "stream";
 import { generateS3PublicUrl } from "@/lib/utils/s3";
 import { QuickBooksService } from "@/services/quickbooks.service";
 import { emailService } from "@/services/email.service";
+import { usersModel } from "@/models/users.model";
 const { v4: uuidv4 } = require("uuid");
 
 const quickbooksService = new QuickBooksService();
@@ -96,11 +97,31 @@ export class InvoiceServices {
             invoice = existingInvoice;
           }
         } else {
-          // Create new invoice
+          // Check for duplicates: same invoice number + same vendor + same user
+          let isDuplicate = false;
+          if (invoiceData.vendorId && invoiceData.invoiceNumber) {
+            const duplicates = await tx
+              .select()
+              .from(invoiceModel)
+              .where(
+                and(
+                  eq(invoiceModel.userId, invoiceData.userId),
+                  eq(invoiceModel.vendorId, invoiceData.vendorId),
+                  eq(invoiceModel.invoiceNumber, invoiceData.invoiceNumber),
+                  eq(invoiceModel.isDeleted, false),
+                  ne(invoiceModel.status, "rejected")
+                )
+              );
+
+            isDuplicate = duplicates.length > 0;
+          }
+
+          // Create new invoice with duplicate flag if needed
           const [newInvoice] = await tx
             .insert(invoiceModel)
             .values({
               ...invoiceData,
+              isDuplicate,
               fileUrl: invoiceData.fileKey && generateS3PublicUrl(invoiceData.fileKey),
               createdAt: new Date(),
               updatedAt: new Date(),
@@ -194,6 +215,7 @@ export class InvoiceServices {
         createdAt: invoiceModel.createdAt,
         invoiceDate: invoiceModel.invoiceDate,
         status: invoiceModel.status,
+        isDuplicate: invoiceModel.isDuplicate,
         // Vendor data from quickbooks_vendors table
         vendorData: {
           id: quickbooksVendorsModel.id,
@@ -241,6 +263,7 @@ export class InvoiceServices {
         id: invoiceModel.id,
         invoiceNumber: invoiceModel.invoiceNumber,
         status: invoiceModel.status,
+        isDuplicate: invoiceModel.isDuplicate,
         createdAt: invoiceModel.createdAt,
       })
       .from(invoiceModel)
@@ -330,6 +353,7 @@ export class InvoiceServices {
         invoiceNumber: invoiceModel.invoiceNumber,
         vendorId: invoiceModel.vendorId,
         totalAmount: invoiceModel.totalAmount,
+        isDuplicate: invoiceModel.isDuplicate,
       })
       .from(invoiceModel)
       .where(
@@ -358,6 +382,41 @@ export class InvoiceServices {
 
       // Update the invoice (exclude vendorData and customerData from invoice update)
       const { vendorData: _, customerData: __, ...invoiceUpdateData } = updatedData as any;
+
+      // Re-check for duplicates if invoice number is being updated
+      if (invoiceUpdateData.invoiceNumber && invoiceUpdateData.invoiceNumber !== existingInvoice.invoiceNumber) {
+        // Use vendorId from update data if provided, otherwise use existing
+        const vendorIdToCheck = invoiceUpdateData.vendorId ?? existingInvoice.vendorId;
+
+        if (vendorIdToCheck) {
+          // Check for duplicates: same invoice number + same vendor + same user (excluding current invoice)
+          const duplicates = await db
+            .select()
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, existingInvoice.userId),
+                eq(invoiceModel.vendorId, vendorIdToCheck),
+                eq(invoiceModel.invoiceNumber, invoiceUpdateData.invoiceNumber),
+                eq(invoiceModel.isDeleted, false),
+                ne(invoiceModel.status, "rejected"),
+                ne(invoiceModel.id, invoiceId)
+              )
+            );
+
+          // If duplicate exists, prevent the update and throw error
+          if (duplicates.length > 0) {
+            throw new BadRequestError("This invoice number already exists for this vendor. Please use a different invoice number.");
+          }
+
+          // If no duplicate, set isDuplicate to false (clearing any previous duplicate flag)
+          invoiceUpdateData.isDuplicate = false;
+        } else {
+          // If no vendor, can't be a duplicate, so set to false
+          invoiceUpdateData.isDuplicate = false;
+        }
+      }
+
       await db
         .update(invoiceModel)
         .set({ ...invoiceUpdateData, updatedAt: new Date() })
@@ -568,6 +627,10 @@ export class InvoiceServices {
       return updatedInvoiceWithData;
     } catch (error) {
       console.error("Error updating invoice:", error);
+      // Re-throw the error if it's already a BadRequestError or NotFoundError
+      if (error instanceof BadRequestError || error instanceof NotFoundError) {
+        throw error;
+      }
       throw new BadRequestError("Unable to update invoice");
     }
   }
@@ -948,14 +1011,17 @@ export class InvoiceServices {
     }
   }
 
-  async updateInvoiceStatus(invoiceId: number, status: string, rejectionReason?: string, recipientEmail?: string) {
+  async updateInvoiceStatus(invoiceId: number, status: string, rejectionReason?: string, recipientEmails?: string[]) {
     try {
+      // Store comma-separated emails for backward compatibility in DB
+      const emailsString = recipientEmails?.join(', ') || null;
+
       // Update the invoice status
       await db
         .update(invoiceModel)
         .set({
           status: status as any,
-          rejectionEmailSender: recipientEmail || null,
+          rejectionEmailSender: emailsString,
           rejectionReason: rejectionReason || null,
           updatedAt: new Date()
         })
@@ -980,6 +1046,11 @@ export class InvoiceServices {
             active: quickbooksVendorsModel.active,
             quickbooksId: quickbooksVendorsModel.quickbooksId,
           },
+          userData: {
+            firstName: usersModel.firstName,
+            lastName: usersModel.lastName,
+            companyName: usersModel.businessName,
+          },
         })
         .from(invoiceModel)
         .leftJoin(
@@ -989,6 +1060,10 @@ export class InvoiceServices {
         .leftJoin(
           quickbooksVendorsModel,
           eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
+        )
+        .leftJoin(
+          usersModel,
+          eq(invoiceModel.userId, usersModel.id),
         )
         .where(
           and(
@@ -1001,16 +1076,21 @@ export class InvoiceServices {
         throw new NotFoundError("Invoice not found after update");
       }
 
-      // Send rejection email if status is "rejected" and recipient email is provided
-      if (status === "rejected" && recipientEmail) {
+      // Send rejection email if status is "rejected" and recipient emails are provided
+      if (status === "rejected" && recipientEmails && recipientEmails.length > 0) {
+        const senderName = `${updatedInvoiceWithVendor?.userData?.firstName} ${updatedInvoiceWithVendor?.userData?.lastName}`.trim() || 'Me';
+        const senderCompany = updatedInvoiceWithVendor?.userData?.companyName || 'My Company';
         try {
           await emailService.sendInvoiceRejectionEmail({
-            to: recipientEmail,
+            to: recipientEmails,
             invoiceNumber: updatedInvoiceWithVendor.invoiceNumber || `INV-${invoiceId}`,
             vendorName: updatedInvoiceWithVendor.vendorData?.displayName || undefined,
             rejectionReason: rejectionReason,
+            senderName: senderName,
+            senderCompany: senderCompany,
+            invoiceFileUrl: updatedInvoiceWithVendor.fileUrl || undefined,
           });
-          console.log(`Rejection email sent to ${recipientEmail} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
+          console.log(`Rejection email sent to ${recipientEmails.join(', ')} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
         } catch (emailError) {
           console.error("Failed to send rejection email:", emailError);
         }

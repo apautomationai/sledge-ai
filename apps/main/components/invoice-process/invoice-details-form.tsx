@@ -18,7 +18,7 @@ import { ScrollArea } from "@workspace/ui/components/scroll-area";
 
 import { formatLabel, formatDate } from "@/lib/utility/formatters";
 import { client } from "@/lib/axios-client";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
 import { LineItemsTable } from "./line-items-table";
 import { AddLineItemDialog } from "./add-line-item-dialog";
@@ -615,6 +615,22 @@ export default function InvoiceDetailsForm({
 
   return (
     <div className="h-full flex flex-col gap-2">
+      {/* Duplicate Invoice Warning Banner */}
+      {invoiceDetails.isDuplicate && (
+        <div className="bg-orange-50 border-2 border-orange-500 rounded-lg p-3 flex-col items-start gap-3 dark:bg-orange-950 dark:border-orange-700">
+          <div className="flex items-end gap-1">
+            <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+            <h3 className="font-semibold text-orange-800 dark:text-orange-300 text-sm">
+              Duplicate Invoice Detected
+            </h3>
+          </div>
+            <p className="text-orange-700 dark:text-orange-400 text-xs mt-2">
+              This invoice has the same invoice number and vendor as another invoice in the system.
+              Please change the invoice number to remove this warning and enable approval.
+            </p>
+        </div>
+      )}
+
       {/* Accordion Sections */}
       <div className="flex-1 overflow-hidden min-h-0">
         <Accordion
@@ -637,7 +653,7 @@ export default function InvoiceDetailsForm({
                     fieldKey="invoiceNumber"
                     label="Invoice Number"
                     value={localInvoiceDetails.invoiceNumber ?? null}
-                    isEditing={true}
+                    isEditing={!isInvoiceFinalized}
                     onChange={onDetailsChange}
                     onDateChange={handleDateChange}
                     highlighted={true}
@@ -648,7 +664,7 @@ export default function InvoiceDetailsForm({
                     fieldKey="totalAmount"
                     label="Total Amount"
                     value={localInvoiceDetails.totalAmount ?? null}
-                    isEditing={true}
+                    isEditing={!isInvoiceFinalized}
                     onChange={onDetailsChange}
                     onDateChange={handleDateChange}
                     highlighted={true}
@@ -659,7 +675,7 @@ export default function InvoiceDetailsForm({
                     fieldKey="totalTax"
                     label="Total Tax"
                     value={localInvoiceDetails.totalTax ?? null}
-                    isEditing={true}
+                    isEditing={!isInvoiceFinalized}
                     onChange={onDetailsChange}
                     onDateChange={handleDateChange}
                     highlighted={true}
@@ -670,7 +686,7 @@ export default function InvoiceDetailsForm({
                     fieldKey="invoiceDate"
                     label="Invoice Date"
                     value={localInvoiceDetails.invoiceDate ?? null}
-                    isEditing={true}
+                    isEditing={!isInvoiceFinalized}
                     onChange={onDetailsChange}
                     onDateChange={handleDateChange}
                     highlighted={true}
@@ -687,7 +703,8 @@ export default function InvoiceDetailsForm({
                       value={vendorData.displayName}
                       onChange={(e) => handleVendorDataChange('displayName', e.target.value)}
                       placeholder="Enter vendor name"
-                      className="h-8"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
                   </div>
 
@@ -702,7 +719,8 @@ export default function InvoiceDetailsForm({
                       value={vendorData.primaryEmail}
                       onChange={(e) => handleVendorDataChange('primaryEmail', e.target.value)}
                       placeholder="Enter vendor email"
-                      className="h-8"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
                   </div>
 
@@ -717,7 +735,8 @@ export default function InvoiceDetailsForm({
                       value={vendorData.primaryPhone}
                       onChange={(e) => handleVendorDataChange('primaryPhone', e.target.value)}
                       placeholder="Enter vendor phone"
-                      className="h-8"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
                   </div>
 
@@ -731,7 +750,8 @@ export default function InvoiceDetailsForm({
                       value={vendorData.billAddrLine1}
                       onChange={(e) => handleVendorDataChange('billAddrLine1', e.target.value)}
                       placeholder="Enter vendor address"
-                      className="h-8"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
                   </div>
 
@@ -747,7 +767,8 @@ export default function InvoiceDetailsForm({
                         value={customerData.displayName}
                         onChange={(e) => handleCustomerDataChange('displayName', e.target.value)}
                         placeholder="Enter customer name"
-                        className="h-8"
+                        className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                        readOnly={isInvoiceFinalized}
                       />
                     </div>
                   )}
@@ -768,7 +789,7 @@ export default function InvoiceDetailsForm({
                           fieldKey={key}
                           label={formatLabel(key)}
                           value={value ?? null}
-                          isEditing={true}
+                          isEditing={!isInvoiceFinalized}
                           onChange={onDetailsChange}
                           onDateChange={handleDateChange}
                           highlighted={false}
@@ -873,6 +894,7 @@ export default function InvoiceDetailsForm({
           onFieldChange={onFieldChange}
           vendorData={vendorData}
           customerData={customerData}
+          isDuplicate={invoiceDetails.isDuplicate}
         />
       </div>
 
