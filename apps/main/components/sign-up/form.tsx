@@ -2,7 +2,6 @@
 
 import React, { useEffect, useActionState, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { AtSign, Lock, Loader2, User, Phone, Building2, Eye, EyeOff } from "lucide-react";
@@ -112,7 +111,6 @@ function PasswordInput({
 
 export default function SignUpForm() {
   const [state, formAction] = useActionState(signUpAction, initialState);
-  const router = useRouter();
 
   const handleGoogleSignIn = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -125,7 +123,19 @@ export default function SignUpForm() {
   };
 
   useEffect(() => {
-    // Only show error messages - success redirects are handled by server action
+    // Handle success - trigger browser refresh
+    if (state?.success && state?.redirectTo) {
+      toast.success("Account Created", {
+        description: "Welcome! Redirecting to onboarding...",
+      });
+      // Use setTimeout to allow toast to show before refresh
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      return;
+    }
+
+    // Show error messages
     if (state?.message && !state?.success) {
       toast.error("Sign Up Failed", {
         description: state.message,

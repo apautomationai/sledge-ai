@@ -31,7 +31,9 @@ export default async function DashboardLayout({
       userEmail={userEmail}
       isOnboardingComplete={isOnboardingComplete}
     >
-      {children}
+      <div className="h-[calc(100vh-100px)]">
+        {children}
+      </div>
     </DashboardClientLayout>
   );
 }

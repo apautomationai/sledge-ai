@@ -12,13 +12,13 @@ const INITIAL_INTEGRATIONS: Omit<
 >[] = [
     {
       name: "Gmail",
-      path: "google/auth",
+      path: "auth/gmail",
       category: "Email Processing & Automation",
       allowCollection: true,
     },
     {
       name: "Outlook",
-      path: "outlook/auth",
+      path: "auth/outlook",
       category: "Email Processing & Automation",
       allowCollection: true,
     },
@@ -51,6 +51,8 @@ interface IntegrationsListProps {
   ) => Promise<ActionState>;
   shouldOpenGmailConfig?: boolean;
   onGmailConfigClose?: () => void;
+  shouldOpenOutlookConfig?: boolean;
+  onOutlookConfigClose?: () => void;
 }
 
 export default function IntegrationsList({
@@ -59,6 +61,8 @@ export default function IntegrationsList({
   updateStartTimeAction,
   shouldOpenGmailConfig,
   onGmailConfigClose,
+  shouldOpenOutlookConfig,
+  onOutlookConfigClose,
 }: IntegrationsListProps) {
   const integrations: Integration[] = INITIAL_INTEGRATIONS.map((integration) => {
     const backendName =
@@ -87,8 +91,14 @@ export default function IntegrationsList({
             integration={integration}
             updateAction={updateAction}
             updateStartTimeAction={updateStartTimeAction}
-            shouldOpenConfigDialog={integration.backendName === "gmail" && shouldOpenGmailConfig}
-            onConfigDialogClose={integration.backendName === "gmail" ? onGmailConfigClose : undefined}
+            shouldOpenConfigDialog={
+              (integration.backendName === "gmail" && shouldOpenGmailConfig) ||
+              (integration.backendName === "outlook" && shouldOpenOutlookConfig)
+            }
+            onConfigDialogClose={
+              integration.backendName === "gmail" ? onGmailConfigClose :
+              integration.backendName === "outlook" ? onOutlookConfigClose : undefined
+            }
           />
         ))}
       </div>

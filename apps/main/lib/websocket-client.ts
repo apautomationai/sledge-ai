@@ -84,31 +84,12 @@ class WebSocketClient {
                 if (this.reconnectAttempts >= this.maxReconnectAttempts) {
                     reject(new Error(`Failed to connect after ${this.maxReconnectAttempts} attempts: ${error.message}`));
                 }
-
-                // debug log
-                console.log('connect_error');
-                console.log((error as any)?.request?.url);      // the request object
-                console.log((error as any)?.code);     // the error code, for example 1
-                console.log((error as any)?.message);  // the error message, for example "Session ID unknown"
-                console.log((error as any)?.description);
-                console.log((error as any)?.context);  // some additional error context
-                console.log((error as any)?.response);
             });
-            
             this.socket.on('reconnect', (attemptNumber) => {
                 this.reconnectAttempts = 0;
             });
-            
             this.socket.on('reconnect_error', (error) => {
                 // Handle reconnection error
-                // debug log
-                console.log('reconnect_error');
-                console.log((error as any)?.request?.url);      // the request object
-                console.log((error as any)?.code);     // the error code, for example 1
-                console.log((error as any)?.message);  // the error message, for example "Session ID unknown"
-                console.log((error as any)?.description);
-                console.log((error as any)?.context);  // some additional error context
-                console.log((error as any)?.response);
             });
 
             this.socket.on('reconnect_failed', () => {

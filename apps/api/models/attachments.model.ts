@@ -6,6 +6,7 @@ import {
   serial,
   text,
   timestamp,
+  numeric
 } from "drizzle-orm/pg-core";
 import { usersModel } from "./users.model";
 import { invoiceModel } from "./invoice.model";
@@ -29,6 +30,8 @@ export const attachmentsModel = pgTable("attachments", {
   deletedAt: timestamp("deleted_at"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
+  processed_at: timestamp("processed_at").defaultNow(),
+  processed_time: numeric("processed_time")
 });
 
 export const attachmentsRelations = relations(

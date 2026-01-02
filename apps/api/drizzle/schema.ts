@@ -79,11 +79,8 @@ export const invoices = pgTable("invoices", {
 	userId: integer("user_id").notNull(),
 	attachmentId: integer("attachment_id").notNull(),
 	invoiceNumber: varchar("invoice_number", { length: 50 }),
-	vendorName: varchar("vendor_name", { length: 255 }),
-	vendorAddress: text("vendor_address"),
-	vendorPhone: varchar("vendor_phone", { length: 50 }),
-	vendorEmail: varchar("vendor_email", { length: 255 }),
-	customerName: varchar("customer_name", { length: 255 }),
+	vendorId: varchar("vendor_id", { length: 255 }),
+	customerId: varchar("customer_id", { length: 255 }),
 	invoiceDate: timestamp("invoice_date", { mode: 'string' }),
 	dueDate: timestamp("due_date", { mode: 'string' }),
 	totalAmount: numeric("total_amount"),
@@ -94,6 +91,8 @@ export const invoices = pgTable("invoices", {
 	fileKey: text("file_key"),
 	s3JsonKey: text("s3_json_key"),
 	status: status().default('pending').notNull(),
+	rejectionEmailSender: varchar("rejection_email_sender", { length: 255 }),
+	rejectionReason: text("rejection_reason"),
 	isDeleted: boolean("is_deleted").default(false).notNull(),
 	deletedAt: timestamp("deleted_at", { mode: 'string' }),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
@@ -135,5 +134,30 @@ export const lineItems = pgTable("line_items", {
 	resourceId: integer("resource_id"),
 	customerId: integer("customer_id"),
 });
+
+export const projects = pgTable("projects", {
+	id: serial().primaryKey().notNull(),
+	userId: integer("user_id").notNull(),
+	name: varchar({ length: 255 }).notNull(),
+	address: text().notNull(),
+	city: varchar({ length: 100 }),
+	state: varchar({ length: 50 }),
+	postalCode: varchar("postal_code", { length: 20 }),
+	country: varchar({ length: 50 }),
+	imageUrl: text("image_url"),
+	billingCycle: integer("billing_cycle").default(30).notNull(),
+	totalBillingCycles: integer("total_billing_cycles").default(1).notNull(),
+	currentBillingCycle: integer("current_billing_cycle").default(1).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("projects_user_id_idx").using("btree", table.userId.asc().nullsLast().op("int4_ops")),
+	index("projects_address_idx").using("btree", table.address.asc().nullsLast().op("text_ops")),
+	foreignKey({
+		columns: [table.userId],
+		foreignColumns: [users.id],
+		name: "projects_user_id_users_id_fk"
+	}),
+]);
 
 

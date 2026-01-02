@@ -88,7 +88,7 @@ export default function AttachmentsList({
   const handleSyncEmails = async () => {
     setIsSyncing(true);
     try {
-      await client.get('/api/v1/google/emails/my');
+      await client.get('/api/v1/email/gmail/my');
       toast.success('Emails synced successfully');
       router.refresh();
     } catch (error) {

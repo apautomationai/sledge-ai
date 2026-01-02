@@ -46,6 +46,7 @@ export default function DashboardClient({
       }
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
+      toast.error("Failed to fetch dashboard data");
     } finally {
       setIsLoading(false);
     }

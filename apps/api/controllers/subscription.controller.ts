@@ -79,6 +79,13 @@ export class SubscriptionController {
                 updatedAt: subscription.updatedAt?.toISOString()
             };
 
+            // Set no-cache headers to prevent caching
+            res.set({
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            });
+
             return res.status(200).json({
                 success: true,
                 data: subscriptionStatus,
@@ -210,12 +217,7 @@ export class SubscriptionController {
      */
     handleStripeWebhook = async (req: Request, res: Response) => {
         try {
-            console.log('🔍 Webhook received:', {
-                signature: req.headers['stripe-signature'] ? 'Present' : 'Missing',
-                bodyType: typeof req.body,
-                bodyLength: req.body ? req.body.length : 0,
-                contentType: req.headers['content-type']
-            });
+            console.log('🔍 Webhook received');
 
             const sig = req.headers['stripe-signature'] as string;
             const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -237,6 +239,12 @@ export class SubscriptionController {
                 throw new BadRequestError('Missing request body');
             }
 
+            // Ensure payload is a Buffer or string for Stripe signature verification
+            if (!Buffer.isBuffer(payload) && typeof payload !== 'string') {
+                console.error('❌ Body is not Buffer or string:', typeof payload);
+                throw new BadRequestError('Webhook payload must be raw body (Buffer or string)');
+            }
+
             let event;
             try {
                 // Validate webhook signature and construct event
@@ -245,7 +253,6 @@ export class SubscriptionController {
                     sig,
                     endpointSecret
                 );
-                console.log('✅ Signature verified successfully');
             } catch (sigError: any) {
                 console.error('❌ Signature verification failed:', sigError.message);
                 return res.status(400).json({
@@ -260,17 +267,13 @@ export class SubscriptionController {
             try {
                 // Process webhook event with retry logic
                 await WebhookService.processWebhookWithRetry(event);
-                console.log('✅ Webhook processed successfully');
 
                 return res.status(200).json({
                     success: true,
-                    message: 'Webhook processed successfully',
-                    eventType: event.type,
-                    eventId: event.id
+                    message: 'Webhook processed successfully'
                 });
             } catch (processError: any) {
                 console.error('❌ Webhook processing failed:', processError.message);
-                console.error('Stack trace:', processError.stack);
 
                 // Return 500 for processing errors to trigger Stripe retries
                 return res.status(500).json({

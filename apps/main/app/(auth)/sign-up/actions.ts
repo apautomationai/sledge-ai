@@ -3,7 +3,6 @@
 
 import { signUpSchema } from "@/lib/validators";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 export type SignUpFormState = {
   message: string;
@@ -91,8 +90,13 @@ export async function signUpAction(
         });
       }
 
-      // Redirect to dashboard - subscription provider will handle payment/onboarding redirect
-      redirect("/dashboard");
+      // Return success state - client will handle browser refresh
+      return {
+        message: "Account created successfully",
+        success: true,
+        redirectTo: "/onboarding",
+        timestamp,
+      };
     }
 
     // Fallback error if the server response is successful but invalid

@@ -16,6 +16,10 @@ router.get("/accounts", authenticate, requireSubscriptionAccess, quickbooksContr
 router.get("/line-items", authenticate, requireSubscriptionAccess, quickbooksController.getLineItems);
 router.get("/customers", authenticate, requireSubscriptionAccess, quickbooksController.getCustomers);
 router.get("/vendors", authenticate, requireSubscriptionAccess, quickbooksController.getVendors);
+
+// Database endpoints (raw structure)
+router.get("/db/accounts", authenticate, requireSubscriptionAccess, quickbooksController.getAccountsFromDB);
+router.get("/db/products", authenticate, requireSubscriptionAccess, quickbooksController.getProductsFromDB);
 router.get("/invoices", authenticate, requireSubscriptionAccess, quickbooksController.getInvoices);
 router.get("/invoice-line-items/:invoiceId", authenticate, requireSubscriptionAccess, quickbooksController.getInvoiceLineItems);
 router.get("/search-items", authenticate, requireSubscriptionAccess, quickbooksController.searchItems);
@@ -31,7 +35,7 @@ router.post("/create-bill", authenticate, requireSubscriptionAccess, quickbooksC
 router.post("/sync-products", authenticate, requireSubscriptionAccess, quickbooksController.syncProducts);
 router.post("/sync-accounts", authenticate, requireSubscriptionAccess, quickbooksController.syncAccounts);
 router.post("/sync-vendors", authenticate, requireSubscriptionAccess, quickbooksController.syncVendors);
-router.post("/sync", authenticate, requireSubscriptionAccess, quickbooksController.syncProductsAndAccounts);
+router.post("/sync", authenticate, requireSubscriptionAccess, quickbooksController.syncAll);
 router.delete("/disconnect", authenticate, requireSubscriptionAccess, quickbooksController.disconnect);
 
 export default router;

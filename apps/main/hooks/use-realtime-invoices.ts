@@ -10,7 +10,8 @@ interface UseRealtimeInvoicesProps {
     onInvoiceUpdated?: (invoiceId: number) => void;
     onInvoiceStatusUpdated?: (invoiceId: number, status: string) => void;
     onInvoiceDeleted?: (invoiceId: number) => void;
-    onAttachmentStatusUpdated?: (attachmentId: number, status: string) => void;
+    onAttachmentStatusUpdated?: (attachmentId: number, status: string, attachmentData?: any) => void;
+    onJobStatusUpdated?: (jobId: string, status: string, jobData?: any) => void;
     enableToasts?: boolean;
     autoConnect?: boolean;
 }
@@ -22,6 +23,7 @@ export const useRealtimeInvoices = ({
     onInvoiceStatusUpdated,
     onInvoiceDeleted,
     onAttachmentStatusUpdated,
+    onJobStatusUpdated,
     enableToasts = true,
     autoConnect = true,
 }: UseRealtimeInvoicesProps = {}) => {
@@ -33,6 +35,7 @@ export const useRealtimeInvoices = ({
         onInvoiceStatusUpdated,
         onInvoiceDeleted,
         onAttachmentStatusUpdated,
+        onJobStatusUpdated,
     });
 
     // Update handlers ref when props change
@@ -44,8 +47,9 @@ export const useRealtimeInvoices = ({
             onInvoiceStatusUpdated,
             onInvoiceDeleted,
             onAttachmentStatusUpdated,
+            onJobStatusUpdated,
         };
-    }, [onRefreshNeeded, onInvoiceCreated, onInvoiceUpdated, onInvoiceStatusUpdated, onInvoiceDeleted, onAttachmentStatusUpdated]);
+    }, [onRefreshNeeded, onInvoiceCreated, onInvoiceUpdated, onInvoiceStatusUpdated, onInvoiceDeleted, onAttachmentStatusUpdated, onJobStatusUpdated]);
 
     // WebSocket notification handler
     const handleNotification = useCallback((data: any) => {
@@ -71,6 +75,14 @@ export const useRealtimeInvoices = ({
                     message = 'Invoice deleted';
                     description = 'An invoice has been removed';
                     break;
+                case 'ATTACHMENT_STATUS_UPDATED':
+                    message = 'Job status updated';
+                    description = `Job status changed to ${data.status}`;
+                    break;
+                case 'JOB_STATUS_UPDATED':
+                    message = 'Job completed';
+                    description = `Job status changed to ${data.status}`;
+                    break;
             }
 
             if (message) {
@@ -93,25 +105,35 @@ export const useRealtimeInvoices = ({
                 handlersRef.current.onInvoiceDeleted?.(data.invoiceId);
                 break;
             case 'ATTACHMENT_STATUS_UPDATED':
-                handlersRef.current.onAttachmentStatusUpdated?.(data.attachmentId, data.status);
+                handlersRef.current.onAttachmentStatusUpdated?.(data.attachmentId, data.status, data.attachmentData);
+                break;
+            case 'JOB_STATUS_UPDATED':
+                handlersRef.current.onJobStatusUpdated?.(data.jobId, data.status, data.jobData);
                 break;
         }
 
-        // Always trigger general refresh as fallback
-        handlersRef.current.onRefreshNeeded?.();
+        // Always trigger general refresh as fallback for unknown types
+        if (!['ATTACHMENT_STATUS_UPDATED', 'JOB_STATUS_UPDATED'].includes(data.type)) {
+            handlersRef.current.onRefreshNeeded?.();
+        }
     }, [enableToasts]);
 
     // Connect to WebSocket
     const connect = useCallback(async () => {
         try {
-            if (isConnectedRef.current) return;
+            if (isConnectedRef.current) {
+                return;
+            }
 
             await wsClient.connect();
             isConnectedRef.current = true;
 
-            // Set up simple notification listeners
-            wsClient.on('invoice_notification', handleNotification);
-            wsClient.on('dashboard_notification', handleNotification);
+            // Remove any existing listeners first to prevent duplicates
+            wsClient.off('invoice_notification', handleNotification);
+            wsClient.off('dashboard_notification', handleNotification);
+            wsClient.off('invoice_list_notification', handleNotification);
+
+            // Set up simple notification listeners - only listen to invoice_list_notification to avoid duplicates
             wsClient.on('invoice_list_notification', handleNotification);
         } catch (error) {
             isConnectedRef.current = false;
@@ -123,8 +145,6 @@ export const useRealtimeInvoices = ({
         if (!isConnectedRef.current) return;
 
         // Remove event listeners
-        wsClient.off('invoice_notification', handleNotification);
-        wsClient.off('dashboard_notification', handleNotification);
         wsClient.off('invoice_list_notification', handleNotification);
 
         wsClient.disconnect();

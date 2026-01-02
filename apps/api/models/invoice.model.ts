@@ -12,6 +12,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { usersModel } from "./users.model";
 import { attachmentsModel } from "./attachments.model";
+import { quickbooksVendorsModel } from "./quickbooks-vendors.model";
+import { quickbooksCustomersModel } from "./quickbooks-customers.model";
 export const invoiceStatusEnum = pgEnum("invoice_status", [
   "pending",
   "approved",
@@ -30,25 +32,21 @@ export const invoiceModel = pgTable("invoices", {
   userId: integer("user_id").notNull(),
   attachmentId: integer("attachment_id").notNull(),
   invoiceNumber: varchar("invoice_number", { length: 50 }),
-  vendorName: varchar("vendor_name", { length: 255 }),
-  vendorAddress: text("vendor_address"),
-  vendorPhone: varchar("vendor_phone", { length: 50 }),
-  vendorEmail: varchar("vendor_email", { length: 255 }),
-  customerName: varchar("customer_name", { length: 255 }),
+  vendorId: integer("vendor_id"),
+  customerId: integer("customer_id"),
   invoiceDate: timestamp("invoice_date"),
   dueDate: timestamp("due_date"),
   totalAmount: numeric("total_amount"),
   currency: varchar("currency", { length: 10 }),
   totalTax: numeric("total_tax"),
-  // lineItems: numeric("line_items"),
-  // costCode: varchar("cost_code", { length: 50 }),
-  // quantity: numeric("quantity"),
-  // rate: numeric("rate"),
   description: text("description"),
   fileUrl: text("file_url"),
   fileKey: text("file_key"),
   s3JsonKey: text("s3_json_key"),
+  deliveryAddress: text("delivery_address"),
   status: invoiceStatusEnum("status").notNull().default("pending"),
+  rejectionEmailSender: varchar("rejection_email_sender", { length: 255 }),
+  rejectionReason: text("rejection_reason"),
   isDeleted: boolean("is_deleted").notNull().default(false),
   deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -89,6 +87,17 @@ export const invoiceRelations = relations(invoiceModel, ({ one, many }) => ({
     fields: [invoiceModel.attachmentId],
     references: [attachmentsModel.id],
   }),
+
+  vendor: one(quickbooksVendorsModel, {
+    fields: [invoiceModel.vendorId],
+    references: [quickbooksVendorsModel.id],
+  }),
+
+  customer: one(quickbooksCustomersModel, {
+    fields: [invoiceModel.customerId],
+    references: [quickbooksCustomersModel.id],
+  }),
+
   lineItems: many(lineItemsModel, {
     relationName: "lineItems",
   }),

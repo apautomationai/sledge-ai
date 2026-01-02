@@ -11,7 +11,7 @@ interface OutlookSyncResponse {
 
 export async function syncOutlookData(): Promise<OutlookSyncResponse> {
   try {
-    const response = await client.post<OutlookSyncResponse>("/api/v1/outlook/sync");
+    const response = await client.post<OutlookSyncResponse>("/api/v1/email/outlook/sync");
     return response.data;
   } catch (error) {
     console.error("Error syncing Outlook data:", error);

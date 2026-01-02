@@ -19,6 +19,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "types"
-  ],
+, "components/landing/trial-button.tsx"  ],
   "exclude": ["node_modules"]
 }

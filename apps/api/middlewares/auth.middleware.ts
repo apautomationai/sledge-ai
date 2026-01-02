@@ -1,56 +1,56 @@
+import { Request, Response, NextFunction } from "express";
 import db from "@/lib/db";
 import { usersModel } from "@/models/users.model";
 import { eq } from "drizzle-orm";
-import { Request, Response, NextFunction } from "express-serve-static-core";
+import jwt from "jsonwebtoken";
 
-const jwt = require("jsonwebtoken");
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    id?: number;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  };
+  token?: string;
+}
 
-//@ts-ignore
-export const authenticate = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  let token;
+export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+  const r = req as AuthenticatedRequest; // cast here
+
   try {
-    // Get token from header
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
 
-    const authHeader = req.headers.authorization;
+    if (token) {
+      const decoded: any = jwt.verify(token, process.env.JWT_SECRET!); // ! ensures secret is defined
+      const [user] = await db.select().from(usersModel).where(eq(usersModel.id, decoded.id));
 
-    token = req.cookies.token;
-    if (!token) {
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return res.status(401).json({ message: "No token provided" });
-      }
+      if (!user) return res.status(401).json({ message: "User not found" });
 
-      token = authHeader.split(" ")[1];
-
-      if (!token) {
-        return res.status(401).json({ message: "No token provided" });
-      }
+      r.user = {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName ?? undefined,
+        lastName: user.lastName ?? undefined,
+      };
+      r.token = token;
+      return next();
     }
 
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Check if user exists
-    const [user] = await db
-      .select()
-      .from(usersModel)
-      .where(eq(usersModel.id, decoded.id));
-    if (!user) {
-      return res.status(401).json({ message: "User not found" });
+    // OAuth login (Google / Microsoft)
+    const oauthEmail = req.cookies.oauthEmail;
+    if (oauthEmail) {
+      r.user = {
+        email: oauthEmail,
+        firstName: req.cookies.oauthFirstName,
+        lastName: req.cookies.oauthLastName,
+      };
+      return next();
     }
 
-    // Attach user to request object
-    req.user = user;
-    //@ts-ignore
-    req.token = token;
-
-    next();
-  } catch (error) {
-    console.error("Authentication error:", error);
-
-    return res.status(500).json({ message: "Authentication failed" });
+    // Not logged in
+    return res.status(401).json({ message: "Unauthorized" });
+  } catch (err) {
+    console.error("Auth error", err);
+    return res.status(401).json({ message: "Unauthorized" });
   }
 };

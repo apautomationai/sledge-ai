@@ -45,7 +45,7 @@ export default function StatsCards({ metrics, dateRange = "monthly" }: StatsCard
       icon: CheckCircle,
     },
     {
-      title: "Rejected Invoices",
+      title: `Rejected ${periodLabel}`,
       value: metrics.rejectedThisMonth.toString(),
       description: "Requires attention",
       icon: XCircle,

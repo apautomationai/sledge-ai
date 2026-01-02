@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
 import { Button } from "@workspace/ui/components/button";
 import { client } from "@/lib/axios-client";
 import { toast } from "sonner";
@@ -15,13 +16,51 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@workspace/ui/components/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { Checkbox } from "@workspace/ui/components/checkbox";
 import { InvoiceDetails } from "@/lib/types/invoice";
 import { formatLabel, renderValue, formatDate } from "@/lib/utility/formatters";
+
+// Zod schema for rejection form
+const rejectionFormSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
+  reason: z.string().min(1, "Reason is required").min(10, "Reason must be at least 10 characters"),
+});
 
 // Helper function to capitalize status
 const capitalizeStatus = (status: string | null | undefined): string => {
   if (!status) return '';
   return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+};
+
+// Helper function to detect automated/no-reply email addresses
+const isAutomatedEmail = (email: string | null | undefined): boolean => {
+  if (!email) return false;
+  const lowerEmail = email.toLowerCase();
+  const automatedPatterns = [
+    'noreply',
+    'no-reply',
+    'no_reply',
+    'donotreply',
+    'do-not-reply',
+    'do_not_reply',
+    'notification',
+    'notifications',
+    'alert',
+    'alerts',
+    'system',
+    'auto',
+    'automated',
+  ];
+  return automatedPatterns.some(pattern => lowerEmail.includes(pattern));
 };
 
 interface ConfirmationModalsProps {
@@ -30,28 +69,25 @@ interface ConfirmationModalsProps {
   invoiceDetails: InvoiceDetails;
   originalInvoiceDetails: InvoiceDetails;
   selectedFields: string[];
-  onSave: () => Promise<void>;
+  onSave: (vendorData?: any, customerData?: any) => Promise<void>;
   onReject: () => Promise<void>;
   onApprove: () => Promise<void>;
   onCancel: () => void;
   onApprovalSuccess?: () => void;
   onInvoiceDetailsUpdate?: (updatedDetails: InvoiceDetails) => void;
   onFieldChange?: () => void;
+  vendorData?: any;
+  customerData?: any;
 }
 
 export default function ConfirmationModals({
-  isEditing,
-  setIsEditing,
   invoiceDetails,
-  originalInvoiceDetails,
   selectedFields,
   onSave,
-  onReject,
-  onApprove,
-  onCancel,
   onApprovalSuccess,
   onInvoiceDetailsUpdate,
-  onFieldChange,
+  vendorData,
+  customerData,
 }: ConfirmationModalsProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
@@ -59,14 +95,74 @@ export default function ConfirmationModals({
   const [isApproving, setIsApproving] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [isReopening, setIsReopening] = useState(false);
   const [isQuickBooksErrorOpen, setIsQuickBooksErrorOpen] = useState(false);
   const [isLineItemsErrorOpen, setIsLineItemsErrorOpen] = useState(false);
   const [incompleteLineItems, setIncompleteLineItems] = useState<string[]>([]);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedRecipientEmail, setSelectedRecipientEmail] = useState("");
+  const [customEmail, setCustomEmail] = useState("");
+  const [skipEmail, setSkipEmail] = useState(false);
+  const [formErrors, setFormErrors] = useState<{ email?: string; reason?: string }>({});
+
+  const getRecipientEmail = (): string => {
+    if (selectedRecipientEmail === "custom") {
+      return customEmail;
+    }
+    return selectedRecipientEmail;
+  };
+
+  const validateForm = (): boolean => {
+    // Skip all validation if skipEmail is checked (reason is optional)
+    if (skipEmail) {
+      setFormErrors({});
+      return true;
+    }
+
+    const email = getRecipientEmail();
+    const result = rejectionFormSchema.safeParse({ email, reason: rejectionReason });
+
+    if (!result.success) {
+      const errors: { email?: string; reason?: string } = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0] === "email") errors.email = err.message;
+        if (err.path[0] === "reason") errors.reason = err.message;
+      });
+      setFormErrors(errors);
+      return false;
+    }
+
+    setFormErrors({});
+    return true;
+  };
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
-    await onSave();
+    await onSave(vendorData, customerData);
     setIsSaving(false);
+  };
+
+  const handleReopenForReview = async () => {
+    setIsReopening(true);
+    try {
+      const invoiceId = invoiceDetails.id;
+      const statusUpdateResponse: any = await client.patch(`/api/v1/invoice/${invoiceId}/status`, {
+        status: "pending"
+      });
+
+      if (onInvoiceDetailsUpdate && statusUpdateResponse.success) {
+        const updatedDetails = { ...invoiceDetails, status: "pending" };
+        onInvoiceDetailsUpdate(updatedDetails as InvoiceDetails);
+      }
+
+      toast.success("Invoice reopened for review");
+    } catch (error: any) {
+      console.error("Error reopening invoice:", error);
+      toast.error("Failed to reopen invoice", {
+        description: error.response?.data?.error || error.message
+      });
+    }
+    setIsReopening(false);
   };
 
   const checkQuickBooksIntegration = async (): Promise<boolean> => {
@@ -122,7 +218,7 @@ export default function ConfirmationModals({
     // Step 0: Auto-save if there are unsaved changes (check if onFieldChange was called)
     // We'll always save before approval to ensure latest changes are persisted
     setIsSaving(true);
-    await onSave();
+    await onSave(vendorData, customerData);
     setIsSaving(false);
 
     // Step 1: Validate line items first
@@ -157,84 +253,18 @@ export default function ConfirmationModals({
       const dbLineItemsResponse: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceId}`);
 
       if (dbLineItemsResponse.success && dbLineItemsResponse.data.length > 0) {
-        // // Step 2: Search for customer and create if needed
-        // const customerName = invoiceDetails.customerName;
-        // let customer = null;
-
-        // if (customerName) {
-        //   const customerSearchResponse: any = await client.get("/api/v1/quickbooks/search-customers", {
-        //     params: { searchTerm: customerName }
-        //   });
-
-        //   if (customerSearchResponse.success && customerSearchResponse.data.results.length > 0) {
-        //     // Found customer with 95%+ match
-        //     customer = customerSearchResponse.data.results[0];
-        //   } else {
-        //     // No customer found with 95%+ match, create new customer
-        //     const createCustomerResponse: any = await client.post("/api/v1/quickbooks/create-customer", {
-        //       name: customerName
-        //     });
-        //     // Handle create customer response format: data.Customer
-        //     customer = createCustomerResponse.data?.Customer || createCustomerResponse.data;
-        //   }
-        // }
-
-        // // Step 4: Hierarchical vendor search (email → phone → address → name)
-        // Step 2: Hierarchical vendor search (email → phone → address → name)
-        const vendorSearchResponse: any = await client.get("/api/v1/quickbooks/hierarchical-vendor-search", {
-          params: {
-            email: invoiceDetails.vendorEmail,
-            phone: invoiceDetails.vendorPhone,
-            address: invoiceDetails.vendorAddress,
-            name: invoiceDetails.vendorName
-          }
-        });
-
-        let vendor = null;
-        if (vendorSearchResponse.success && vendorSearchResponse.data.found) {
-          // Found vendor using hierarchical search
-          vendor = vendorSearchResponse.data.vendor;
-          console.log(`Vendor found by ${vendorSearchResponse.data.matchType}:`, vendor.DisplayName || vendor.Name);
-        } else {
-          // No vendor found, create new vendor with all available information
-          const vendorName = invoiceDetails.vendorName;
-          if (vendorName) {
-            const createVendorResponse: any = await client.post("/api/v1/quickbooks/create-vendor", {
-              name: vendorName,
-              email: invoiceDetails.vendorEmail,
-              phone: invoiceDetails.vendorPhone,
-              address: invoiceDetails.vendorAddress
-            });
-            // Handle create vendor response format: data.Vendor
-            vendor = createVendorResponse.data?.Vendor || createVendorResponse.data;
-            console.log("Created new vendor with full details:", vendor.DisplayName || vendor.Name);
-          } else {
-            throw new Error("No vendor information available to create vendor");
-          }
-        }
-
-        if (!vendor) {
-          throw new Error("Failed to find or create vendor in QuickBooks");
-        }
-
-        // Step 4: Create bill in QuickBooks using line items from database
         const lineItems = dbLineItemsResponse.data;
-
-        // Calculate discount by comparing popup total with line items sum
         const totalAmountFromPopup = parseFloat(invoiceDetails?.totalAmount ?? "0") || 0;
         const lineItemsSum = lineItems.reduce((sum: number, item: any) => sum + (parseFloat(item.amount) || 0), 0);
         const discountAmount = lineItemsSum - totalAmountFromPopup;
+        const vendorId = invoiceDetails?.vendorData?.quickbooksId;
 
-        // Extract vendor ID (handle both search and create response formats)
-        const vendorId = vendor.Id || vendor.id;
-
-        // Extract tax amount if available
         const totalTaxAmount = parseFloat(invoiceDetails?.totalTax ?? "0") || 0;
 
         try {
           await client.post("/api/v1/quickbooks/create-bill", {
             vendorId: vendorId,
-            lineItems: lineItems, // Pass the line items directly from database with itemType and resourceId
+            lineItems: lineItems,
             totalAmount: totalAmountFromPopup,
             ...(totalTaxAmount > 0 && { totalTax: totalTaxAmount }),
             dueDate: invoiceDetails.dueDate,
@@ -335,14 +365,25 @@ export default function ConfirmationModals({
   };
 
   const handleConfirmReject = async () => {
+    // Validate form using Zod
+    if (!validateForm()) {
+      return;
+    }
+
     setIsRejecting(true);
 
     try {
-      const invoiceId = invoiceDetails.id;
+      // Save invoice changes first
+      await onSave();
 
-      // Update invoice status to rejected
+      const invoiceId = invoiceDetails.id;
+      const recipientEmail = skipEmail ? null : getRecipientEmail();
+
+      // Update invoice status to rejected with reason and optionally recipient email
       const statusUpdateResponse: any = await client.patch(`/api/v1/invoice/${invoiceId}/status`, {
-        status: "rejected"
+        status: "rejected",
+        rejectionReason: rejectionReason,
+        ...(recipientEmail && { recipientEmail })
       });
 
       // Update local invoice details state
@@ -352,10 +393,15 @@ export default function ConfirmationModals({
       }
 
       toast.dismiss();
-      toast.success("Invoice has been rejected");
+      toast.success(skipEmail ? "Invoice rejected" : `Invoice rejected. Notification sent to ${recipientEmail}`);
 
-      // Close the dialog first
+      // Close the dialog and reset form
       setIsRejectDialogOpen(false);
+      setRejectionReason("");
+      setSelectedRecipientEmail("");
+      setCustomEmail("");
+      setSkipEmail(false);
+      setFormErrors({});
 
     } catch (error: any) {
       console.error("Error rejecting invoice:", error.response?.data || error.message);
@@ -373,22 +419,28 @@ export default function ConfirmationModals({
   // Check if invoice is already approved or rejected
   const isInvoiceFinalized = invoiceDetails.status === "approved" || invoiceDetails.status === "rejected";
 
-  const handleRejectClick = async () => {
-    // Auto-save before rejection to ensure latest changes are persisted
-    setIsSaving(true);
-    await onSave();
-    setIsSaving(false);
-
-    // Open the reject dialog
+  const handleRejectClick = () => {
+    // Reset form state and open the reject dialog
+    setRejectionReason("");
+    setSelectedRecipientEmail("");
+    setSkipEmail(false);
+    setCustomEmail("");
+    setFormErrors({});
     setIsRejectDialogOpen(true);
   };
 
   return (
     <div className="flex justify-between mt-4">
       <div className="flex gap-2">
-        <Button onClick={handleSaveChanges} disabled={isSaving} variant="outline">
-          {isSaving ? "Saving..." : "Save Changes"}
-        </Button>
+        {isInvoiceFinalized ? (
+          <Button onClick={handleReopenForReview} disabled={isReopening} variant="outline">
+            {isReopening ? "Reopening..." : "Reopen for Review"}
+          </Button>
+        ) : (
+          <Button onClick={handleSaveChanges} disabled={isSaving} variant="outline">
+            {isSaving ? "Saving..." : "Save Changes"}
+          </Button>
+        )}
       </div>
       {!isInvoiceFinalized && (
         <div className="flex gap-2">
@@ -400,13 +452,118 @@ export default function ConfirmationModals({
             >
               {isRejecting ? "Rejecting..." : "Reject"}
             </Button>
-            <DialogContent>
+            <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Confirm Invoice Rejection</DialogTitle>
+                <DialogTitle>Reject Invoice</DialogTitle>
                 <DialogDescription>
-                  Are you sure you want to reject this invoice? This action will mark the invoice as rejected.
+                  This will mark the invoice as rejected.
                 </DialogDescription>
               </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="skipEmail"
+                    checked={skipEmail}
+                    onCheckedChange={(checked) => {
+                      setSkipEmail(checked === true);
+                      if (checked) {
+                        setFormErrors((prev) => ({ ...prev, email: undefined }));
+                      }
+                    }}
+                  />
+                  <Label htmlFor="skipEmail" className="text-sm font-medium cursor-pointer">
+                    Don't send rejection email
+                  </Label>
+                </div>
+                {!skipEmail && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Send email to <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={selectedRecipientEmail}
+                      onValueChange={(value) => {
+                        setSelectedRecipientEmail(value);
+                        setFormErrors((prev) => ({ ...prev, email: undefined }));
+                      }}
+                    >
+                      <SelectTrigger className={`w-full ${formErrors.email && selectedRecipientEmail !== "custom" ? "border-red-500" : ""}`}>
+                        <SelectValue placeholder="Select recipient email" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {invoiceDetails.senderEmail && (
+                          isAutomatedEmail(invoiceDetails.senderEmail) ? (
+                            <div
+                              title="This appears to be an automated email address that cannot receive replies"
+                              className="relative flex w-full cursor-not-allowed select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-muted-foreground opacity-50"
+                            >
+                              Sender: {invoiceDetails.senderEmail}
+                            </div>
+                          ) : (
+                            <SelectItem value={invoiceDetails.senderEmail}>
+                              Sender: {invoiceDetails.senderEmail}
+                            </SelectItem>
+                          )
+                        )}
+                        {(invoiceDetails.vendorData?.primaryEmail) && (
+                          (() => {
+                            const vendorEmail = invoiceDetails.vendorData?.primaryEmail ?? "vendor";
+                            return isAutomatedEmail(vendorEmail) ? (
+                              <div
+                                title="This appears to be an automated email address that cannot receive replies"
+                                className="relative flex w-full cursor-not-allowed select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-muted-foreground opacity-50"
+                              >
+                                Vendor: {vendorEmail}
+                              </div>
+                            ) : (
+                              <SelectItem value={vendorEmail}>
+                                Vendor: {vendorEmail}
+                              </SelectItem>
+                            );
+                          })()
+                        )}
+                        <SelectItem value="custom">Custom email</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {selectedRecipientEmail === "custom" && (
+                      <div className="mt-2">
+                        <Input
+                          type="email"
+                          value={customEmail}
+                          onChange={(e) => {
+                            setCustomEmail(e.target.value);
+                            setFormErrors((prev) => ({ ...prev, email: undefined }));
+                          }}
+                          placeholder="Enter email address"
+                          className={formErrors.email ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
+                        />
+                      </div>
+                    )}
+                    {formErrors.email && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
+                    )}
+                  </div>
+                )}
+                {!skipEmail && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Reason for rejection <span className="text-red-500">*</span>
+                    </Label>
+                    <textarea
+                      value={rejectionReason}
+                      onChange={(e) => {
+                        setRejectionReason(e.target.value);
+                        setFormErrors((prev) => ({ ...prev, reason: undefined }));
+                      }}
+                      placeholder="Enter the reason for rejecting this invoice..."
+                      className={`w-full px-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px] resize-none ${formErrors.reason ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
+                    />
+                    {formErrors.reason && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.reason}</p>
+                    )}
+                  </div>
+                )}
+              </div>
               <DialogFooter>
                 <DialogClose asChild>
                   <Button variant="outline">Cancel</Button>
@@ -440,7 +597,6 @@ export default function ConfirmationModals({
                 <div className="grid gap-2 text-sm">
                   {selectedFields
                     .filter((key) => {
-                      // Hide internal/system fields from the approval popup
                       const hiddenFields = [
                         'id',
                         'userId',
@@ -450,7 +606,11 @@ export default function ConfirmationModals({
                         's3JsonKey',
                         'createdAt',
                         'updatedAt',
-                        'sourcePdfUrl'
+                        'sourcePdfUrl',
+                        'vendorData',
+                        'isDeleted',
+                        'deletedAt',
+                        'vendorId'
                       ];
                       return !hiddenFields.includes(key);
                     })
@@ -467,6 +627,7 @@ export default function ConfirmationModals({
                             ? capitalizeStatus(invoiceDetails[key as keyof InvoiceDetails] as string)
                             : (key === 'invoiceDate' || key === 'dueDate')
                               ? formatDate(invoiceDetails[key as keyof InvoiceDetails] as string)
+                              // @ts-ignore
                               : renderValue(invoiceDetails[key as keyof InvoiceDetails])
                           }
                         </span>
@@ -570,7 +731,7 @@ export default function ConfirmationModals({
                   </h3>
                   <div className="mt-2 text-sm text-orange-700">
                     <p className="mb-2">
-                      The following line items need both an item type (Account or Product/Service) and a selection:
+                      The following line items need both an item type (Account or Cost Code) and a selection:
                     </p>
                     <ul className="list-disc list-inside space-y-1">
                       {incompleteLineItems.map((itemName, index) => (

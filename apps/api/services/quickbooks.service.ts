@@ -5,6 +5,7 @@ import { integrationsModel } from "@/models/integrations.model";
 import { quickbooksProductsModel } from "@/models/quickbooks-products.model";
 import { quickbooksAccountsModel } from "@/models/quickbooks-accounts.model";
 import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
+import { quickbooksCustomersModel } from "@/models/quickbooks-customers.model";
 import { BadRequestError, InternalServerError } from "@/helpers/errors";
 import { integrationsService } from "./integrations.service";
 import { embeddingsService } from "./embeddings.service";
@@ -399,19 +400,11 @@ export class QuickBooksService {
             accountName.includes('accounts receivable') ||
             accountName.includes('receivable');
 
-          console.log(`🏦 Account "${account.Name}":`, {
-            AccountType: account.AccountType,
-            AccountSubType: account.AccountSubType,
-            isInvalidType,
-            isInvalidSubType,
-            isPayableByName,
-            excluded: isInvalidType || isInvalidSubType || isPayableByName
-          });
+
 
           return !isInvalidType && !isInvalidSubType && !isPayableByName;
         });
 
-        console.log(`🏦 Filtered accounts: ${response.QueryResponse.Account.length} -> ${validAccounts.length}`);
 
         return {
           ...response,
@@ -495,6 +488,27 @@ export class QuickBooksService {
     }
   }
 
+
+
+  // Get customers from database
+  async getCustomersFromDatabase(userId: number) {
+    try {
+      const customers = await db
+        .select()
+        .from(quickbooksCustomersModel)
+        .where(
+          and(
+            eq(quickbooksCustomersModel.userId, userId),
+            eq(quickbooksCustomersModel.active, true)
+          )
+        );
+
+      return customers;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Get products from database
   async getProductsFromDatabase(userId: number) {
     try {
@@ -554,16 +568,9 @@ export class QuickBooksService {
         throw new Error("No expense account found in QuickBooks for fallback");
       }
 
-      console.log(`🏦 Using default expense account for fallback: ${defaultExpenseAccount.Name} (${defaultExpenseAccount.Id})`);
 
       // Create line items array based on itemType and resourceId from database
       const lineItems = billData.lineItems.map((item, index) => {
-        console.log(`🧾 Processing line item "${item.item_name}":`, {
-          itemType: item.itemType,
-          resourceId: item.resourceId,
-          amount: item.amount,
-          quantity: item.quantity
-        });
 
         const baseItem = {
           Amount: parseFloat(item.amount.toString()),
@@ -588,7 +595,6 @@ export class QuickBooksService {
             },
             ...(item.description && { Description: item.description })
           };
-          console.log(`💰 Created account-based line:`, accountLine);
           return accountLine;
         } else if (item.itemType === 'product') {
           // Item-based expense line
@@ -603,7 +609,6 @@ export class QuickBooksService {
             },
             ...(item.description && { Description: item.description })
           };
-          console.log(`🛍️ Created item-based line:`, productLine);
           return productLine;
         } else {
           throw new Error(`Invalid itemType: ${item.itemType} for line item ${item.item_name}`);
@@ -672,7 +677,6 @@ export class QuickBooksService {
 
       // Try to create the bill with item-based lines first
       try {
-        console.log(`📋 Attempting to create bill with ${lineItems.length} line items`);
         return await this.makeApiCall(integration, "bill", "POST", payload);
       } catch (apiError: any) {
         // Check if the error is related to items not having purchase accounts
@@ -682,8 +686,6 @@ export class QuickBooksService {
           errorMessage.includes('has an account associated with it');
 
         if (isItemAccountError) {
-          console.log(`⚠️ Item-based bill creation failed, falling back to account-based lines`);
-
           // Rebuild line items using account-based approach for products
           const fallbackLineItems = billData.lineItems.map((item, index) => {
             const baseItem = {
@@ -705,7 +707,6 @@ export class QuickBooksService {
               };
             } else if (item.itemType === 'product') {
               // Convert product lines to account-based using default expense account
-              console.log(`🔄 Converting product "${item.item_name}" to account-based line using default expense account`);
               return {
                 ...baseItem,
                 DetailType: "AccountBasedExpenseLineDetail",
@@ -760,7 +761,6 @@ export class QuickBooksService {
             ...(billData.invoiceDate && { TxnDate: billData.invoiceDate })
           };
 
-          console.log(`🔄 Retrying bill creation with account-based fallback`);
           return await this.makeApiCall(integration, "bill", "POST", fallbackPayload);
         } else {
           // Re-throw other errors
@@ -1063,8 +1063,6 @@ export class QuickBooksService {
         DisplayName: sanitizedName
       };
 
-      console.log("Creating QuickBooks customer with sanitized name:", sanitizedName);
-      console.log("Full payload:", JSON.stringify(payload, null, 2));
       return this.makeApiCall(integration, "customer", "POST", payload);
     } catch (error) {
       console.error("Error creating QuickBooks customer:", error);
@@ -1120,10 +1118,116 @@ export class QuickBooksService {
         };
       }
 
-      console.log("Creating QuickBooks vendor with data:", payload);
       return this.makeApiCall(integration, "vendor", "POST", payload);
     } catch (error) {
       console.error("Error creating QuickBooks vendor:", error);
+      throw error;
+    }
+  }
+
+  // Update an existing vendor in QuickBooks
+  async updateVendor(integration: QuickBooksIntegration, vendorId: string, vendorData: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    syncToken: string; // Required for updates
+  }) {
+    try {
+      // Build QuickBooks Vendor update payload
+      const payload: any = {
+        Id: vendorId,
+        SyncToken: vendorData.syncToken
+      };
+
+      // Add name if provided
+      if (vendorData.name) {
+        const sanitizedName = vendorData.name
+          .replace(/[<>&"']/g, '')
+          .replace(/,\s*Inc\./gi, ' Inc')
+          .replace(/,\s*LLC/gi, ' LLC')
+          .replace(/,\s*Corp\./gi, ' Corp')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .substring(0, 100);
+
+        if (sanitizedName) {
+          payload.DisplayName = sanitizedName;
+        }
+      }
+
+      // Add email if provided
+      if (vendorData.email) {
+        payload.PrimaryEmailAddr = {
+          Address: vendorData.email
+        };
+      }
+
+      // Add phone if provided
+      if (vendorData.phone) {
+        payload.PrimaryPhone = {
+          FreeFormNumber: vendorData.phone
+        };
+      }
+
+      // Add address if provided
+      if (vendorData.address || vendorData.city || vendorData.state || vendorData.postalCode) {
+        payload.BillAddr = {};
+        if (vendorData.address) payload.BillAddr.Line1 = vendorData.address;
+        if (vendorData.city) payload.BillAddr.City = vendorData.city;
+        if (vendorData.state) payload.BillAddr.CountrySubDivisionCode = vendorData.state;
+        if (vendorData.postalCode) payload.BillAddr.PostalCode = vendorData.postalCode;
+      }
+
+      console.log("QuickBooks vendor update payload:", JSON.stringify(payload, null, 2));
+      const result = await this.makeApiCall(integration, "vendor", "POST", payload);
+      console.log("QuickBooks vendor update raw response:", JSON.stringify(result, null, 2));
+
+      return result;
+    } catch (error) {
+      console.error("Error updating QuickBooks vendor:", error);
+      throw error;
+    }
+  }
+
+  // Update an existing customer in QuickBooks
+  async updateCustomer(integration: QuickBooksIntegration, customerId: string, customerData: {
+    name?: string;
+    syncToken: string; // Required for updates
+  }) {
+    try {
+      // Build QuickBooks Customer update payload
+      const payload: any = {
+        Id: customerId,
+        SyncToken: customerData.syncToken
+      };
+
+      // Add name if provided
+      if (customerData.name) {
+        const sanitizedName = customerData.name
+          .replace(/[<>&"']/g, '')
+          .replace(/,\s*Inc\./gi, ' Inc')
+          .replace(/,\s*LLC/gi, ' LLC')
+          .replace(/,\s*Corp\./gi, ' Corp')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .substring(0, 100);
+
+        if (sanitizedName) {
+          payload.DisplayName = sanitizedName;
+        }
+      }
+
+      console.log("QuickBooks customer update payload:", JSON.stringify(payload, null, 2));
+      const result = await this.makeApiCall(integration, "customer", "POST", payload);
+      console.log("QuickBooks customer update raw response:", JSON.stringify(result, null, 2));
+
+      return result;
+    } catch (error) {
+      console.error("Error updating QuickBooks customer:", error);
       throw error;
     }
   }
@@ -1737,6 +1841,130 @@ export class QuickBooksService {
     }
 
     return { inserted, updated, skipped };
+  }
+
+  // Sync customers to database
+  async syncCustomersToDatabase(
+    userId: number,
+    customers: any[],
+  ): Promise<{ inserted: number; updated: number; skipped: number }> {
+    let inserted = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    for (const customer of customers) {
+      try {
+        const quickbooksId = customer.Id?.toString() || "";
+        if (!quickbooksId) {
+          continue;
+        }
+
+        // Parse timestamps from QuickBooks MetaData
+        const metaDataCreateTime = customer.MetaData?.CreateTime
+          ? new Date(customer.MetaData.CreateTime)
+          : null;
+        const metaDataLastUpdatedTime = customer.MetaData?.LastUpdatedTime
+          ? new Date(customer.MetaData.LastUpdatedTime)
+          : null;
+
+        const customerData = {
+          userId,
+          quickbooksId,
+          displayName: customer.DisplayName || null,
+          companyName: customer.CompanyName || null,
+          givenName: customer.GivenName || null,
+          familyName: customer.FamilyName || null,
+          primaryEmail: customer.PrimaryEmailAddr?.Address || null,
+          primaryPhone: customer.PrimaryPhone?.FreeFormNumber || null,
+          billAddrLine1: customer.BillAddr?.Line1 || null,
+          billAddrCity: customer.BillAddr?.City || null,
+          billAddrState: customer.BillAddr?.CountrySubDivisionCode || null,
+          billAddrPostalCode: customer.BillAddr?.PostalCode || null,
+          billAddrCountry: customer.BillAddr?.Country || null,
+          balance: customer.Balance ? customer.Balance.toString() : null,
+          active: customer.Active ?? null,
+          syncToken: customer.SyncToken || null,
+          metaDataCreateTime,
+          metaDataLastUpdatedTime,
+        };
+
+        const embeddingText = this.buildCustomerEmbeddingText(customerData);
+
+        // Check if record exists
+        const [existing] = await db
+          .select()
+          .from(quickbooksCustomersModel)
+          .where(
+            and(
+              eq(quickbooksCustomersModel.userId, userId),
+              eq(quickbooksCustomersModel.quickbooksId, quickbooksId),
+            ),
+          )
+          .limit(1);
+
+        if (existing) {
+          const existingEmbedding =
+            (existing as { embedding?: number[] | null }).embedding ?? null;
+          // Compare updated_at timestamps
+          const dbUpdatedAt = existing.metaDataLastUpdatedTime
+            ? new Date(existing.metaDataLastUpdatedTime).getTime()
+            : 0;
+          const qbUpdatedAt = metaDataLastUpdatedTime
+            ? metaDataLastUpdatedTime.getTime()
+            : 0;
+          const embeddingMissing =
+            !existingEmbedding || existingEmbedding.length === 0;
+
+          if (dbUpdatedAt !== qbUpdatedAt || embeddingMissing) {
+            const embedding = embeddingText
+              ? await this.maybeGenerateEmbedding(embeddingText, existingEmbedding)
+              : null;
+            await db
+              .update(quickbooksCustomersModel)
+              .set({
+                ...customerData,
+                embedding,
+                updatedAt: new Date(),
+              })
+              .where(eq(quickbooksCustomersModel.id, existing.id));
+            updated++;
+          } else {
+            // Skip - no changes
+            skipped++;
+          }
+        } else {
+          const embedding = embeddingText
+            ? await this.maybeGenerateEmbedding(embeddingText)
+            : null;
+          await db.insert(quickbooksCustomersModel).values({
+            ...customerData,
+            embedding,
+            createdAt: metaDataCreateTime || new Date(),
+            updatedAt: metaDataLastUpdatedTime || new Date(),
+          });
+          inserted++;
+        }
+      } catch (error) {
+        // Continue with next customer
+      }
+    }
+
+    return { inserted, updated, skipped };
+  }
+
+  private buildCustomerEmbeddingText(customerData: any): string {
+    const parts = [
+      customerData.displayName,
+      customerData.companyName,
+      customerData.givenName,
+      customerData.familyName,
+      customerData.primaryEmail,
+      customerData.primaryPhone,
+      customerData.billAddrCity,
+      customerData.billAddrState,
+    ].filter(Boolean);
+
+    return parts.join(" ");
   }
 }
 

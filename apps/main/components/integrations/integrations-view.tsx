@@ -42,6 +42,7 @@ export default function IntegrationsView({
   const { message, type } = searchParams;
   const [isRedirectDialogOpen, setRedirectDialogOpen] = useState(false);
   const [shouldOpenGmailConfig, setShouldOpenGmailConfig] = useState(false);
+  const [shouldOpenOutlookConfig, setShouldOpenOutlookConfig] = useState(false);
   const [state, formAction] = useActionState(updateIntegrationStatusAction, undefined);
 
   const isSuccess =
@@ -49,10 +50,16 @@ export default function IntegrationsView({
     String(message).toLowerCase().includes("successfully");
   const isGmail = String(type).toLowerCase().includes("gmail") ||
     String(message).toLowerCase().includes("gmail");
+  const isOutlook = String(type).toLowerCase().includes("outlook") ||
+    String(message).toLowerCase().includes("outlook");
 
   const needsGmailConfig = integrations.some(
     (i) => i.name === "gmail" && i.status === "success" && !i.metadata?.startReading,
   );
+  const needOutlookConfig = integrations.some(
+    (i) => i.name === "outlook" && i.status === "success" && !i.metadata?.startReading,
+  );
+
   useEffect(() => {
     if (message && type) {
       // Check if this is a successful Gmail integration that needs configuration
@@ -69,10 +76,24 @@ export default function IntegrationsView({
         }
       }
 
-      // Show success/error dialog for non-Gmail or already configured
+      // Check if this is a successful Outlook integration that needs configuration
+      if (isSuccess && isOutlook) {
+        const outlookIntegration = integrations.find((i) => i.name === "outlook");
+        if (
+          outlookIntegration &&
+          outlookIntegration.status === "success" &&
+          !outlookIntegration.metadata?.startReading
+        ) {
+          // Directly open configure dialog, skip success message
+          setShouldOpenOutlookConfig(true);
+          return;
+        }
+      }
+
+      // Show success/error dialog for non-Gmail/Outlook or already configured
       setRedirectDialogOpen(true);
     }
-  }, [message, type, integrations, isSuccess, isGmail]);
+  }, [message, type, integrations, isSuccess, isGmail, isOutlook]);
 
   useEffect(() => {
     if (!state) return;
@@ -98,6 +119,12 @@ export default function IntegrationsView({
         />
       )}
 
+      {needOutlookConfig && (
+        <IntegrationConfigAlert
+          message="Your Outlook account is connected. Please configure the date from which to start processing emails."
+        />
+      )}
+
       <IntegrationsList
         integrations={integrations as Array<{
           name: string;
@@ -116,6 +143,8 @@ export default function IntegrationsView({
         updateStartTimeAction={updateStartTimeAction}
         shouldOpenGmailConfig={shouldOpenGmailConfig}
         onGmailConfigClose={() => setShouldOpenGmailConfig(false)}
+        shouldOpenOutlookConfig={shouldOpenOutlookConfig}
+        onOutlookConfigClose={() => setShouldOpenOutlookConfig(false)}
       />
 
       {message && (

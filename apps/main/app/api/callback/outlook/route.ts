@@ -53,7 +53,7 @@ async function handleRequest(request: NextRequest, method: string) {
     // Forward the request to the backend
     // Use redirect: 'manual' to handle redirects ourselves
     const backendResponse = await fetch(
-      `${backendUrl}/api/v1/outlook/callback${queryString}`,
+      `${backendUrl}/api/v1/auth/outlook/callback${queryString}`,
       {
         method,
         headers,

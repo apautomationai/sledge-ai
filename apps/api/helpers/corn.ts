@@ -7,11 +7,11 @@ const fetchEmailsForAllProviders = async () => {
   
   // Run Gmail and Outlook syncs in parallel
   const [gmailResult, outlookResult] = await Promise.allSettled([
-    axios.get(`${backendUrl}/api/v1/google/emails`).catch((error) => {
+    axios.get(`${backendUrl}/api/v1/email/gmail`).catch((error) => {
       console.error('Gmail sync error:', error.message);
       return { data: { success: false, error: error.message } };
     }),
-    axios.get(`${backendUrl}/api/v1/outlook/emails`).catch((error) => {
+    axios.get(`${backendUrl}/api/v1/email/outlook`).catch((error) => {
       console.error('Outlook sync error:', error.message);
       return { data: { success: false, error: error.message } };
     }),

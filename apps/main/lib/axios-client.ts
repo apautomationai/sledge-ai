@@ -1,6 +1,7 @@
 import axios from "axios";
 import { getCookie, deleteCookie } from 'cookies-next';
 import { toast } from "sonner";
+import { debugLogger } from "./debug-logger";
 
 // 1. Create the Axios instance with a base configuration.
 // The baseURL will be automatically prepended to all request URLs.
@@ -49,6 +50,17 @@ client.interceptors.response.use(
     // Any status codes outside the range of 2xx will trigger this function.
     // You can handle errors here, such as redirecting to a login page on 401 errors.
     console.error("Response Error:", error);
+
+    // Capture network error for debug logging
+    if (typeof window !== "undefined") {
+      debugLogger.addNetworkError({
+        method: error.config?.method?.toUpperCase() || "UNKNOWN",
+        url: error.config?.url || "unknown",
+        status: error.response?.status || null,
+        statusText: error.response?.statusText || "No Response",
+        error: error.response?.data?.message || error.message || "Unknown error",
+      });
+    }
 
     // Handle authentication errors
     if (error.response) {

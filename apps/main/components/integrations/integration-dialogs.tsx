@@ -93,7 +93,13 @@ export function ConfigureDialog({ backendName, updateStartTimeAction, defaultOpe
     setIsOpen(defaultOpen);
   }, [defaultOpen]);
 
-  const dateString = useMemo(() => (date ? date.toISOString().split("T")[0] : ""), [date]);
+  const dateString = useMemo(() => {
+    if (!date) return "";
+    // Set time to start of day in local timezone, then convert to UTC ISO string
+    const localDate = new Date(date);
+    localDate.setHours(0, 0, 0, 0);
+    return localDate.toISOString();
+  }, [date]);
 
   useEffect(() => {
     if (state?.success) {

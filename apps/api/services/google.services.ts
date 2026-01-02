@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { uploadBufferToS3 } from "@/helpers/s3upload";
 import db from "@/lib/db";
 import { attachmentsModel } from "@/models/attachments.model";
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, ne } from "drizzle-orm";
 import { BadRequestError } from "@/helpers/errors";
 import { integrationsService } from "./integrations.service";
 import { sendAttachmentMessage } from "@/helpers/sqs";
@@ -609,7 +609,8 @@ export class GoogleServices {
         .where(
           and(
             eq(attachmentsModel.userId, userId),
-            eq(attachmentsModel.isDeleted, false)
+            eq(attachmentsModel.isDeleted, false),
+            ne(attachmentsModel.status, "skipped")
           )
         )
         .orderBy(desc(attachmentsModel.created_at))
@@ -621,7 +622,8 @@ export class GoogleServices {
         .where(
           and(
             eq(attachmentsModel.userId, userId),
-            eq(attachmentsModel.isDeleted, false)
+            eq(attachmentsModel.isDeleted, false),
+            ne(attachmentsModel.status, "skipped")
           )
         );
       const totalAttachments = attachmentCount.count;
@@ -643,7 +645,8 @@ export class GoogleServices {
           and(
             eq(attachmentsModel.hashId, hashId),
             eq(attachmentsModel.userId, userId),
-            eq(attachmentsModel.isDeleted, false)
+            eq(attachmentsModel.isDeleted, false),
+            ne(attachmentsModel.status, "skipped")
           )
         );
       return response;

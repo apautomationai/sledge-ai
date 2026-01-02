@@ -8,6 +8,9 @@ const router = Router();
 // Get dashboard metrics
 router.get("/dashboard", authenticate, requireSubscriptionAccess, invoiceController.getDashboardMetrics);
 
+// Get invoice trends
+router.get("/trends", authenticate, requireSubscriptionAccess, invoiceController.getInvoiceTrends);
+
 // Create a new invoice
 router.post("/invoices", authenticate, requireSubscriptionAccess, invoiceController.insertInvoice);
 

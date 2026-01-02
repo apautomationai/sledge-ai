@@ -1,8 +1,15 @@
 import { Router } from "express";
-import { createBugReport } from "@/controllers/report.controller";
+import { reportController } from "@/controllers/report.controller";
+import { authenticate } from "@/middlewares/auth.middleware";
+import { uploadSingle } from "@/middlewares/multer.middleware";
 
 const router = Router();
 
-router.post("/", createBugReport);
+router.post(
+  "/",
+  authenticate,
+  uploadSingle.single("attachment"),
+  reportController.createBugReport
+);
 
 export default router;

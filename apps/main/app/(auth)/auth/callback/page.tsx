@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { setCookie } from "cookies-next";
+import { clearQueryCache } from "@/lib/query-client";
 
 function AuthCallbackComponent() {
   const searchParams = useSearchParams();
@@ -41,7 +42,10 @@ function AuthCallbackComponent() {
         description: "You have been successfully logged in!",
       });
 
-      // Redirect to dashboard
+      // Clear any cached data from previous sessions
+      clearQueryCache();
+
+      // Redirect to onboarding - subscription provider will handle payment/dashboard redirect
       router.push("/dashboard");
     } else {
       toast.error("Authentication Failed", {
