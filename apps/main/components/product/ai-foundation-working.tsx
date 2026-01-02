@@ -25,7 +25,9 @@ export function AIFoundationWorking({
     steps?.length === 4 ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-3";
 
   return (
-    <section className={`w-full px-4 sm:px-6 md:px-8 lg:px-12 py-12 md:py-16 ${bgColor || ""}`}>
+    <section
+      className={`w-full px-4 sm:px-6 md:px-8 lg:px-12 py-12 md:py-16 ${bgColor || ""}`}
+    >
       <div className="w-full max-w-[1400px] mx-auto">
         {/* Header */}
         {(title || text) && (
@@ -36,18 +38,14 @@ export function AIFoundationWorking({
               </h2>
             )}
             {text && (
-              <p className="mt-2 text-lg md:text-2xl text-white">
-                {text}
-              </p>
+              <p className="mt-2 text-lg md:text-2xl text-white">{text}</p>
             )}
           </div>
         )}
 
         {/* Cards */}
         {steps && steps.length > 0 && (
-          <div
-            className={`grid grid-cols-1 ${gridCols} gap-4 sm:gap-6`}
-          >
+          <div className={`grid grid-cols-1 ${gridCols} gap-4 sm:gap-6`}>
             {steps.map((step, index) => (
               <div
                 key={index}
