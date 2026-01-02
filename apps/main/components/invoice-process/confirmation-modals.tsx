@@ -387,7 +387,10 @@ export default function ConfirmationModals({
             ...(discountAmount > 0 && {
               discountAmount: discountAmount,
               discountDescription: "Invoice Discount"
-            })
+            }),
+            // Include PDF attachment URL
+            attachmentUrl: invoiceDetails.fileUrl || invoiceDetails.sourcePdfUrl,
+            invoiceNumber: invoiceDetails.invoiceNumber
           });
 
         } catch (error: any) {
