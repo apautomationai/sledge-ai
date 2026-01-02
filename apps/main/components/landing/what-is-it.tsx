@@ -1,9 +1,14 @@
 interface WhatIsItProps {
   title?: string;
   description?: string;
+  subDescription?: string;
 }
 
-export default function WhatIsIt({ title, description }: WhatIsItProps) {
+export default function WhatIsIt({
+  title,
+  description,
+  subDescription,
+}: WhatIsItProps) {
   if (!title && !description) {
     return null;
   }
@@ -20,6 +25,11 @@ export default function WhatIsIt({ title, description }: WhatIsItProps) {
           {description && (
             <p className="mt-2 text-base lg:text-lg text-white">
               {description}
+            </p>
+          )}
+          {subDescription && (
+            <p className="mt-4 text-sm lg:text-lg text-white">
+              {subDescription}
             </p>
           )}
         </div>

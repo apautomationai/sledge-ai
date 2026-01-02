@@ -12,6 +12,13 @@ import { AiAccount } from "@/components/product/account-payable";
 import { HowItWorks } from "@/components/product/how-it-works";
 import WhatSledgeAutomate from "@/components/product/what-sledge-automate";
 import Benefits from "@/components/product/benefits";
+import WhatIsIt from "@/components/landing/what-is-it";
+
+const whatIsItTitle = "Autonomous AI Accounts Payable for Construction";
+const whatIsItDescription =
+  "Sledge’s AI runs continuously in the background. When an invoice arrives by email, AI automatically pulls the attachment, reads the invoice, recognizes fields and line items, and prepares it for approval — without user input.";
+const whatIsItSubDescription =
+  "Once approved, AI syncs everything into QuickBooks and logs the full history.";
 
 const builtToRunTitle = "Built to run your back office.";
 const builtToRunSubtitle = "Not just invoices.";
@@ -20,9 +27,9 @@ const builtToRunDescription =
 
 export default function AiAccountPayable() {
   return (
-    <div className="min-h-screen w-full">
+    <div className="min-h-screen w-full overflow-x-hidden">
       <Header />
-      <main className="flex flex-col">
+      <main className="flex flex-col w-full">
         <div
           className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
           style={{
@@ -41,6 +48,12 @@ export default function AiAccountPayable() {
         <div className="relative">
           <AiAccount />
           <Video />
+          <WhatIsIt
+            title={whatIsItTitle}
+            description={whatIsItDescription}
+            subDescription={whatIsItSubDescription}
+          />
+
           <HowItWorks />
           <WhatSledgeAutomate />
           <Benefits />

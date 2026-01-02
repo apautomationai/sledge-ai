@@ -14,9 +14,6 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://getsledge.com"),
   title: "Sledge: The Builder's AI Office",
   description: "A modern dashboard to manage and process invoices with AI-powered data extraction.",
-  icons: {
-    icon: "/images/logos/icon.png",
-  },
   openGraph: {
     siteName: "SLEDGE AI",
     type: "website",

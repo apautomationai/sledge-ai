@@ -34,7 +34,21 @@ export function Hero() {
     verifySession();
   }, []);
   return (
-    <section className="relative flex items-center justify-center min-h-[412px] md:min-h-screen py-12 md:py-16 bg-[url('/images/hero-visual.png')] bg-cover bg-center bg-no-repeat bg-gradient-to-br from-gray-900/80 via-black/80 to-gray-800/80">
+    <section className="relative flex items-center justify-center min-h-[412px] md:min-h-screen py-12 md:py-16 overflow-hidden">
+      {/* Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source src="/videos/sledge-hero-video.mp4" type="video/mp4" />
+      </video>
+
+      {/* Video Overlay */}
+      <div className="absolute inset-0 bg-black/60" />
+
       {/* Background Elements */}
 
       <div className="relative mx-auto max-w-[1400px] px-6 md:px-8 lg:px-12">

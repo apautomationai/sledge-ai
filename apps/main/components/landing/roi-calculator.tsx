@@ -125,7 +125,7 @@ export default function RoiCalculator() {
           {/* Right Column - Results */}
           <div className="w-full md:max-w-80 lg:max-w-96 shrink-0">
             {/* Mobile Results Design */}
-            <div className="md:hidden px-4 flex flex-col justify-center items-center gap-6">
+            <div className="md:hidden  flex flex-col justify-center items-center gap-6">
               <div className="self-stretch text-center text-white text-sm  leading-6">
                 Estimated impact after automating payables with AI.
               </div>
