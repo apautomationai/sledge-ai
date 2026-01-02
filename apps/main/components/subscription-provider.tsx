@@ -77,6 +77,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     "/integration/quickbooks",
     "/integration/gmail",
     "/integration/outlook",
+    "/test-sentry",
   ];
   const isPublicRoute = publicRoutes.some(
     (route) => pathname === route || pathname.startsWith("/auth/")

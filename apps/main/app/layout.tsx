@@ -5,6 +5,7 @@ import "@workspace/ui/globals.css";
 import { cn } from "@workspace/ui/lib/utils";
 import { Toaster } from "@/components/layout/toaster";
 import { Providers } from "@/components/providers";
+import "@/instrumentation-client";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const leagueSpartan = League_Spartan({ subsets: ["latin"], variable: "--font-league-spartan" });
