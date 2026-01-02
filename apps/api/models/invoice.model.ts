@@ -53,6 +53,7 @@ export const invoiceModel = pgTable("invoices", {
   status: invoiceStatusEnum("status").notNull().default("pending"),
   rejectionEmailSender: varchar("rejection_email_sender", { length: 255 }),
   rejectionReason: text("rejection_reason"),
+  isDuplicate: boolean("is_duplicate").notNull().default(false),
   isDeleted: boolean("is_deleted").notNull().default(false),
   deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").defaultNow(),

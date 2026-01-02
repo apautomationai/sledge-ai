@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { InvoiceDetails } from "@/lib/types/invoice";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui/components/tooltip";
 
 // Categorized rejection reasons
 const REJECTION_REASONS = {
@@ -112,6 +113,7 @@ interface ConfirmationModalsProps {
   customerData?: any;
   lineItemsViewMode?: 'single' | 'expand';
   singleModeSaveRef?: React.MutableRefObject<(() => Promise<void>) | null>;
+  isDuplicate?: boolean;
 }
 
 export default function ConfirmationModals({
@@ -124,6 +126,7 @@ export default function ConfirmationModals({
   customerData,
   lineItemsViewMode,
   singleModeSaveRef,
+  isDuplicate = false,
 }: ConfirmationModalsProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
@@ -500,7 +503,10 @@ export default function ConfirmationModals({
             ...(discountAmount > 0 && {
               discountAmount: discountAmount,
               discountDescription: "Invoice Discount"
-            })
+            }),
+            // Include PDF attachment URL
+            attachmentUrl: invoiceDetails.fileUrl || invoiceDetails.sourcePdfUrl,
+            invoiceNumber: invoiceDetails.invoiceNumber
           });
 
         } catch (error: any) {
@@ -870,13 +876,26 @@ export default function ConfirmationModals({
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <Button
-            onClick={handleApproveClick}
-            className="bg-green-600 text-white hover:bg-green-700"
-            disabled={isApproving || isSaving}
-          >
-            {isApproving ? "Approving..." : "Approve"}
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={isDuplicate ? "cursor-not-allowed" : ""}>
+                  <Button
+                    onClick={handleApproveClick}
+                    className="bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                    disabled={isApproving || isSaving || isDuplicate}
+                  >
+                    {isApproving ? "Approving..." : "Approve"}
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              {isDuplicate && (
+                <TooltipContent>
+                  <p>Cannot approve duplicate invoice. Please change the invoice number first.</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogContent>
               <DialogHeader>

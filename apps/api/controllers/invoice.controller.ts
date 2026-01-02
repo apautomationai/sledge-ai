@@ -510,10 +510,25 @@ class InvoiceController {
         throw new BadRequestError("Status is required");
       }
 
+      const invoiceId = parseInt(id);
+
+      // Check for duplicate warnings before approval
+      if (status === "approved") {
+        const invoice = await invoiceServices.getInvoice(invoiceId);
+        if (invoice?.isDuplicate) {
+          return res.status(403).json({
+            success: false,
+            error: "Duplicate invoice detected. Please change the invoice number to proceed.",
+            duplicateInfo: { isDuplicate: true },
+            requiresOverride: true,
+          });
+        }
+      }
+
       // Support both single email (legacy) and multiple emails
       const emails = recipientEmails || (recipientEmail ? [recipientEmail] : undefined);
 
-      const updatedInvoice = await invoiceServices.updateInvoiceStatus(parseInt(id), status, rejectionReason, emails);
+      const updatedInvoice = await invoiceServices.updateInvoiceStatus(invoiceId, status, rejectionReason, emails);
 
       // Emit WebSocket event for status update
       const wsService = getWebSocketService();

@@ -45,6 +45,7 @@ export type InvoiceListItem = {
   invoiceNumber: string;
   totalAmount: string | null;
   status: InvoiceStatus | null;
+  isDuplicate: boolean;
   isDeleted?: boolean;
   deletedAt?: string | null;
   createdAt: string;
@@ -70,6 +71,7 @@ export interface InvoiceDetails {
   rate: string | null;
   description: string | null;
   status: InvoiceStatus | null;
+  isDuplicate: boolean;
   isDeleted?: boolean;
   deletedAt?: string | null;
   createdAt: string;

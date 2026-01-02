@@ -216,6 +216,7 @@ class JobsController {
                             jobStatus,
                             invoiceStatusCounts,
                             vendorData,
+                            duplicateInvoices: activeInvoices.filter((inv: any) => inv.isDuplicate).length,
                         };
                     } catch (error) {
                         console.error(`Failed to fetch invoices for attachment ${attachment.id}:`, error);
@@ -224,6 +225,7 @@ class JobsController {
                             invoiceCount: 0,
                             jobStatus: "pending" as const,
                             invoiceStatusCounts: { approved: 0, rejected: 0, pending: 0 },
+                            duplicateInvoices: 0,
                         };
                     }
                 })
