@@ -10,6 +10,7 @@ import { PricingCore } from "@/components/pricing/core";
 import { PricingTools } from "@/components/pricing/tools";
 import { WhatsIncluded } from "@/components/pricing/whats-included";
 import { MoreComing } from "@/components/pricing/more";
+import WhatIsIt from "@/components/landing/what-is-it";
 
 const whatsIncludedTitle = "What's Included";
 const whatsIncludedText =
@@ -27,6 +28,10 @@ const builtToRunTitle = "Built to run your back office.";
 const builtToRunSubtitle = "Not just invoices.";
 const builtToRunDescription =
   "Designed for construction teams and how you work. No contracts.";
+
+const whatIsItTitle = "Simple Pricing for Construction Teams";
+const whatIsItDescription =
+  "Construction software pricing is often complicated, unpredictable, and filled with hidden fees. Sledge offers one transparent plan so teams can automate their back office without worrying about per-invoice charges, user limits, or usage caps.";
 
 export default function Integrations() {
   return (
@@ -50,6 +55,7 @@ export default function Integrations() {
         />
         <div className="relative">
           <PricingCore />
+          <WhatIsIt title={whatIsItTitle} description={whatIsItDescription} />
           <PricingTools />
           <WhatsIncluded
             title={whatsIncludedTitle}

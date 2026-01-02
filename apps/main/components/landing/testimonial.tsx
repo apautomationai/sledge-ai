@@ -62,9 +62,9 @@ export function Testimonial() {
                 />
 
                 {/* Content Overlay */}
-                <div className="absolute inset-y-0 left-[3%] right-[3%] lg:left-[5%] lg:right-[5%] xl:left-[8%] xl:right-[8%] 2xl:left-[10%] 2xl:right-[10%] min-[1800px]:left-[14%] min-[1800px]:right-[14%] min-[2300px]:left-[18%] min-[2300px]:right-[18%] flex items-center gap-2 lg:gap-3 xl:gap-3 2xl:gap-3 min-[1800px]:gap-5 min-[2300px]:gap-4 p-3 lg:p-4 xl:p-4 2xl:p-5 min-[1800px]:p-8 min-[2300px]:p-6">
+                <div className="absolute inset-0 flex items-center gap-6 pl-[30px] pr-[38px] pt-[28px] pb-[38px]">
                   {/* Profile Image */}
-                  <div className="flex-shrink-0 ml-1 lg:ml-2 xl:ml-2 2xl:ml-2 min-[1800px]:ml-4 min-[2300px]:ml-3">
+                  <div className="flex-shrink-0">
                     <div className="relative w-[167px] h-[167px] rounded-lg overflow-hidden">
                       <Image
                         src={testimonial.icon}
@@ -76,7 +76,7 @@ export function Testimonial() {
                   </div>
 
                   {/* Text Content */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-center pr-2 lg:pr-3 xl:pr-4 2xl:pr-5 min-[1800px]:pr-10 min-[2300px]:pr-6 overflow-hidden">
+                  <div className="flex-1 min-w-0 flex flex-col justify-center overflow-hidden">
                     <p className="text-white text-xs lg:text-sm xl:text-sm 2xl:text-base min-[1800px]:text-xl min-[2300px]:text-base mb-2 min-[1800px]:mb-3 min-[2300px]:mb-2 leading-relaxed line-clamp-3 lg:line-clamp-4">
                       "{testimonial.quote}"
                     </p>

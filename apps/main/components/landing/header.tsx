@@ -154,7 +154,7 @@ export function Header() {
 
   return (
     <>
-      <header className="w-full bg-[#141414] backdrop-blur-none shadow-[0_4px_20px_rgba(0,0,0,0.9),0_0_30px_rgba(253,176,34,0.2)] border-yellow-600/50 ">
+      <header className="w-full bg-[#141414] backdrop-blur-none shadow-[0_4px_20px_rgba(0,0,0,0.9),0_0_30px_rgba(253,176,34,0.2)] border-yellow-600/50 relative z-[9999]">
         <nav className="w-full px-4 md:px-12" aria-label="Global">
           <div className="relative flex items-center justify-between py-3 md:py-[13px]">
             <Link href="/" className="flex items-center gap-3 z-10">
@@ -190,7 +190,7 @@ export function Header() {
                       />
                     </button>
                     {dropdownOpen && (
-                      <div className="absolute top-full left-0 mt-2 z-50 w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800">
+                      <div className="absolute top-full left-0 mt-2 z-[9999] w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800">
                         <a
                           href="/product"
                           onClick={() => setDropdownOpen(false)}
@@ -273,7 +273,7 @@ export function Header() {
                       />
                     </button>
                     {industriesDropdownOpen && (
-                      <div className="absolute top-full left-0 mt-2 z-50 w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800 inline-flex flex-col justify-start items-start overflow-hidden">
+                      <div className="absolute top-full left-0 mt-2 z-[9999] w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800 inline-flex flex-col justify-start items-start overflow-hidden">
                         <a
                           href="/industries/construction"
                           onClick={() => setIndustriesDropdownOpen(false)}

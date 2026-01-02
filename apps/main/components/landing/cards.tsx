@@ -122,7 +122,7 @@ export function Cards() {
         {/* Wrapper to center the grid container */}
         <div className="flex justify-center">
           <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 w-full place-items-center"
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 w-full justify-items-center"
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -131,7 +131,7 @@ export function Cards() {
             {cards.map((card, index) => (
               <motion.div
                 key={index}
-                className="relative w-full max-w-[318px] aspect-[318/346] group cursor-pointer overflow-hidden rounded-2xl"
+                className="relative w-full max-w-[318px] min-h-[346px] aspect-318/346 group cursor-pointer overflow-hidden rounded-2xl"
                 variants={cardVariants}
                 animate="normal"
                 whileHover="hover"
