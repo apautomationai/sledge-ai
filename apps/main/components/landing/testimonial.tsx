@@ -10,7 +10,7 @@ export function Testimonial() {
       title: "President, Ferrocrete Builders Inc",
     },
     {
-      icon: "/images/john.png",
+      icon: "/images/johnst.png",
       quote:
         "Invoice processing used to slow everything down. Now it’s automated. We save hundreds of hours a year and approvals move faster without chasing paperwork.",
       name: "Raz Danoukh",
