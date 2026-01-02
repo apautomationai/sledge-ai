@@ -1125,6 +1125,113 @@ export class QuickBooksService {
     }
   }
 
+  // Update an existing vendor in QuickBooks
+  async updateVendor(integration: QuickBooksIntegration, vendorId: string, vendorData: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    syncToken: string; // Required for updates
+  }) {
+    try {
+      // Build QuickBooks Vendor update payload
+      const payload: any = {
+        Id: vendorId,
+        SyncToken: vendorData.syncToken
+      };
+
+      // Add name if provided
+      if (vendorData.name) {
+        const sanitizedName = vendorData.name
+          .replace(/[<>&"']/g, '')
+          .replace(/,\s*Inc\./gi, ' Inc')
+          .replace(/,\s*LLC/gi, ' LLC')
+          .replace(/,\s*Corp\./gi, ' Corp')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .substring(0, 100);
+
+        if (sanitizedName) {
+          payload.DisplayName = sanitizedName;
+        }
+      }
+
+      // Add email if provided
+      if (vendorData.email) {
+        payload.PrimaryEmailAddr = {
+          Address: vendorData.email
+        };
+      }
+
+      // Add phone if provided
+      if (vendorData.phone) {
+        payload.PrimaryPhone = {
+          FreeFormNumber: vendorData.phone
+        };
+      }
+
+      // Add address if provided
+      if (vendorData.address || vendorData.city || vendorData.state || vendorData.postalCode) {
+        payload.BillAddr = {};
+        if (vendorData.address) payload.BillAddr.Line1 = vendorData.address;
+        if (vendorData.city) payload.BillAddr.City = vendorData.city;
+        if (vendorData.state) payload.BillAddr.CountrySubDivisionCode = vendorData.state;
+        if (vendorData.postalCode) payload.BillAddr.PostalCode = vendorData.postalCode;
+      }
+
+      console.log("QuickBooks vendor update payload:", JSON.stringify(payload, null, 2));
+      const result = await this.makeApiCall(integration, "vendor", "POST", payload);
+      console.log("QuickBooks vendor update raw response:", JSON.stringify(result, null, 2));
+
+      return result;
+    } catch (error) {
+      console.error("Error updating QuickBooks vendor:", error);
+      throw error;
+    }
+  }
+
+  // Update an existing customer in QuickBooks
+  async updateCustomer(integration: QuickBooksIntegration, customerId: string, customerData: {
+    name?: string;
+    syncToken: string; // Required for updates
+  }) {
+    try {
+      // Build QuickBooks Customer update payload
+      const payload: any = {
+        Id: customerId,
+        SyncToken: customerData.syncToken
+      };
+
+      // Add name if provided
+      if (customerData.name) {
+        const sanitizedName = customerData.name
+          .replace(/[<>&"']/g, '')
+          .replace(/,\s*Inc\./gi, ' Inc')
+          .replace(/,\s*LLC/gi, ' LLC')
+          .replace(/,\s*Corp\./gi, ' Corp')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .substring(0, 100);
+
+        if (sanitizedName) {
+          payload.DisplayName = sanitizedName;
+        }
+      }
+
+      console.log("QuickBooks customer update payload:", JSON.stringify(payload, null, 2));
+      const result = await this.makeApiCall(integration, "customer", "POST", payload);
+      console.log("QuickBooks customer update raw response:", JSON.stringify(result, null, 2));
+
+      return result;
+    } catch (error) {
+      console.error("Error updating QuickBooks customer:", error);
+      throw error;
+    }
+  }
+
   // Disconnect integration
   async disconnectIntegration(userId: number): Promise<void> {
     try {

@@ -13,6 +13,7 @@ import {
 import { usersModel } from "./users.model";
 import { attachmentsModel } from "./attachments.model";
 import { quickbooksVendorsModel } from "./quickbooks-vendors.model";
+import { quickbooksCustomersModel } from "./quickbooks-customers.model";
 export const invoiceStatusEnum = pgEnum("invoice_status", [
   "pending",
   "approved",
@@ -32,10 +33,7 @@ export const invoiceModel = pgTable("invoices", {
   attachmentId: integer("attachment_id").notNull(),
   invoiceNumber: varchar("invoice_number", { length: 50 }),
   vendorId: integer("vendor_id"),
-  vendorAddress: text("vendor_address"),
-  vendorPhone: varchar("vendor_phone", { length: 50 }),
-  vendorEmail: varchar("vendor_email", { length: 255 }),
-  customerName: varchar("customer_name", { length: 255 }),
+  customerId: integer("customer_id"),
   invoiceDate: timestamp("invoice_date"),
   dueDate: timestamp("due_date"),
   totalAmount: numeric("total_amount"),
@@ -93,6 +91,11 @@ export const invoiceRelations = relations(invoiceModel, ({ one, many }) => ({
   vendor: one(quickbooksVendorsModel, {
     fields: [invoiceModel.vendorId],
     references: [quickbooksVendorsModel.id],
+  }),
+
+  customer: one(quickbooksCustomersModel, {
+    fields: [invoiceModel.customerId],
+    references: [quickbooksCustomersModel.id],
   }),
 
   lineItems: many(lineItemsModel, {

@@ -372,13 +372,13 @@ export function LineItemsTable({
                                             onCheckedChange={handleSelectAll}
                                         />
                                     </TableHead>
-                                    <TableHead className="w-[14%] px-2 py-2">Item Name</TableHead>
+                                    <TableHead className="w-[14%] px-2 py-2">Description</TableHead>
                                     <TableHead className="w-[8%] px-2 py-2">Qty</TableHead>
                                     <TableHead className="w-[8%] px-2 py-2">Rate</TableHead>
                                     <TableHead className="w-[8%] px-2 py-2">Amount</TableHead>
-                                    <TableHead className="w-[12%] px-2 py-2">Type</TableHead>
+                                    <TableHead className="w-[12%] px-2 py-2">Cost Type</TableHead>
                                     <TableHead className="w-[18%] px-2 py-2">Category</TableHead>
-                                    <TableHead className="w-[18%] px-2 py-2">Customer</TableHead>
+                                    <TableHead className="w-[18%] px-2 py-2">Job</TableHead>
                                     {isEditing && <TableHead className="w-[6%] px-2 py-2"></TableHead>}
                                 </TableRow>
                             </TableHeader>
@@ -510,14 +510,14 @@ export function LineItemsTable({
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         <SelectItem value="account">Account</SelectItem>
-                                                                        <SelectItem value="product">Product</SelectItem>
+                                                                        <SelectItem value="product">Cost Code</SelectItem>
                                                                     </SelectContent>
                                                                 </Select>
                                                             )}
                                                         </div>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
-                                                        Type: {state.itemType === 'account' ? 'Account' : state.itemType === 'product' ? 'Product' : 'Not selected'}
+                                                        Type: {state.itemType === 'account' ? 'Account' : state.itemType === 'product' ? 'Cost Code' : 'Not selected'}
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TableCell>
@@ -552,7 +552,7 @@ export function LineItemsTable({
                                                         {state.resourceId ? (
                                                             state.itemType === 'account'
                                                                 ? `Account: ${accounts.find(a => a.quickbooksId === state.resourceId)?.fullyQualifiedName || accounts.find(a => a.quickbooksId === state.resourceId)?.name || 'Selected'}`
-                                                                : `Product: ${items.find(i => i.quickbooksId === state.resourceId)?.fullyQualifiedName || items.find(i => i.quickbooksId === state.resourceId)?.name || 'Selected'}`
+                                                                : `Cost Code: ${items.find(i => i.quickbooksId === state.resourceId)?.fullyQualifiedName || items.find(i => i.quickbooksId === state.resourceId)?.name || 'Selected'}`
                                                         ) : 'No category selected'}
                                                     </TooltipContent>
                                                 </Tooltip>
@@ -587,8 +587,8 @@ export function LineItemsTable({
                                                     </TooltipTrigger>
                                                     <TooltipContent>
                                                         {state.customerId
-                                                            ? `Customer: ${customers.find(c => c.quickbooksId === state.customerId)?.displayName || 'Selected'}`
-                                                            : 'No customer selected'}
+                                                            ? `Job: ${customers.find(c => c.quickbooksId === state.customerId)?.displayName || 'Selected'}`
+                                                            : 'No job selected'}
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TableCell>

@@ -94,6 +94,7 @@ const FormField = ({
         className={`text-xs font-medium ${highlighted ? 'text-amber-800' : ''}`}
       >
         {label}
+        {highlighted && <span className="text-red-500 ml-1">*</span>}
         {isTotalAmountField && (
           <span className="ml-1 text-xs text-muted-foreground font-normal">(Auto-calculated)</span>
         )}
@@ -110,15 +111,11 @@ const FormField = ({
         <Input
           id={fieldKey}
           name={fieldKey}
-          value={inputValue}
+          value={isDateField ? (formatDate(value as string) ?? "") : inputValue}
           readOnly={!isEditing || isArrayField || isBooleanField || isTotalAmountField}
           onChange={handleChange}
           onBlur={handleBlur}
-          className="h-8 read-only:bg-muted/50 read-only:border-dashed"
-          style={highlighted ? {
-            border: '2px solid #fbbf24',
-            boxShadow: '0 0 0 2px rgba(251, 191, 36, 0.2)'
-          } : {}}
+          className="h-8 read-only:bg-muted/50 read-only:border-dashed read-only:cursor-not-allowed"
         />
       )}
     </div>
@@ -133,7 +130,7 @@ interface InvoiceDetailsFormProps {
   onDetailsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   selectedFields: string[];
   setSelectedFields: React.Dispatch<React.SetStateAction<string[]>>;
-  onSave: (vendorData?: any) => Promise<void>;
+  onSave: (vendorData?: any, customerData?: any) => Promise<void>;
   onReject: () => Promise<void>;
   onApprove: () => Promise<void>;
   onCancel: () => void;
@@ -172,6 +169,9 @@ export default function InvoiceDetailsForm({
   const [localInvoiceDetails, setLocalInvoiceDetails] = useState<InvoiceDetails>(invoiceDetails);
   const [isQuickBooksConnected, setIsQuickBooksConnected] = useState<boolean | null>(null);
   const [lineItemChanges, setLineItemChanges] = useState<Record<number, Partial<LineItem>>>({});
+
+  // Check if invoice is finalized (approved or rejected)
+  const isInvoiceFinalized = invoiceDetails.status === "approved" || invoiceDetails.status === "rejected";
   const [selectedLineItems, setSelectedLineItems] = useState<Set<number>>(new Set());
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -527,7 +527,29 @@ export default function InvoiceDetailsForm({
     onDetailsChange(syntheticEvent);
   };
 
-  // Local state for vendor data
+  // Local state for customer data
+  const [customerData, setCustomerData] = useState({
+    displayName: localInvoiceDetails.customerData?.displayName || localInvoiceDetails.customerData?.companyName || '',
+  });
+
+  // Update customer data when invoice details change
+  useEffect(() => {
+    if (localInvoiceDetails.customerData) {
+      setCustomerData({
+        displayName: localInvoiceDetails.customerData.displayName || localInvoiceDetails.customerData.companyName || '',
+      });
+    }
+  }, [localInvoiceDetails.customerData]);
+
+  // Handle customer data changes
+  const handleCustomerDataChange = (field: string, value: string) => {
+    setCustomerData(prev => ({ ...prev, [field]: value }));
+
+    // Notify parent that there are unsaved changes
+    if (onFieldChange) {
+      onFieldChange();
+    }
+  };
   const [vendorData, setVendorData] = useState({
     displayName: localInvoiceDetails.vendorData?.displayName || localInvoiceDetails.vendorData?.companyName || '',
     primaryEmail: localInvoiceDetails.vendorData?.primaryEmail || '',
@@ -580,6 +602,8 @@ export default function InvoiceDetailsForm({
     "deletedAt",
     'vendorId',
     'vendorData',
+    'customerId',
+    'customerData',
     'vendorAddress',
     'vendorPhone',
     'vendorEmail',
@@ -613,7 +637,7 @@ export default function InvoiceDetailsForm({
                     fieldKey="invoiceNumber"
                     label="Invoice Number"
                     value={localInvoiceDetails.invoiceNumber ?? null}
-                    isEditing={true}
+                    isEditing={!isInvoiceFinalized}
                     onChange={onDetailsChange}
                     onDateChange={handleDateChange}
                     highlighted={true}
@@ -624,7 +648,7 @@ export default function InvoiceDetailsForm({
                     fieldKey="totalAmount"
                     label="Total Amount"
                     value={localInvoiceDetails.totalAmount ?? null}
-                    isEditing={true}
+                    isEditing={!isInvoiceFinalized}
                     onChange={onDetailsChange}
                     onDateChange={handleDateChange}
                     highlighted={true}
@@ -635,7 +659,7 @@ export default function InvoiceDetailsForm({
                     fieldKey="totalTax"
                     label="Total Tax"
                     value={localInvoiceDetails.totalTax ?? null}
-                    isEditing={true}
+                    isEditing={!isInvoiceFinalized}
                     onChange={onDetailsChange}
                     onDateChange={handleDateChange}
                     highlighted={true}
@@ -646,7 +670,7 @@ export default function InvoiceDetailsForm({
                     fieldKey="invoiceDate"
                     label="Invoice Date"
                     value={localInvoiceDetails.invoiceDate ?? null}
-                    isEditing={true}
+                    isEditing={!isInvoiceFinalized}
                     onChange={onDetailsChange}
                     onDateChange={handleDateChange}
                     highlighted={true}
@@ -663,7 +687,8 @@ export default function InvoiceDetailsForm({
                       value={vendorData.displayName}
                       onChange={(e) => handleVendorDataChange('displayName', e.target.value)}
                       placeholder="Enter vendor name"
-                      className="h-8"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
                   </div>
 
@@ -678,7 +703,8 @@ export default function InvoiceDetailsForm({
                       value={vendorData.primaryEmail}
                       onChange={(e) => handleVendorDataChange('primaryEmail', e.target.value)}
                       placeholder="Enter vendor email"
-                      className="h-8"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
                   </div>
 
@@ -693,7 +719,8 @@ export default function InvoiceDetailsForm({
                       value={vendorData.primaryPhone}
                       onChange={(e) => handleVendorDataChange('primaryPhone', e.target.value)}
                       placeholder="Enter vendor phone"
-                      className="h-8"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
                   </div>
 
@@ -707,9 +734,28 @@ export default function InvoiceDetailsForm({
                       value={vendorData.billAddrLine1}
                       onChange={(e) => handleVendorDataChange('billAddrLine1', e.target.value)}
                       placeholder="Enter vendor address"
-                      className="h-8"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
                   </div>
+
+                  {/* Customer Name Field */}
+                  {localInvoiceDetails.customerData && (
+                    <div className="space-y-1">
+                      <Label htmlFor="customerName" className="text-xs font-medium">
+                        Customer Name
+                      </Label>
+                      <Input
+                        id="customerName"
+                        name="customerName"
+                        value={customerData.displayName}
+                        onChange={(e) => handleCustomerDataChange('displayName', e.target.value)}
+                        placeholder="Enter customer name"
+                        className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                        readOnly={isInvoiceFinalized}
+                      />
+                    </div>
+                  )}
 
                   {/* Rest of the fields (excluding highlighted fields since they're shown at top) */}
                   {fieldsToDisplay
@@ -727,7 +773,7 @@ export default function InvoiceDetailsForm({
                           fieldKey={key}
                           label={formatLabel(key)}
                           value={value ?? null}
-                          isEditing={true}
+                          isEditing={!isInvoiceFinalized}
                           onChange={onDetailsChange}
                           onDateChange={handleDateChange}
                           highlighted={false}
@@ -791,7 +837,7 @@ export default function InvoiceDetailsForm({
                       onUpdate={handleLineItemUpdate}
                       onChange={handleLineItemChange}
                       onDelete={handleLineItemDelete}
-                      isEditing={true}
+                      isEditing={!isInvoiceFinalized}
                       isQuickBooksConnected={isQuickBooksConnected}
                       selectedItems={selectedLineItems}
                       onSelectionChange={setSelectedLineItems}
@@ -831,6 +877,7 @@ export default function InvoiceDetailsForm({
           onInvoiceDetailsUpdate={onInvoiceDetailsUpdate}
           onFieldChange={onFieldChange}
           vendorData={vendorData}
+          customerData={customerData}
         />
       </div>
 
@@ -869,7 +916,7 @@ export default function InvoiceDetailsForm({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Change Item Type</DialogTitle>
+            <DialogTitle>Change Cost Type</DialogTitle>
             <DialogDescription>
               Select the item type and category to apply to {selectedLineItems.size} selected line item(s).
             </DialogDescription>
@@ -877,7 +924,7 @@ export default function InvoiceDetailsForm({
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Item Type</Label>
+              <Label>Cost Type</Label>
               <Select
                 value={bulkItemType || ""}
                 onValueChange={(value) => {
@@ -892,18 +939,18 @@ export default function InvoiceDetailsForm({
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select item type" />
+                  <SelectValue placeholder="Select cost type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="account">Account</SelectItem>
-                  <SelectItem value="product">Product/Service</SelectItem>
+                  <SelectItem value="product">Cost Code</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {bulkItemType && (
               <div className="space-y-2">
-                <Label>{bulkItemType === 'account' ? 'Account' : 'Product/Service'}</Label>
+                <Label>{bulkItemType === 'account' ? 'Account' : 'Cost Code'}</Label>
                 {bulkItemType === 'account' ? (
                   <LineItemAutocomplete
                     items={bulkAccounts}
@@ -928,7 +975,7 @@ export default function InvoiceDetailsForm({
                       const quickbooksId = item?.quickbooksId || null;
                       setBulkResourceId(quickbooksId);
                     }}
-                    placeholder="Search products/services..."
+                    placeholder="Search cost codes..."
                     isLoading={isLoadingBulkData}
                     getDisplayName={(item: any) =>
                       item.fullyQualifiedName || item.name || 'Unknown Product'
@@ -938,9 +985,9 @@ export default function InvoiceDetailsForm({
               </div>
             )}
 
-            {/* Customer Dropdown */}
+            {/* Job Dropdown */}
             <div className="space-y-2">
-              <Label>Customer (Optional)</Label>
+              <Label>Job (Optional)</Label>
               <LineItemAutocomplete
                 items={bulkCustomers}
                 value={bulkCustomerId}
@@ -949,7 +996,7 @@ export default function InvoiceDetailsForm({
                   const quickbooksId = customer?.quickbooksId || null;
                   setBulkCustomerId(quickbooksId);
                 }}
-                placeholder="Search customers..."
+                placeholder="Search jobs..."
                 isLoading={isLoadingCustomers}
                 getDisplayName={(customer: QuickBooksCustomer) => {
                   const name = customer.displayName || customer.companyName || `Customer ${customer.quickbooksId}`;
@@ -958,11 +1005,11 @@ export default function InvoiceDetailsForm({
               />
               {bulkCustomers.length > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  {bulkCustomers.length} customers available
+                  {bulkCustomers.length} jobs available
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                This customer will be applied to all selected line items
+                This job will be applied to all selected line items
               </p>
             </div>
           </div>

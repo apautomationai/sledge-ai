@@ -3,6 +3,7 @@ import db from "@/lib/db";
 import { attachmentsModel } from "@/models/attachments.model";
 import { invoiceModel, lineItemsModel } from "@/models/invoice.model";
 import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
+import { quickbooksCustomersModel } from "@/models/quickbooks-customers.model";
 import { count, desc, eq, getTableColumns, and, sql, gte, lt, lte, inArray } from "drizzle-orm";
 import { PDFDocument } from "pdf-lib";
 import { s3Client, uploadBufferToS3 } from "@/helpers/s3upload";
@@ -12,6 +13,7 @@ import { Readable } from "stream";
 import { generateS3PublicUrl } from "@/lib/utils/s3";
 import { QuickBooksService } from "@/services/quickbooks.service";
 import { emailService } from "@/services/email.service";
+import { usersModel } from "@/models/users.model";
 const { v4: uuidv4 } = require("uuid");
 
 const quickbooksService = new QuickBooksService();
@@ -55,10 +57,8 @@ export class InvoiceServices {
         if (existingInvoice) {
           // Check if data is different from existing invoice
           const hasChanges =
-            existingInvoice.vendorAddress !== invoiceData.vendorAddress ||
-            existingInvoice.vendorPhone !== invoiceData.vendorPhone ||
-            existingInvoice.vendorEmail !== invoiceData.vendorEmail ||
-            existingInvoice.customerName !== invoiceData.customerName ||
+            existingInvoice.vendorId !== invoiceData.vendorId ||
+            existingInvoice.customerId !== invoiceData.customerId ||
             existingInvoice.invoiceDate?.getTime() !== invoiceData.invoiceDate?.getTime() ||
             existingInvoice.dueDate?.getTime() !== invoiceData.dueDate?.getTime() ||
             existingInvoice.totalAmount !== invoiceData.totalAmount ||
@@ -74,10 +74,8 @@ export class InvoiceServices {
             const [updatedInvoice] = await tx
               .update(invoiceModel)
               .set({
-                vendorAddress: invoiceData.vendorAddress,
-                vendorPhone: invoiceData.vendorPhone,
-                vendorEmail: invoiceData.vendorEmail,
-                customerName: invoiceData.customerName,
+                vendorId: invoiceData.vendorId,
+                customerId: invoiceData.customerId,
                 invoiceDate: invoiceData.invoiceDate,
                 dueDate: invoiceData.dueDate,
                 totalAmount: invoiceData.totalAmount,
@@ -279,6 +277,24 @@ export class InvoiceServices {
           active: quickbooksVendorsModel.active,
           quickbooksId: quickbooksVendorsModel.quickbooksId,
         },
+        // Customer data from quickbooks_customers table
+        customerData: {
+          id: quickbooksCustomersModel.id,
+          displayName: quickbooksCustomersModel.displayName,
+          companyName: quickbooksCustomersModel.companyName,
+          givenName: quickbooksCustomersModel.givenName,
+          familyName: quickbooksCustomersModel.familyName,
+          primaryEmail: quickbooksCustomersModel.primaryEmail,
+          primaryPhone: quickbooksCustomersModel.primaryPhone,
+          billAddrLine1: quickbooksCustomersModel.billAddrLine1,
+          billAddrCity: quickbooksCustomersModel.billAddrCity,
+          billAddrState: quickbooksCustomersModel.billAddrState,
+          billAddrPostalCode: quickbooksCustomersModel.billAddrPostalCode,
+          billAddrCountry: quickbooksCustomersModel.billAddrCountry,
+          balance: quickbooksCustomersModel.balance,
+          active: quickbooksCustomersModel.active,
+          quickbooksId: quickbooksCustomersModel.quickbooksId,
+        },
       })
       .from(invoiceModel)
       .leftJoin(
@@ -288,6 +304,10 @@ export class InvoiceServices {
       .leftJoin(
         quickbooksVendorsModel,
         eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
+      )
+      .leftJoin(
+        quickbooksCustomersModel,
+        eq(invoiceModel.customerId, quickbooksCustomersModel.id),
       )
       .where(
         and(
@@ -335,9 +355,10 @@ export class InvoiceServices {
     try {
       // Check if vendor data is included in the update
       const vendorData = (updatedData as any).vendorData;
+      const customerData = (updatedData as any).customerData;
 
-      // Update the invoice (exclude vendorData from invoice update)
-      const { vendorData: _, ...invoiceUpdateData } = updatedData as any;
+      // Update the invoice (exclude vendorData and customerData from invoice update)
+      const { vendorData: _, customerData: __, ...invoiceUpdateData } = updatedData as any;
       await db
         .update(invoiceModel)
         .set({ ...invoiceUpdateData, updatedAt: new Date() })
@@ -381,11 +402,113 @@ export class InvoiceServices {
         }
       }
 
-      // Fetch the updated invoice with vendor data using JOIN
-      const [updatedInvoiceWithVendor] = await db
+      // Update customer data if provided and customerId exists
+      if (customerData && existingInvoice.customerId) {
+        const customerUpdateData: any = {};
+
+        // Map customer fields from frontend to database fields
+        if (customerData.displayName !== undefined) {
+          customerUpdateData.displayName = customerData.displayName;
+        }
+
+        // Only update if there are customer fields to update
+        if (Object.keys(customerUpdateData).length > 0) {
+          customerUpdateData.updatedAt = new Date();
+
+          // Get current customer data BEFORE updating for QuickBooks comparison
+          let currentCustomerData = null;
+          try {
+            const quickbooksService = new (await import('./quickbooks.service')).QuickBooksService();
+            const integration = await quickbooksService.getUserIntegration(existingInvoice.userId);
+
+            if (integration) {
+              // Get current customer data before update
+              [currentCustomerData] = await db
+                .select({
+                  quickbooksId: quickbooksCustomersModel.quickbooksId,
+                  syncToken: quickbooksCustomersModel.syncToken,
+                  displayName: quickbooksCustomersModel.displayName,
+                })
+                .from(quickbooksCustomersModel)
+                .where(eq(quickbooksCustomersModel.id, existingInvoice.customerId))
+                .limit(1);
+
+              // Update local database first
+              await db
+                .update(quickbooksCustomersModel)
+                .set(customerUpdateData)
+                .where(eq(quickbooksCustomersModel.id, existingInvoice.customerId));
+
+              // Now sync to QuickBooks if we have the necessary data
+              if (currentCustomerData?.quickbooksId && currentCustomerData?.syncToken) {
+                // Check what actually changed
+                const hasChanges = (
+                  customerData.displayName !== undefined && customerData.displayName !== currentCustomerData.displayName
+                );
+
+                if (hasChanges) {
+                  console.log("Syncing customer changes to QuickBooks...");
+
+                  // Prepare QuickBooks update data
+                  const qbCustomerData: any = {
+                    syncToken: currentCustomerData.syncToken
+                  };
+
+                  if (customerData.displayName !== undefined && customerData.displayName !== currentCustomerData.displayName) {
+                    qbCustomerData.name = customerData.displayName;
+                  }
+
+                  // Update in QuickBooks (we'll need to implement updateCustomer method)
+                  const updatedQBCustomer = await quickbooksService.updateCustomer(
+                    integration,
+                    currentCustomerData.quickbooksId,
+                    qbCustomerData
+                  );
+
+                  // Update sync token with response
+                  const newSyncToken = updatedQBCustomer?.QueryResponse?.Customer?.[0]?.SyncToken ||
+                    updatedQBCustomer?.Customer?.SyncToken ||
+                    updatedQBCustomer?.SyncToken;
+
+                  if (newSyncToken) {
+                    await db
+                      .update(quickbooksCustomersModel)
+                      .set({
+                        syncToken: newSyncToken,
+                        updatedAt: new Date()
+                      })
+                      .where(eq(quickbooksCustomersModel.id, existingInvoice.customerId));
+                  }
+                } else {
+                  console.log("No customer changes detected for QuickBooks sync");
+                }
+              }
+            } else {
+              // No QuickBooks integration, just update local database
+              await db
+                .update(quickbooksCustomersModel)
+                .set(customerUpdateData)
+                .where(eq(quickbooksCustomersModel.id, existingInvoice.customerId));
+            }
+          } catch (qbError) {
+            console.error("QuickBooks customer sync error:", qbError);
+            // If QuickBooks sync fails, still update local database
+            if (!currentCustomerData) {
+              await db
+                .update(quickbooksCustomersModel)
+                .set(customerUpdateData)
+                .where(eq(quickbooksCustomersModel.id, existingInvoice.customerId));
+            }
+          }
+        }
+      }
+
+      // Fetch the updated invoice with vendor and customer data using JOIN
+      const [updatedInvoiceWithData] = await db
         .select({
           ...getTableColumns(invoiceModel),
           sourcePdfUrl: attachmentsModel.fileUrl,
+          senderEmail: attachmentsModel.sender,
           // Vendor data from quickbooks_vendors table
           vendorData: {
             id: quickbooksVendorsModel.id,
@@ -400,6 +523,24 @@ export class InvoiceServices {
             active: quickbooksVendorsModel.active,
             quickbooksId: quickbooksVendorsModel.quickbooksId,
           },
+          // Customer data from quickbooks_customers table
+          customerData: {
+            id: quickbooksCustomersModel.id,
+            displayName: quickbooksCustomersModel.displayName,
+            companyName: quickbooksCustomersModel.companyName,
+            givenName: quickbooksCustomersModel.givenName,
+            familyName: quickbooksCustomersModel.familyName,
+            primaryEmail: quickbooksCustomersModel.primaryEmail,
+            primaryPhone: quickbooksCustomersModel.primaryPhone,
+            billAddrLine1: quickbooksCustomersModel.billAddrLine1,
+            billAddrCity: quickbooksCustomersModel.billAddrCity,
+            billAddrState: quickbooksCustomersModel.billAddrState,
+            billAddrPostalCode: quickbooksCustomersModel.billAddrPostalCode,
+            billAddrCountry: quickbooksCustomersModel.billAddrCountry,
+            balance: quickbooksCustomersModel.balance,
+            active: quickbooksCustomersModel.active,
+            quickbooksId: quickbooksCustomersModel.quickbooksId,
+          },
         })
         .from(invoiceModel)
         .leftJoin(
@@ -410,6 +551,10 @@ export class InvoiceServices {
           quickbooksVendorsModel,
           eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
         )
+        .leftJoin(
+          quickbooksCustomersModel,
+          eq(invoiceModel.customerId, quickbooksCustomersModel.id),
+        )
         .where(
           and(
             eq(invoiceModel.id, invoiceId),
@@ -417,11 +562,11 @@ export class InvoiceServices {
           )
         );
 
-      if (!updatedInvoiceWithVendor) {
+      if (!updatedInvoiceWithData) {
         throw new NotFoundError("Invoice not found after update");
       }
 
-      return updatedInvoiceWithVendor;
+      return updatedInvoiceWithData;
     } catch (error) {
       console.error("Error updating invoice:", error);
       throw new BadRequestError("Unable to update invoice");
@@ -804,14 +949,17 @@ export class InvoiceServices {
     }
   }
 
-  async updateInvoiceStatus(invoiceId: number, status: string, rejectionReason?: string, recipientEmail?: string) {
+  async updateInvoiceStatus(invoiceId: number, status: string, rejectionReason?: string, recipientEmails?: string[]) {
     try {
+      // Store comma-separated emails for backward compatibility in DB
+      const emailsString = recipientEmails?.join(', ') || null;
+
       // Update the invoice status
       await db
         .update(invoiceModel)
         .set({
           status: status as any,
-          rejectionEmailSender: recipientEmail || null,
+          rejectionEmailSender: emailsString,
           rejectionReason: rejectionReason || null,
           updatedAt: new Date()
         })
@@ -836,6 +984,11 @@ export class InvoiceServices {
             active: quickbooksVendorsModel.active,
             quickbooksId: quickbooksVendorsModel.quickbooksId,
           },
+          userData: {
+            firstName: usersModel.firstName,
+            lastName: usersModel.lastName,
+            companyName: usersModel.businessName,
+          },
         })
         .from(invoiceModel)
         .leftJoin(
@@ -845,6 +998,10 @@ export class InvoiceServices {
         .leftJoin(
           quickbooksVendorsModel,
           eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
+        )
+        .leftJoin(
+          usersModel,
+          eq(invoiceModel.userId, usersModel.id),
         )
         .where(
           and(
@@ -857,16 +1014,21 @@ export class InvoiceServices {
         throw new NotFoundError("Invoice not found after update");
       }
 
-      // Send rejection email if status is "rejected" and recipient email is provided
-      if (status === "rejected" && recipientEmail) {
+      // Send rejection email if status is "rejected" and recipient emails are provided
+      if (status === "rejected" && recipientEmails && recipientEmails.length > 0) {
+        const senderName = `${updatedInvoiceWithVendor?.userData?.firstName} ${updatedInvoiceWithVendor?.userData?.lastName}`.trim() || 'Me';
+        const senderCompany = updatedInvoiceWithVendor?.userData?.companyName || 'My Company';
         try {
           await emailService.sendInvoiceRejectionEmail({
-            to: recipientEmail,
+            to: recipientEmails,
             invoiceNumber: updatedInvoiceWithVendor.invoiceNumber || `INV-${invoiceId}`,
             vendorName: updatedInvoiceWithVendor.vendorData?.displayName || undefined,
             rejectionReason: rejectionReason,
+            senderName: senderName,
+            senderCompany: senderCompany,
+            invoiceFileUrl: updatedInvoiceWithVendor.fileUrl || undefined,
           });
-          console.log(`Rejection email sent to ${recipientEmail} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
+          console.log(`Rejection email sent to ${recipientEmails.join(', ')} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
         } catch (emailError) {
           console.error("Failed to send rejection email:", emailError);
         }
@@ -937,10 +1099,8 @@ export class InvoiceServices {
           userId: originalInvoice.userId,
           attachmentId: originalInvoice.attachmentId,
           invoiceNumber: newInvoiceNumber,
-          vendorAddress: originalInvoice.vendorAddress,
-          vendorPhone: originalInvoice.vendorPhone,
-          vendorEmail: originalInvoice.vendorEmail,
-          customerName: originalInvoice.customerName,
+          vendorId: originalInvoice.vendorId,
+          customerId: originalInvoice.customerId,
           invoiceDate: originalInvoice.invoiceDate,
           dueDate: originalInvoice.dueDate,
           totalAmount: originalInvoice.totalAmount,
@@ -1041,10 +1201,8 @@ export class InvoiceServices {
           userId: originalInvoice.userId,
           attachmentId: originalInvoice.attachmentId,
           invoiceNumber: newInvoiceNumber,
-          vendorAddress: originalInvoice.vendorAddress,
-          vendorPhone: originalInvoice.vendorPhone,
-          vendorEmail: originalInvoice.vendorEmail,
-          customerName: originalInvoice.customerName,
+          vendorId: originalInvoice.vendorId,
+          customerId: originalInvoice.customerId,
           invoiceDate: originalInvoice.invoiceDate,
           dueDate: originalInvoice.dueDate,
           totalAmount: totalAmount,
