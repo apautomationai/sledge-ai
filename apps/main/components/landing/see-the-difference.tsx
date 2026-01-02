@@ -64,7 +64,7 @@ export default function SeeTheDifference() {
           {/* After 10 Image (Background - Right side) */}
           <div className="absolute inset-0">
             <Image
-              src="/images/after 10.png"
+              src="/updated-images/sledge-difference-after.png"
               alt="AI workflow automation"
               fill
               className="object-cover"
@@ -80,7 +80,7 @@ export default function SeeTheDifference() {
             }}
           >
             <Image
-              src="/images/after 9.png"
+              src="/updated-images/sledge-difference-before.png"
               alt="construction back office automation"
               fill
               className="object-cover"

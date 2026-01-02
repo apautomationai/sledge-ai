@@ -5,16 +5,16 @@ export function Testimonial() {
     {
       icon: "/images/johnst.png",
       quote:
-        "Sledge has been a game-changer for our operations. It has significantly boosted productivity across our organization.",
-      name: "John St",
+        "Sledge saves us over $95,000 a year and 50+ hours every week by eliminating manual invoice processing. We didn’t have to hire back-office staff just to keep up with invoices.",
+      name: "Raz Danoukh",
       title: "President, Ferrocrete Builders Inc",
     },
     {
       icon: "/images/john.png",
       quote:
-        "After trying multiple management tools, we finally found the one. The ease of use is a delight that is very welcome in industry.",
-      name: "John McDaniel",
-      title: "Project Manager, Ferrocrete Builders Inc",
+        "Invoice processing used to slow everything down. Now it’s automated. We save hundreds of hours a year and approvals move faster without chasing paperwork.",
+      name: "Raz Danoukh",
+      title: "President, Ferrocrete Builders Inc",
     },
   ];
 
@@ -28,7 +28,7 @@ export function Testimonial() {
           {testimonials.map((testimonial, index) => (
             <div key={index}>
               {/* Mobile Card Design */}
-              <div className="md:hidden p-6 bg-stone-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-600 flex flex-col justify-center items-start gap-6">
+              <div className="lg:hidden p-6 bg-stone-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-600 flex flex-col justify-center items-start gap-6">
                 <p className="text-white text-base font-normal font-['Inter'] leading-6">
                   "{testimonial.quote}"
                 </p>
@@ -53,9 +53,9 @@ export function Testimonial() {
               </div>
 
               {/* Desktop Image Design */}
-              <div className="hidden md:block relative w-full h-[240px] lg:h-[280px] xl:h-[320px] 2xl:h-[360px] overflow-hidden group">
+              <div className="hidden lg:block relative w-full h-[240px] lg:h-[280px] xl:h-[320px] 2xl:h-[360px] overflow-hidden group">
                 <Image
-                  src="/images/image 21 (2).png"
+                  src="/updated-images/container-steelplate-wide.png"
                   alt={testimonial.name}
                   fill
                   className="object-contain rounded-2xl"
@@ -65,7 +65,7 @@ export function Testimonial() {
                 <div className="absolute inset-y-0 left-[3%] right-[3%] lg:left-[5%] lg:right-[5%] xl:left-[8%] xl:right-[8%] 2xl:left-[10%] 2xl:right-[10%] min-[1800px]:left-[14%] min-[1800px]:right-[14%] min-[2300px]:left-[18%] min-[2300px]:right-[18%] flex items-center gap-2 lg:gap-3 xl:gap-3 2xl:gap-3 min-[1800px]:gap-5 min-[2300px]:gap-4 p-3 lg:p-4 xl:p-4 2xl:p-5 min-[1800px]:p-8 min-[2300px]:p-6">
                   {/* Profile Image */}
                   <div className="flex-shrink-0 ml-1 lg:ml-2 xl:ml-2 2xl:ml-2 min-[1800px]:ml-4 min-[2300px]:ml-3">
-                    <div className="relative w-20 h-20 lg:w-24 lg:h-24 xl:w-24 xl:h-24 2xl:w-28 2xl:h-28 min-[1800px]:w-[167px] min-[1800px]:h-[167px] min-[2300px]:w-[140px] min-[2300px]:h-[140px] rounded-lg overflow-hidden">
+                    <div className="relative w-[167px] h-[167px] rounded-lg overflow-hidden">
                       <Image
                         src={testimonial.icon}
                         alt={testimonial.name}

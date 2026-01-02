@@ -6,7 +6,7 @@ import Link from "next/link";
 export function Expanding() {
   const liveToday = {
     title: "Live Today",
-    icon: "/images/product/icon-check-badge-square.png",
+    icon: "/updated-images/icon-check-badge-square.png",
     items: [
       "AI-powered Accounts Payable workflows",
       "Automated invoice capture and parsing",
@@ -21,7 +21,7 @@ export function Expanding() {
 
   const buildingToward = {
     title: "What We're Building Toward",
-    icon: "/images/product/icon-wireframe-cube.png",
+    icon: "/updated-images/icon-wireframe-cube.png",
     items: [
       "A unified AI-driven back office",
       "Additional document and workflow automation",

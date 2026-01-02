@@ -6,22 +6,22 @@ import Image from "next/image";
 export function Cards() {
   const cards = [
     {
-      icon: "/images/image 12.png",
+      icon: "/updated-images/3cfa3268a9913f8a513a76661892da0c449dc054.png",
       title: "Money",
       subtile: "Automate invoices, payables, & approvals ",
     },
     {
-      icon: "/images/person2.png",
+      icon: "/updated-images/9b3e0277fa729b1b602b31838d6418de126cd1d2.png",
       title: "People",
       subtile: "Ai handles reminders and scheduling",
     },
     {
-      icon: "/images/image 13.png",
+      icon: "/updated-images/5a1be1eb0489bcd63361d95d5e0c2e9324f36d53.png",
       title: "Docs",
       subtile: "Instantly scan, sort and search every file",
     },
     {
-      icon: "/images/image 11.png",
+      icon: "/updated-images/33f5739e7cef34f37051f3e20151b2f64e424ad8.png",
       title: "Projects",
       subtile: "Automate invoices, payables, & approvals ",
     },
@@ -138,7 +138,7 @@ export function Cards() {
                 whileTap="hover"
               >
                 <Image
-                  src="/images/bg-steelplate.png"
+                  src="/updated-images/bg-steelplate.png"
                   alt={card.title}
                   fill
                   className="object-fill rounded-2xl"

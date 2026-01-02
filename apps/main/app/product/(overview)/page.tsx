@@ -23,19 +23,19 @@ const aiFoundationText =
   "These core AI capabilities power the platform today and serve as the base layer for the full Builder's AI Office.";
 const aiFoundationSteps: Step[] = [
   {
-    icon: "/images/product/icon-display-email-capture.png",
+    icon: "/updated-images/icon-display-email-capture.png",
     title: "1. Capture → AI Driven Intake",
     description:
       "AI automatically captures emails, documents, and attachments as they arrive.",
   },
   {
-    icon: "/images/product/icon-display-ai-understand.png",
+    icon: "/updated-images/icon-display-ai-understand.png",
     title: "2. Understand → AI-Based Interpretation",
     description:
       "AI interprets unstructured data and maps it into structured business context.",
   },
   {
-    icon: "/images/product/icon-display-checklist.png",
+    icon: "/updated-images/icon-display-checklist.png",
     title: "3. Execute → AI-Executed Workflows",
     description:
       "AI prepares work for completion and pauses for approval when required.",
