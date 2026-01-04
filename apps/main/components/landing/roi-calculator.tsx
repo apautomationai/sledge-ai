@@ -178,7 +178,7 @@ export default function RoiCalculator() {
               {/* CTA Buttons */}
               <div className="self-stretch flex flex-col justify-center items-center gap-4">
                 <Link
-                  href="/product/ai-account-payable"
+                  href="/product/ai-accounts-payable"
                   className="self-stretch px-2 min-[375px]:px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors"
                 >
                   <span className="text-center text-stone-800 text-[10px] min-[375px]:text-xs font-semibold font-sans uppercase leading-5 whitespace-nowrap">
@@ -251,7 +251,7 @@ export default function RoiCalculator() {
               {/* CTA Buttons */}
               <div className="w-full flex flex-col justify-center items-center gap-4">
                 <Link
-                  href="/product/ai-account-payable"
+                  href="/product/ai-accounts-payable"
                   className="self-stretch px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors"
                 >
                   <span className="text-center text-stone-800 text-xs lg:text-base font-semibold uppercase leading-tight">

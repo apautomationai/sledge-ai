@@ -6,35 +6,133 @@ import { cn } from "@workspace/ui/lib/utils";
 
 const faqs = [
   {
-    question: "Who should use Sledge?",
+    question: "What is Sledge?",
     answer:
-      "Sledge is designed for construction companies, general contractors, subcontractors, and any builder looking to streamline their back-office operations. Whether you're managing a small team or a large operation, Sledge scales with your needs.",
+      "Sledge is an AI-first construction back-office platform built to automate how work is captured, understood, and executed. It replaces manual invoice entry, inbox sorting, and disconnected accounting workflows with AI-powered automation — starting with accounts payable.",
   },
   {
-    question: "How does Sledge capture invoices from my email?",
-    answer:
-      "Sledge connects securely to your email and automatically detects incoming invoices. Our AI extracts key data like vendor details, amounts, line items, and job codes — eliminating manual data entry and reducing errors.",
+    question: "Who is Sledge built for?",
+    answer: (
+      <>
+        Sledge is built for construction teams that manage invoices, approvals, and accounting workflows, including:
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          <li>General contractors</li>
+          <li>Subcontractors</li>
+          <li>Office managers</li>
+          <li>Accountants and bookkeepers</li>
+        </ul>
+        <p className="mt-2">If your team deals with vendor invoices, email attachments, approvals, or accounting systems, Sledge is built for you.</p>
+      </>
+    ),
   },
   {
-    question: "Can I pay vendors directly through Sledge?",
-    answer:
-      "Yes! Sledge integrates with your existing payment systems to enable direct vendor payments. You can review, approve, and pay invoices all from one platform, maintaining full control over your cash flow.",
+    question: "What problems does Sledge solve?",
+    answer: (
+      <>
+        Sledge eliminates the most time-consuming and error-prone parts of construction back-office work, including:
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          <li>Manual invoice entry</li>
+          <li>Sorting invoice emails and attachments</li>
+          <li>Duplicate vendors and cost codes</li>
+          <li>Approval bottlenecks</li>
+          <li>Disconnected systems</li>
+        </ul>
+        <p className="mt-2">Sledge automates these steps while keeping humans in control.</p>
+      </>
+    ),
   },
   {
-    question:
-      "What makes Sledge different from other construction management software?",
+    question: "Is Sledge construction-specific or general accounting software?",
     answer:
-      "Sledge is built AI-first, not AI-bolted-on. Our platform was designed from the ground up to automate construction back-office workflows, starting with accounts payable. This means faster processing, fewer errors, and more time for you to focus on building.",
+      "Sledge is built specifically for construction workflows. Unlike generic accounting or project management software, Sledge understands construction invoices, approval processes, and back-office complexity — and is designed to work alongside tools construction teams already use.",
+  },
+  {
+    question: "Does Sledge replace my accounting software?",
+    answer:
+      "No. Sledge works with your existing accounting system. It prepares, validates, and routes data so your accounting system stays clean and accurate without manual entry.",
+  },
+  {
+    question: "How does Sledge use AI?",
+    answer: (
+      <>
+        Sledge uses AI to:
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          <li>Detect invoices from email and uploads</li>
+          <li>Read and extract invoice data</li>
+          <li>Match vendors, cost codes, and accounts</li>
+          <li>Prepare structured data for approvals</li>
+        </ul>
+        <p className="mt-2">AI handles the repetitive work. Humans approve the results.</p>
+      </>
+    ),
+  },
+  {
+    question: "Are humans still involved, or is everything automated?",
+    answer:
+      "Humans are always in control. Sledge uses AI to prepare work, but invoices must be approved before moving forward. Nothing is blindly automated into accounting systems without human review.",
+  },
+  {
+    question: "How accurate is the AI?",
+    answer:
+      "Sledge combines AI automation with human-in-the-loop approvals to ensure accuracy. AI prepares the data, and users review and approve it before execution. This ensures speed without sacrificing control or trust.",
+  },
+  {
+    question: "How does Sledge capture invoices?",
+    answer: (
+      <>
+        Sledge captures invoices from the places construction teams already receive them, including:
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          <li>Email inboxes (Gmail, Outlook, shared AP inboxes)</li>
+          <li>Manual uploads</li>
+        </ul>
+        <p className="mt-2">AI identifies real invoices and ignores non-invoice documents automatically.</p>
+      </>
+    ),
+  },
+  {
+    question: "What happens if an invoice is incorrect?",
+    answer:
+      "If an invoice is incorrect, users can reject it during review. Rejected invoices are flagged and can be sent back for correction before approval.",
+  },
+  {
+    question: "How does Sledge prevent duplicate vendors or records?",
+    answer:
+      "Sledge intelligently searches existing records to find close matches before creating anything new. This prevents duplicate vendors, customers, or cost codes and keeps systems clean over time.",
   },
   {
     question: "Is Sledge secure?",
     answer:
-      "Absolutely. Sledge uses bank-level encryption, secure cloud infrastructure, and follows industry best practices for data protection. Your financial data and business information are always protected.",
+      "Yes. Sledge uses industry-standard security practices, secure authentication, and permission-based access controls. Users control which systems and inboxes Sledge can access at all times.",
   },
   {
-    question: "What if my business grows or I need to add more team members?",
+    question: "How long does it take to get started?",
     answer:
-      "Sledge scales with your needs. You can upgrade tiers anytime and invite your team or subcontractors to collaborate with proper permissions.",
+      "Most teams can connect their inboxes and systems and start processing invoices the same day. There is no complex setup or long onboarding required.",
+  },
+  {
+    question: "Can Sledge scale as my business grows?",
+    answer:
+      "Yes. Sledge is designed to scale with your invoice volume, team size, and operational complexity — without requiring more manual work or additional back-office staff.",
+  },
+  {
+    question: "How is Sledge different from construction management software like Procore or Buildertrend?",
+    answer:
+      "Sledge focuses on automating the construction back office — not project schedules or field management. It eliminates manual administrative work using AI while integrating with the tools construction teams already rely on.",
+  },
+  {
+    question: "What is \"The Builder's AI Office\"?",
+    answer:
+      "The Builder's AI Office is Sledge's long-term vision: an AI-powered platform that automates construction back-office workflows end-to-end. Accounts payable is the starting point, with additional workflows expanding over time.",
+  },
+  {
+    question: "Is there a contract or long-term commitment?",
+    answer:
+      "No. Sledge is designed to be easy to start and easy to scale — without long-term contracts.",
+  },
+  {
+    question: "How do I get started?",
+    answer:
+      "You can start a free trial or schedule a demo to see how Sledge works for your construction workflows.",
   },
 ];
 
@@ -75,12 +173,12 @@ export function FAQ() {
               <div
                 className={cn(
                   "overflow-hidden transition-all duration-300 ease-in-out",
-                  openIndex === index ? "max-h-96 pb-4 sm:pb-5" : "max-h-0"
+                  openIndex === index ? "max-h-[600px] pb-4 sm:pb-5" : "max-h-0"
                 )}
               >
-                <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed">
+                <div className="text-white text-xs sm:text-sm md:text-base leading-relaxed">
                   {faq.answer}
-                </p>
+                </div>
               </div>
             </div>
           ))}

@@ -8,6 +8,7 @@ export function HowItWorks() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [cardsToShow, setCardsToShow] = useState(4);
   const [isMobile, setIsMobile] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(true);
 
   const cards = [
     {
@@ -42,6 +43,8 @@ export function HowItWorks() {
     },
   ];
 
+  // Create infinite loop by duplicating cards
+  const infiniteCards = [...cards, ...cards, ...cards];
   const gapSize = 24; // 24px gap between cards (gap-6)
   const totalGaps = (cardsToShow - 1) * gapSize;
 
@@ -53,34 +56,64 @@ export function HowItWorks() {
 
       if (width < 768) {
         setCardsToShow(1); // Mobile
-        setCurrentIndex(0); // Reset to first position
+        setCurrentIndex(cards.length); // Start at middle set
       } else if (width < 1024) {
         setCardsToShow(2); // Tablet
-        setCurrentIndex(0);
+        setCurrentIndex(cards.length);
       } else if (width < 1280) {
         setCardsToShow(3); // Medium
-        setCurrentIndex(0);
+        setCurrentIndex(cards.length);
       } else {
         setCardsToShow(4); // Large
-        setCurrentIndex(0);
+        setCurrentIndex(cards.length);
       }
     };
 
     updateCardsToShow();
     window.addEventListener("resize", updateCardsToShow);
     return () => window.removeEventListener("resize", updateCardsToShow);
-  }, []);
+  }, [cards.length]);
+
+  // Handle infinite loop wrapping
+  useEffect(() => {
+    if (!isTransitioning) return;
+
+    if (currentIndex <= 0) {
+      // Jump to the end of the first set (without animation)
+      setTimeout(() => {
+        setIsTransitioning(false);
+        setCurrentIndex(cards.length);
+      }, 300);
+    } else if (currentIndex >= cards.length * 2) {
+      // Jump to the start of the second set (without animation)
+      setTimeout(() => {
+        setIsTransitioning(false);
+        setCurrentIndex(cards.length);
+      }, 300);
+    }
+  }, [currentIndex, cards.length, isTransitioning]);
+
+  // Re-enable transition after jump
+  useEffect(() => {
+    if (!isTransitioning) {
+      const timeout = setTimeout(() => {
+        setIsTransitioning(true);
+      }, 50);
+      return () => clearTimeout(timeout);
+    }
+  }, [isTransitioning]);
 
   const handlePrev = () => {
-    setCurrentIndex((prev) => Math.max(0, prev - 1));
+    if (isTransitioning) {
+      setCurrentIndex((prev) => prev - 1);
+    }
   };
 
   const handleNext = () => {
-    setCurrentIndex((prev) => Math.min(cards.length - cardsToShow, prev + 1));
+    if (isTransitioning) {
+      setCurrentIndex((prev) => prev + 1);
+    }
   };
-
-  const canGoPrev = currentIndex > 0;
-  const canGoNext = currentIndex < cards.length - cardsToShow;
 
   return (
     <section className="w-full px-6 sm:px-6 md:px-8 lg:px-12 py-12 md:py-16 bg-black">
@@ -97,12 +130,7 @@ export function HowItWorks() {
           {/* Left Arrow */}
           <button
             onClick={handlePrev}
-            disabled={!canGoPrev}
-            className={`absolute left-0 top-1/2 z-10 w-8 h-8 sm:w-16 sm:h-16 sm:rounded-lg sm:bg-[#1F1F1F] sm:border sm:border-[#333] flex items-center justify-center transition-all ${
-              canGoPrev
-                ? "opacity-100 cursor-pointer sm:hover:bg-[#2A2A2A]"
-                : "opacity-30 cursor-not-allowed"
-            }`}
+            className="absolute left-0 top-1/2 z-10 w-8 h-8 sm:w-16 sm:h-16 sm:rounded-lg sm:bg-[#1F1F1F] sm:border sm:border-[#333] flex items-center justify-center transition-all opacity-100 cursor-pointer sm:hover:bg-[#2A2A2A]"
             style={{
               transform: isMobile
                 ? "translateX(-8px) translateY(-50%)"
@@ -116,12 +144,13 @@ export function HowItWorks() {
           {/* Cards Container */}
           <div className="overflow-hidden relative">
             <div
-              className="flex transition-transform duration-300 ease-in-out gap-6"
+              className="flex gap-6"
               style={{
                 transform: `translateX(calc(-${currentIndex} * (calc((100% - ${totalGaps}px) / ${cardsToShow}) + ${gapSize}px)))`,
+                transition: isTransitioning ? "transform 300ms ease-in-out" : "none",
               }}
             >
-              {cards.map((card, index) => (
+              {infiniteCards.map((card, index) => (
                 <div
                   key={index}
                   className="relative bg-[#1B1A17] border border-[#333] rounded-2xl p-4 sm:p-6 flex flex-col items-center text-center min-h-[380px] sm:min-h-[420px] md:min-h-[448px] shrink-0"
@@ -157,12 +186,7 @@ export function HowItWorks() {
           {/* Right Arrow */}
           <button
             onClick={handleNext}
-            disabled={!canGoNext}
-            className={`absolute right-0 top-1/2 z-10 w-8 h-8 sm:w-16 sm:h-16 sm:rounded-lg sm:bg-[#1F1F1F] sm:border sm:border-[#333] flex items-center justify-center transition-all ${
-              canGoNext
-                ? "opacity-100 cursor-pointer sm:hover:bg-[#2A2A2A]"
-                : "opacity-30 cursor-not-allowed"
-            }`}
+            className="absolute right-0 top-1/2 z-10 w-8 h-8 sm:w-16 sm:h-16 sm:rounded-lg sm:bg-[#1F1F1F] sm:border sm:border-[#333] flex items-center justify-center transition-all opacity-100 cursor-pointer sm:hover:bg-[#2A2A2A]"
             style={{
               transform: isMobile
                 ? "translateX(8px) translateY(-50%)"

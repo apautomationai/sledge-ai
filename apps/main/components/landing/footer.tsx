@@ -19,17 +19,15 @@ import Image from "next/image";
 
 const navigation = {
   product: [
-    { name: "Features", href: "/#features" },
-    { name: "Pricing", href: "/#pricing" },
+    { name: "Overview", href: "/product" },
+    { name: "Ai Accounts Payable", href: "/product/ai-accounts-payable" },
+    { name: "Integrations", href: "/integration" },
   ],
   industries: [
-    { name: "Construction", href: "/#construction" },
-    { name: "Concrete", href: "/#concrete" },
+    { name: "Construction", href: "/industries/construction" },
+    { name: "Concrete", href: "/industries/concrete" },
   ],
-  company: [
-    { name: "About", href: "/#about" },
-    { name: "Contact", href: "/contact-us" },
-  ],
+  company: [{ name: "Contact", href: "/contact-us" }],
 
   legal: [
     { name: "Privacy Policy", href: "/privacy-policy" },

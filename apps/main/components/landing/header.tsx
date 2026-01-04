@@ -210,7 +210,7 @@ export function Header() {
                           </div>
                         </a>
                         <a
-                          href="/product/ai-account-payable"
+                          href="/product/ai-accounts-payable"
                           onClick={() => setDropdownOpen(false)}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >

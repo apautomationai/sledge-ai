@@ -15,7 +15,7 @@ export function Expanding() {
     ],
     link: {
       text: "View AI Accounts Payable",
-      href: "ai-account-payable",
+      href: "product/ai-accounts-payable",
     },
   };
 
