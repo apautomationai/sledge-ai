@@ -6,22 +6,22 @@ import Image from "next/image";
 export function Cards() {
   const cards = [
     {
-      icon: "/updated-images/icon money 1.png",
+      icon: "/updated-images/icon-money 1.png",
       title: "Money",
       subtile: "Automate invoices, payables, & approvals ",
     },
     {
-      icon: "/updated-images/icon people 1.png",
+      icon: "/updated-images/icon-people 1.png",
       title: "People",
       subtile: "Ai handles reminders and scheduling",
     },
     {
-      icon: "/updated-images/icon docs 1.png",
+      icon: "/updated-images/icon-docs 1.png",
       title: "Docs",
       subtile: "Instantly scan, sort and search every file",
     },
     {
-      icon: "/updated-images/icon projects 1.png",
+      icon: "/updated-images/icon-projects 1.png",
       title: "Projects",
       subtile: "Automate invoices, payables, & approvals ",
     },
