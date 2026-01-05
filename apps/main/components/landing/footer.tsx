@@ -1,19 +1,4 @@
 import { Separator } from "@workspace/ui/components/separator";
-import {
-  ProfessionalWave,
-  FloatingElements,
-  GeometricPattern,
-  ProfessionalIcons,
-} from "./animated-icons";
-import {
-  Twitter,
-  Linkedin,
-  Github,
-  Mail,
-  ArrowRight,
-  Heart,
-  CreditCard,
-} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
