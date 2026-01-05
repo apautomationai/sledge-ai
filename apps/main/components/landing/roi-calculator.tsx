@@ -176,22 +176,22 @@ export default function RoiCalculator() {
               </div>
 
               {/* CTA Buttons */}
-              <div className="self-stretch flex flex-col sm:flex-row justify-center items-center gap-4">
+              <div className="self-stretch flex flex-col justify-center items-center gap-4">
                 <Link
                   href="/sign-up"
-                  className="w-full sm:w-auto px-2 min-[375px]:px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors"
+                  className="w-full px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors"
                 >
                   <span className="text-center text-stone-800 text-xs  font-semibold font-sans uppercase leading-5 whitespace-nowrap">
-                    START A FREE TRIAL
+                    WATCH A DEMO
                   </span>
                 </Link>
 
                 <Link
                   href="#demo"
-                  className="cursor-pointer w-full sm:w-auto px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors"
+                  className="cursor-pointer w-full px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors"
                 >
                   <span className="text-center text-zinc-100 text-xs font-bold font-sans uppercase leading-5">
-                    WATCH A DEMO
+                    START A FREE TRIAL
                   </span>
                 </Link>
               </div>
@@ -249,22 +249,22 @@ export default function RoiCalculator() {
               </div>
 
               {/* CTA Buttons */}
-              <div className="w-full flex flex-col sm:flex-row justify-center items-center gap-4">
+              <div className="w-full flex flex-col justify-center items-center gap-4">
                 <Link
                   href="/sign-up"
-                  className="w-full sm:w-auto px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors"
+                  className="w-full px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors"
                 >
                   <span className="text-center text-stone-800 text-xs lg:text-base font-semibold uppercase leading-tight">
-                    START A FREE TRIAL
+                    SEE HOW SLEDGE AUTOMATES PAYABLES
                   </span>
                 </Link>
 
                 <Link
                   href="#demo"
-                  className="cursor-pointer w-full sm:w-auto px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors"
+                  className="cursor-pointer w-full px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors"
                 >
                   <span className="text-center text-zinc-100 text-xs lg:text-base font-bold font-sans uppercase leading-tight">
-                    WATCH A DEMO
+                    START A FREE TRIAL
                   </span>
                 </Link>
               </div>
