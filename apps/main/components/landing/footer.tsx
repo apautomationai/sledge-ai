@@ -1,35 +1,18 @@
 import { Separator } from "@workspace/ui/components/separator";
-import {
-  ProfessionalWave,
-  FloatingElements,
-  GeometricPattern,
-  ProfessionalIcons,
-} from "./animated-icons";
-import {
-  Twitter,
-  Linkedin,
-  Github,
-  Mail,
-  ArrowRight,
-  Heart,
-  CreditCard,
-} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 const navigation = {
   product: [
-    { name: "Features", href: "/#features" },
-    { name: "Pricing", href: "/#pricing" },
+    { name: "Overview", href: "/product" },
+    { name: "Ai Accounts Payable", href: "/product/ai-accounts-payable" },
+    { name: "Integrations", href: "/integration" },
   ],
   industries: [
-    { name: "Construction", href: "/#construction" },
-    { name: "Concrete", href: "/#concrete" },
+    { name: "Construction", href: "/industries/construction" },
+    { name: "Concrete", href: "/industries/concrete" },
   ],
-  company: [
-    { name: "About", href: "/#about" },
-    { name: "Contact", href: "/contact-us" },
-  ],
+  company: [{ name: "Contact", href: "/contact-us" }],
 
   legal: [
     { name: "Privacy Policy", href: "/privacy-policy" },

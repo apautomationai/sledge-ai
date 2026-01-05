@@ -23,7 +23,7 @@ export function AiOffice() {
         {/* Right Image */}
         <div className="flex-1 flex justify-center lg:justify-end">
           <Image
-            src="/images/product/image-sledge-to-accounts-payable-module.png"
+            src="/updated-images/image-sledge-to-accounts-payable-module.png"
             alt="Sledge AI Office"
             width={588}
             height={588}

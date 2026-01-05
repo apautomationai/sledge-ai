@@ -5,16 +5,16 @@ export function Testimonial() {
     {
       icon: "/images/johnst.png",
       quote:
-        "Sledge has been a game-changer for our operations. It has significantly boosted productivity across our organization.",
-      name: "John St",
+        "Sledge saves us over $95,000 a year and 50+ hours every week by eliminating manual invoice processing. We didn’t have to hire back-office staff just to keep up with invoices.",
+      name: "Raz Danoukh",
       title: "President, Ferrocrete Builders Inc",
     },
     {
-      icon: "/images/john.png",
+      icon: "/images/johnst.png",
       quote:
-        "After trying multiple management tools, we finally found the one. The ease of use is a delight that is very welcome in industry.",
-      name: "John McDaniel",
-      title: "Project Manager, Ferrocrete Builders Inc",
+        "Invoice processing used to slow everything down. Now it’s automated. We save hundreds of hours a year and approvals move faster without chasing paperwork.",
+      name: "Raz Danoukh",
+      title: "President, Ferrocrete Builders Inc",
     },
   ];
 

@@ -1,14 +1,10 @@
 "use client";
 
 import { Button } from "@workspace/ui/components/button";
-import { notFound } from "next/navigation";
 
 export default function TestSentryPage() {
-  if (process.env.NEXT_PUBLIC_DEVELOPMENT !== "true") {
-    notFound();
-  }
   const triggerError = () => {
-    throw new Error("Sentry should capture this new error we have!");
+    throw new Error("🧪 Test Error - Sentry should capture this and create a Jira ticket!");
   };
 
   return (
@@ -25,10 +21,7 @@ export default function TestSentryPage() {
           <p>After clicking:</p>
           <ol className="mt-2 list-inside list-decimal text-left">
             <li>Check Sentry dashboard for the error</li>
-            <li>
-              Wait up to 3 hours for Jira ticket (or check immediately if you
-              set interval to "immediately")
-            </li>
+            <li>Wait up to 24 hours for Jira ticket (or check immediately if you set interval to "immediately")</li>
             <li>Check Jira SLED project for new ticket</li>
           </ol>
         </div>

@@ -1,11 +1,8 @@
-"use client";
-
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
-import BgImage from "@/public/images/background-image";
 
 import { BuiltToRun } from "@/components/product/built-to-run";
-import { FAQ } from "@/components/product/faq";
+import { FAQ, FAQItem } from "@/components/product/faq";
 import { Hero } from "@/components/industries/hero";
 import {
   AIFoundationWorking,
@@ -68,6 +65,74 @@ const heroImage = {
   alt: "Construction Management Software",
 };
 
+const faqs: FAQItem[] = [
+  {
+    question: "Who is Sledge built for in the concrete industry?",
+    answer:
+      "Sledge is built for concrete contractors, ready-mix operators, flatwork crews, foundations, paving, and specialty concrete trades that process high invoice volume and need fast, accurate back-office workflows.",
+  },
+  {
+    question: "How does Sledge help with high-volume concrete invoices?",
+    answer:
+      "Sledge automatically captures invoices from email, reads attachments using AI, extracts line items and totals, and prepares them for approval — eliminating manual data entry even during peak pour schedules.",
+  },
+  {
+    question: "Can Sledge handle same-day or next-day invoice turnaround?",
+    answer:
+      "Yes. Sledge is designed for fast-moving concrete operations, supporting same-day intake, quick approvals, and immediate syncing to accounting systems.",
+  },
+  {
+    question: "Does Sledge work with ready-mix and material supplier invoices?",
+    answer:
+      "Yes. Sledge handles invoices from ready-mix suppliers, pump companies, material yards, equipment rentals, and subcontractors, including attachments and delivery tickets.",
+  },
+  {
+    question: "Can Sledge manage lien waivers for concrete jobs?",
+    answer:
+      "Yes. Sledge supports conditional and unconditional lien waivers, helping concrete contractors generate, track, and exchange waivers without paperwork bottlenecks.",
+  },
+  {
+    question: "How does Sledge help reduce billing and payment delays?",
+    answer:
+      "By automating invoice intake, approvals, and vendor matching, Sledge reduces delays caused by missing paperwork, incorrect entries, and slow approvals — helping concrete contractors get paid faster.",
+  },
+  {
+    question: "Will Sledge replace my accounting software?",
+    answer:
+      "No. Sledge works with your accounting system. It automates intake, approvals, and data entry, then syncs everything into tools like QuickBooks.",
+  },
+  {
+    question: "Can Sledge handle multiple pours and projects at once?",
+    answer:
+      "Yes. Sledge supports multiple jobs and projects, automatically associating invoices and costs with the correct project.",
+  },
+  {
+    question: "Does Sledge work for small and mid-size concrete contractors?",
+    answer:
+      "Yes. Sledge is designed to work for small, growing, and high-volume concrete businesses. Pricing does not increase based on invoice volume or company size.",
+  },
+  {
+    question: "Is Sledge secure for financial and vendor data?",
+    answer:
+      "Yes. Sledge uses secure API connections, encrypted data handling, and full audit trails to protect sensitive financial and vendor information.",
+  },
+  {
+    question: "How quickly can a concrete contractor get started?",
+    answer:
+      "Most concrete teams can start using Sledge the same day, with no complex setup or long onboarding process.",
+  },
+  {
+    question: "What makes Sledge different from generic construction software?",
+    answer:
+      "Sledge is built AI-first and optimized for high-volume, fast-moving trades like concrete — not slow, office-heavy workflows.",
+  },
+  {
+    question: "Can Sledge scale as my concrete operation grows?",
+    answer:
+      "Yes. Sledge scales with your operation, supporting more invoices, vendors, and projects without added fees or complexity.",
+  },
+];
+
 export default function Integrations() {
   return (
     <div className="min-h-screen w-full">
@@ -110,7 +175,7 @@ export default function Integrations() {
             description={builtToRunDescription}
           />
         </div>
-        <FAQ />
+        <FAQ faqs={faqs} />
       </main>
       <Footer />
     </div>

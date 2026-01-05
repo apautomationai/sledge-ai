@@ -158,7 +158,7 @@ export default function RoiCalculator() {
                 <div className="self-stretch inline-flex justify-center items-center gap-2">
                   <div className="w-12 h-12 min-[375px]:w-14 min-[375px]:h-14 relative overflow-hidden flex-shrink-0">
                     <Image
-                      src="/images/Vector (1).png"
+                      src="/updated-images/money-bag-outline.svg"
                       alt="Time saved icon"
                       fill
                       className="object-contain"

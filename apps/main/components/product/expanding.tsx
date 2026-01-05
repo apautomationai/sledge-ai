@@ -1,12 +1,10 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 
 export function Expanding() {
   const liveToday = {
     title: "Live Today",
-    icon: "/images/product/icon-check-badge-square.png",
+    icon: "/updated-images/icon-check-badge-square.png",
     items: [
       "AI-powered Accounts Payable workflows",
       "Automated invoice capture and parsing",
@@ -15,13 +13,13 @@ export function Expanding() {
     ],
     link: {
       text: "View AI Accounts Payable",
-      href: "ai-account-payable",
+      href: "product/ai-accounts-payable",
     },
   };
 
   const buildingToward = {
     title: "What We're Building Toward",
-    icon: "/images/product/icon-wireframe-cube.png",
+    icon: "/updated-images/icon-wireframe-cube.png",
     items: [
       "A unified AI-driven back office",
       "Additional document and workflow automation",
@@ -44,7 +42,7 @@ export function Expanding() {
           <div className="bg-[#141414] border border-[#2a2a2a] rounded-2xl p-6 sm:p-8 md:p-10 w-full lg:w-[660px] lg:h-[512px]">
             <div className="flex flex-col h-full">
               <div className="flex flex-col items-center h-[240px] sm:h-[280px] md:h-[300px] lg:h-[300px]">
-                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white italic mb-2 sm:mb-3 md:mb-4 text-center">
+                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white  mb-2 sm:mb-3 md:mb-4 text-center">
                   {liveToday.title}
                 </h3>
                 <div className="w-[150px] h-[150px] sm:w-[180px] sm:h-[180px] md:w-[200px] md:h-[200px] lg:w-[225px] lg:h-[225px]">
@@ -81,7 +79,7 @@ export function Expanding() {
           <div className="bg-[#141414] border border-[#2a2a2a] rounded-2xl p-6 sm:p-8 md:p-10 w-full lg:w-[660px] lg:h-[512px]">
             <div className="flex flex-col h-full">
               <div className="flex flex-col items-center h-[240px] sm:h-[280px] md:h-[300px] lg:h-[300px]">
-                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white italic mb-2 sm:mb-3 md:mb-4 text-center whitespace-nowrap">
+                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white  mb-2 sm:mb-3 md:mb-4 text-center whitespace-nowrap">
                   {buildingToward.title}
                 </h3>
                 <div className="w-[150px] h-[150px] sm:w-[180px] sm:h-[180px] md:w-[200px] md:h-[200px] lg:w-[225px] lg:h-[225px]">
