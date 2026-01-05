@@ -6,22 +6,22 @@ import Image from "next/image";
 export function Cards() {
   const cards = [
     {
-      icon: "/images/image 12.png",
+      icon: "/updated-images/3cfa3268a9913f8a513a76661892da0c449dc054.png",
       title: "Money",
       subtile: "Automate invoices, payables, & approvals ",
     },
     {
-      icon: "/images/person2.png",
+      icon: "/updated-images/9b3e0277fa729b1b602b31838d6418de126cd1d2.png",
       title: "People",
       subtile: "Ai handles reminders and scheduling",
     },
     {
-      icon: "/images/image 13.png",
+      icon: "/updated-images/5a1be1eb0489bcd63361d95d5e0c2e9324f36d53.png",
       title: "Docs",
       subtile: "Instantly scan, sort and search every file",
     },
     {
-      icon: "/images/image 11.png",
+      icon: "/updated-images/33f5739e7cef34f37051f3e20151b2f64e424ad8.png",
       title: "Projects",
       subtile: "Automate invoices, payables, & approvals ",
     },
@@ -101,8 +101,8 @@ export function Cards() {
   };
 
   return (
-    <section className="w-full py-12 md:py-16">
-      <div className="">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="max-w-[1400px] mx-auto">
         <motion.div
           className="text-center mb-12"
           initial={{ opacity: 0, y: -20 }}
@@ -110,35 +110,35 @@ export function Cards() {
           transition={{ duration: 0.6, ease: "easeOut" as const }}
           viewport={{ once: true }}
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-bold text-white mb-4 leading-tight sm:leading-tight md:leading-snug">
+          <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
             YOUR ENTIRE OPERATION, SUPERCHARGED.
           </h2>
-          <p className="text-white text-sm sm:text-base md:text-lg lg:text-2xl leading-relaxed">
+          <p className="mt-2 text-lg md:text-2xl text-white">
             Sledge is built as a unified AI platform that supports every part of
             the construction back office.
           </p>
         </motion.div>
 
         {/* Wrapper to center the grid container */}
-        <div className="flex justify-center px-4 sm:px-0">
+        <div className="flex justify-center">
           <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 w-full sm:w-fit place-items-center"
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 w-full justify-items-center"
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true, amount: 0.1 }}
           >
             {cards.map((card, index) => (
               <motion.div
                 key={index}
-                className="relative w-full max-w-[318px] aspect-[318/346] group cursor-pointer overflow-hidden rounded-2xl"
+                className="relative w-full max-w-[318px] min-h-[346px] aspect-318/346 group cursor-pointer overflow-hidden rounded-2xl"
                 variants={cardVariants}
                 animate="normal"
                 whileHover="hover"
                 whileTap="hover"
               >
                 <Image
-                  src="/images/bg-steelplate.png"
+                  src="/updated-images/bg-steelplate.png"
                   alt={card.title}
                   fill
                   className="object-fill rounded-2xl"

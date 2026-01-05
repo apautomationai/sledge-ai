@@ -10,39 +10,34 @@ const benefits = [
 
 export default function Benefits() {
   return (
-    <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 sm:gap-12 lg:gap-20">
-        {/* Left Image */}
-        <div className="flex-1 flex justify-center ">
-          <Image
-            src="/images/product/Frame 104.png"
-            alt="Built for accuracy, control, and scale badge"
-            width={600}
-            height={800}
-            className="object-contain w-full max-w-[220px] sm:max-w-[260px] md:max-w-[300px]"
-          />
-        </div>
+    <section className="w-full overflow-hidden py-12 md:py-16 px-6 md:px-8 lg:px-12">
+      <div className="flex flex-col gap-8 items-center max-w-[1400px] mx-auto">
+        <div className="w-full flex flex-col lg:flex-row items-center gap-12">
+          {/* Left Image */}
+          <div className="flex-1 flex justify-center">
+            <Image
+              src="/updated-images/image-accuracy.png"
+              alt="Built for accuracy, control, and scale badge"
+              width={588}
+              height={588}
+              className="rounded-lg"
+            />
+          </div>
 
-        {/* Right Content */}
-        <div className="flex-1">
-          <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight sm:leading-tight md:leading-snug mb-6 sm:mb-8">
-            BUILT FOR ACCURACY,
-            <br />
-            CONTROL, AND SCALE
-          </h2>
-          <ul className="space-y-2 sm:space-y-3">
-            {benefits.map((benefit, index) => (
-              <li
-                key={index}
-                className="flex items-start gap-2 sm:gap-3 text-white"
-              >
-                <span className="text-white mt-1 sm:mt-1.5">•</span>
-                <span className="text-xs sm:text-sm md:text-base">
-                  {benefit}
-                </span>
-              </li>
-            ))}
-          </ul>
+          {/* Right Content */}
+          <div className="flex-1 text-white">
+            <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan'] mb-6">
+              Built for Accuracy, Control, and Scale
+            </h2>
+            <ul className="space-y-3 text-base md:text-xl text-white">
+              {benefits.map((benefit, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="text-white">•</span>
+                  <span>{benefit}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </section>

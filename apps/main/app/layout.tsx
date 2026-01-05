@@ -5,6 +5,7 @@ import "@workspace/ui/globals.css";
 import { cn } from "@workspace/ui/lib/utils";
 import { Toaster } from "@/components/layout/toaster";
 import { Providers } from "@/components/providers";
+import "@/instrumentation-client";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const leagueSpartan = League_Spartan({ subsets: ["latin"], variable: "--font-league-spartan" });
@@ -13,9 +14,6 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://getsledge.com"),
   title: "Sledge: The Builder's AI Office",
   description: "A modern dashboard to manage and process invoices with AI-powered data extraction.",
-  icons: {
-    icon: "/images/logos/icon.png",
-  },
   openGraph: {
     siteName: "SLEDGE AI",
     type: "website",

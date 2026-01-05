@@ -1,31 +1,40 @@
-"use client";
-
 import { Check } from "lucide-react";
 
 export interface WhatsIncludedProps {
   title?: string;
   text?: string;
+  subtitle?: string;
   features?: string[];
 }
 
-export function WhatsIncluded({ title, text, features }: WhatsIncludedProps) {
+export function WhatsIncluded({
+  title,
+  text,
+  subtitle,
+  features,
+}: WhatsIncludedProps) {
   return (
-    <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
-      <div className="max-w-5xl mx-auto">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="w-full max-w-[1400px] mx-auto">
         {/* Header */}
         {(title || text) && (
           <div className="text-center mb-8 sm:mb-10 md:mb-12">
             {title && (
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white uppercase mb-3 sm:mb-4">
+              <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase mb-3 sm:mb-4 font-['League_Spartan']">
                 {title}
               </h2>
             )}
             {text && (
-              <p className="text-sm sm:text-base md:text-lg text-white max-w-2xl mx-auto px-2 sm:px-0">
-                {text}
-              </p>
+              <p className="mt-2 text-base md:text-2xl text-white">{text}</p>
             )}
           </div>
+        )}
+
+        {/* Subtitle */}
+        {subtitle && (
+          <p className="text-left text-lg md:text-2xl text-white mb-4 font-bold">
+            {subtitle}
+          </p>
         )}
 
         {/* Features Grid */}
