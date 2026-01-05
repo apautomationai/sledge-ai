@@ -5,9 +5,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/component
 import { Button } from "@workspace/ui/components/button";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import type { QuickBooksAccount, QuickBooksItem, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
+import type { DBQuickBooksAccount, DBQuickBooksProduct, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
 
-interface AutocompleteProps<T extends QuickBooksAccount | QuickBooksItem | QuickBooksCustomer> {
+interface AutocompleteProps<T extends DBQuickBooksAccount | DBQuickBooksProduct | QuickBooksCustomer> {
     items: T[];
     value: string | null;
     onSelect: (id: string, item?: T) => void;
@@ -17,7 +17,7 @@ interface AutocompleteProps<T extends QuickBooksAccount | QuickBooksItem | Quick
     getDisplayName: (item: T) => string;
 }
 
-export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksItem | QuickBooksCustomer>({
+export function LineItemAutocomplete<T extends DBQuickBooksAccount | DBQuickBooksProduct | QuickBooksCustomer>({
     items,
     value,
     onSelect,
@@ -30,12 +30,22 @@ export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksIte
     const [searchValue, setSearchValue] = useState("");
 
     const selectedItem = useMemo(() => {
-        if (!value) return null;
-        const found = items.find((item) => item.Id === value) || null;
-        console.log("🔍 Looking for item with ID:", value, "in", items.length, "items");
-        console.log("🔍 Found item:", found);
+        if (!value || value === 'undefined' || value === 'null') return null;
+
+        // For accounts and products, match by quickbooks_id (saved value)
+        // For customers, match by quickbooksId field
+        const found = items.find((item) => {
+            if ('quickbooksId' in item) {
+                // Database items (customers) - match by quickbooksId
+                return item.quickbooksId === value;
+            } else {
+                // Database items (accounts, products) - match by quickbooks_id field
+                return (item as any).quickbooksId === value;
+            }
+        }) || null;
+
         return found;
-    }, [items, value]);
+    }, [items, value, getDisplayName]);
 
     const filteredItems = useMemo(() => {
         if (!searchValue.trim()) {
@@ -49,7 +59,10 @@ export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksIte
     }, [items, searchValue, getDisplayName]);
 
     const handleSelect = (item: T) => {
-        onSelect(item.Id, item);
+        // For UI state management, we pass the database ID
+        // The parent component will extract quickbooks_id for saving to database
+        const itemId = String((item as any).id);
+        onSelect(itemId, item);
         setOpen(false);
         setSearchValue("");
     };
@@ -103,21 +116,29 @@ export function LineItemAutocomplete<T extends QuickBooksAccount | QuickBooksIte
                                 <span className="text-sm text-muted-foreground">Loading...</span>
                             </div>
                         ) : filteredItems.length > 0 ? (
-                            filteredItems.map((item) => (
-                                <div
-                                    key={item.Id}
-                                    className="flex items-center px-3 py-2 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground border-b last:border-b-0"
-                                    onClick={() => handleSelect(item)}
-                                >
-                                    <Check
-                                        className={cn(
-                                            "mr-2 h-4 w-4",
-                                            value === item.Id ? "opacity-100" : "opacity-0"
-                                        )}
-                                    />
-                                    <span className="truncate">{getDisplayName(item)}</span>
-                                </div>
-                            ))
+                            filteredItems.map((item) => {
+                                const itemId = String((item as any).id);
+                                // For selection highlighting, we need to check if this item's quickbooks_id matches the saved value
+                                const isSelected = 'quickbooksId' in item
+                                    ? item.quickbooksId === value
+                                    : (item as any).quickbooksId === value;
+
+                                return (
+                                    <div
+                                        key={itemId}
+                                        className="flex items-center px-3 py-2 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground border-b last:border-b-0"
+                                        onClick={() => handleSelect(item)}
+                                    >
+                                        <Check
+                                            className={cn(
+                                                "mr-2 h-4 w-4",
+                                                isSelected ? "opacity-100" : "opacity-0"
+                                            )}
+                                        />
+                                        <span className="truncate">{getDisplayName(item)}</span>
+                                    </div>
+                                );
+                            })
                         ) : (
                             <div className="p-4 text-center text-sm text-muted-foreground">
                                 {searchValue ? "No results found." : "No items available."}

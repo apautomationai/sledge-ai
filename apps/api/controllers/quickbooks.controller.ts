@@ -211,13 +211,8 @@ export class QuickBooksController {
         throw new BadRequestError("User not authenticated");
       }
 
-      const integration = await quickbooksService.getUserIntegration(userId);
-
-      if (!integration) {
-        throw new NotFoundError("QuickBooks integration not found");
-      }
-
-      const customers = await quickbooksService.getCustomers(integration);
+      // Fetch customers from database
+      const customers = await quickbooksService.getCustomersFromDatabase(userId);
 
       res.json({
         success: true,
@@ -255,6 +250,8 @@ export class QuickBooksController {
       next(error);
     }
   };
+
+
 
   // Get vendors
   getAccounts = async (req: Request, res: Response, next: NextFunction) => {
@@ -615,18 +612,21 @@ export class QuickBooksController {
         throw new BadRequestError("Search term is required");
       }
 
-      const integration = await quickbooksService.getUserIntegration(userId);
+      // Get all customers from database
+      const customers = await quickbooksService.getCustomersFromDatabase(userId);
 
-      if (!integration) {
-        throw new NotFoundError("QuickBooks integration not found");
-      }
-
-      // Get all customers first
-      const allCustomersResponse = await quickbooksService.getCustomers(integration);
-      const customers = allCustomersResponse?.QueryResponse?.Customer || [];
-
-      // Perform vector search
-      const searchResults = quickbooksService.vectorSearchCustomers(searchTerm as string, customers);
+      // Simple text-based search on customer fields
+      const searchResults = customers.filter(customer => {
+        const searchLower = (searchTerm as string).toLowerCase();
+        return (
+          customer.displayName?.toLowerCase().includes(searchLower) ||
+          customer.companyName?.toLowerCase().includes(searchLower) ||
+          customer.givenName?.toLowerCase().includes(searchLower) ||
+          customer.familyName?.toLowerCase().includes(searchLower) ||
+          customer.primaryEmail?.toLowerCase().includes(searchLower) ||
+          customer.primaryPhone?.includes(searchTerm as string)
+        );
+      });
 
       res.json({
         success: true,
@@ -742,7 +742,7 @@ export class QuickBooksController {
 
       res.json({
         success: true,
-        data: newVendor,
+        vendor: newVendor,
       });
     } catch (error) {
       next(error);
@@ -754,7 +754,18 @@ export class QuickBooksController {
     try {
       // @ts-ignore - user is added by auth middleware
       const userId = req.user?.id;
-      const { vendorId, lineItems, totalAmount, totalTax, dueDate, invoiceDate, discountAmount, discountDescription } = req.body;
+      const {
+        vendorId,
+        lineItems,
+        totalAmount,
+        totalTax,
+        dueDate,
+        invoiceDate,
+        discountAmount,
+        discountDescription,
+        attachmentUrl,
+        invoiceNumber
+      } = req.body;
 
       if (!userId) {
         throw new BadRequestError("User not authenticated");
@@ -770,7 +781,7 @@ export class QuickBooksController {
         throw new NotFoundError("QuickBooks integration not found");
       }
 
-      const newBill = await quickbooksService.createBill(integration, {
+      const newBill = await quickbooksService.createBillWithAttachment(integration, {
         vendorId,
         lineItems,
         totalAmount,
@@ -779,6 +790,8 @@ export class QuickBooksController {
         invoiceDate,
         discountAmount,
         discountDescription,
+        attachmentUrl,
+        invoiceNumber,
       });
 
       res.json({
@@ -971,7 +984,7 @@ export class QuickBooksController {
     }
   };
 
-  syncProductsAndAccounts = async (
+  syncAll = async (
     req: Request,
     res: Response,
     next: NextFunction,
@@ -990,17 +1003,23 @@ export class QuickBooksController {
         throw new NotFoundError("QuickBooks integration not found");
       }
 
-      // Fetch products and accounts from QuickBooks API
+      // Fetch data from QuickBooks API
       const lineItemsResponse = await quickbooksService.getLineItems(integration);
       const accountsResponse = await quickbooksService.getAccounts(integration);
+      const vendorsResponse = await quickbooksService.getVendors(integration);
+      const customersResponse = await quickbooksService.getCustomers(integration);
 
-      // Extract items and accounts from response
+      // Extract data from responses
       const products = lineItemsResponse?.QueryResponse?.Item || [];
       const accounts = accountsResponse?.QueryResponse?.Account || [];
+      const vendors = vendorsResponse?.QueryResponse?.Vendor || [];
+      const customers = customersResponse?.QueryResponse?.Customer || [];
 
       // Sync to database
       const productsResult = await quickbooksService.syncProductsToDatabase(userId, products);
       const accountsResult = await quickbooksService.syncAccountsToDatabase(userId, accounts);
+      const vendorsResult = await quickbooksService.syncVendorsToDatabase(userId, vendors);
+      const customersResult = await quickbooksService.syncCustomersToDatabase(userId, customers);
 
       // Update lastSyncedAt in metadata after successful sync
       try {
@@ -1032,6 +1051,18 @@ export class QuickBooksController {
             skipped: accountsResult.skipped,
             total: accounts.length,
           },
+          vendors: {
+            inserted: vendorsResult.inserted,
+            updated: vendorsResult.updated,
+            skipped: vendorsResult.skipped,
+            total: vendors.length,
+          },
+          customers: {
+            inserted: customersResult.inserted,
+            updated: customersResult.updated,
+            skipped: customersResult.skipped,
+            total: customers.length,
+          },
         },
       });
     } catch (error) {
@@ -1058,6 +1089,50 @@ export class QuickBooksController {
       res.json({
         success: true,
         message: "QuickBooks integration disconnected successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Get accounts from database (raw structure)
+  getAccountsFromDB = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // @ts-ignore - user is added by auth middleware
+      const userId = req.user?.id;
+
+      if (!userId) {
+        throw new BadRequestError("User not authenticated");
+      }
+
+      // Fetch accounts from database with raw structure
+      const accounts = await quickbooksService.getAccountsFromDatabase(userId);
+
+      res.json({
+        success: true,
+        data: accounts,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Get products from database (raw structure)
+  getProductsFromDB = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // @ts-ignore - user is added by auth middleware
+      const userId = req.user?.id;
+
+      if (!userId) {
+        throw new BadRequestError("User not authenticated");
+      }
+
+      // Fetch products from database with raw structure
+      const products = await quickbooksService.getProductsFromDatabase(userId);
+
+      res.json({
+        success: true,
+        data: products,
       });
     } catch (error) {
       next(error);

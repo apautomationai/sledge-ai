@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Info } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDate } from "./integration-utils";
 
@@ -51,18 +50,19 @@ export function IntegrationMetadataSection({
   const displayMetadata: Record<string, any> = {};
   
   if (backendName === "gmail" || backendName === "outlook") {
-    // For Gmail/Outlook: show lastReadAt, startRead (from startReading), lastProcessedAt
-    // Support both lastReadAt (new) and lastRead (legacy) for backward compatibility
-    if (hasValue(metadata.lastReadAt)) {
-      displayMetadata.lastReadAt = metadata.lastReadAt;
-    } else if (hasValue(metadata.lastRead)) {
-      displayMetadata.lastReadAt = metadata.lastRead;
-    }
+    // For Gmail/Outlook: show startRead, lastProcessedAt, lastReadAt
+    // Order: Start At > Processed At > Read At (top to bottom)
     if (hasValue(metadata.startReading)) {
       displayMetadata.startRead = metadata.startReading;
     }
     if (hasValue(metadata.lastProcessedAt)) {
       displayMetadata.lastProcessedAt = metadata.lastProcessedAt;
+    }
+    // Support both lastReadAt (new) and lastRead (legacy) for backward compatibility
+    if (hasValue(metadata.lastReadAt)) {
+      displayMetadata.lastReadAt = metadata.lastReadAt;
+    } else if (hasValue(metadata.lastRead)) {
+      displayMetadata.lastReadAt = metadata.lastRead;
     }
   } else if (backendName === "quickbooks") {
     // For QuickBooks: show only lastSyncedAt
@@ -118,16 +118,11 @@ export function IntegrationMetadataSection({
 
   return (
     <div className={cn("border-t pt-2 sm:pt-3 mt-2 sm:mt-3", className)}>
-      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-        <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-        <span className="text-xs sm:text-sm text-muted-foreground">Metadata</span>
-      </div>
-
       <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
         {Object.entries(displayMetadata).map(([key, value]) => (
           <div
             key={key}
-            className="flex flex-col sm:flex-row items-start gap-1 sm:gap-2 py-1 border-b last:border-b-0"
+            className="flex flex-col sm:flex-row items-start gap-1 sm:gap-2 py-1"
           >
             <span className="font-medium text-muted-foreground sm:min-w-[120px] shrink-0">
               {getDisplayName(key)}:

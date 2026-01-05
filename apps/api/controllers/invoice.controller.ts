@@ -11,8 +11,8 @@ class InvoiceController {
       const {
         attachmentId,
         invoiceNumber,
-        vendorName,
-        customerName,
+        vendorId,
+        customerId,
         invoiceDate,
         dueDate,
         totalAmount,
@@ -29,8 +29,8 @@ class InvoiceController {
         userId,
         attachmentId,
         invoiceNumber,
-        vendorName,
-        customerName,
+        vendorId,
+        customerId,
         invoiceDate: new Date(invoiceDate),
         dueDate: new Date(dueDate),
         totalAmount,
@@ -136,6 +136,26 @@ class InvoiceController {
     }
   }
 
+  async getInvoiceTrends(req: Request, res: Response) {
+    try {
+      //@ts-ignore
+      const userId = req.user.id;
+      const dateRange = (req.query.dateRange as 'monthly' | 'all-time') || 'monthly';
+
+      const trendData = await invoiceServices.getInvoiceTrends(userId, dateRange);
+
+      return res.json({
+        success: true,
+        data: trendData,
+      });
+    } catch (error: any) {
+      return res.status(error.statusCode || 500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+
   async getInvoice(req: Request, res: Response) {
     try {
       // UPDATED: Parse the 'id' from URL parameter into a number
@@ -167,9 +187,7 @@ class InvoiceController {
       }
 
       //@ts-ignore
-
       const invoiceInfo = req.body;
-
 
       // delete
       delete invoiceInfo.createdAt;
@@ -305,12 +323,21 @@ class InvoiceController {
       //@ts-ignore
       const userId = req.user.id;
       const { invoiceId } = req.params;
+      const { viewType } = req.query; // Get viewType from query parameters
 
       if (!invoiceId) {
         throw new BadRequestError("Invoice ID is required");
       }
 
-      const lineItems = await invoiceServices.getLineItemsByInvoiceId(parseInt(invoiceId));
+      // Validate viewType if provided
+      const validViewType = viewType && (viewType === 'single' || viewType === 'expanded')
+        ? viewType as 'single' | 'expanded'
+        : undefined;
+
+      const lineItems = await invoiceServices.getLineItemsByInvoiceId(
+        parseInt(invoiceId),
+        validViewType
+      );
 
       return res.status(200).json({
         success: true,
@@ -402,10 +429,10 @@ class InvoiceController {
         updateData.itemType = itemType;
       }
       if (resourceId !== undefined) {
-        updateData.resourceId = resourceId ? String(resourceId) : null;
+        updateData.resourceId = resourceId && resourceId !== 'undefined' && resourceId !== 'null' ? String(resourceId) : null;
       }
       if (customerId !== undefined) {
-        updateData.customerId = customerId ? String(customerId) : null;
+        updateData.customerId = customerId && customerId !== 'undefined' && customerId !== 'null' ? String(customerId) : null;
       }
       if (quantity !== undefined) {
         updateData.quantity = String(quantity);
@@ -473,7 +500,7 @@ class InvoiceController {
       //@ts-ignore
       const userId = req.user.id;
       const { id } = req.params;
-      const { status } = req.body;
+      const { status, rejectionReason, recipientEmail, recipientEmails } = req.body;
 
       if (!id) {
         throw new BadRequestError("Invoice ID is required");
@@ -483,12 +510,72 @@ class InvoiceController {
         throw new BadRequestError("Status is required");
       }
 
-      const updatedInvoice = await invoiceServices.updateInvoiceStatus(parseInt(id), status);
+      const invoiceId = parseInt(id);
+
+      // Check for duplicate warnings before approval
+      if (status === "approved") {
+        const invoice = await invoiceServices.getInvoice(invoiceId);
+        if (invoice?.isDuplicate) {
+          return res.status(403).json({
+            success: false,
+            error: "Duplicate invoice detected. Please change the invoice number to proceed.",
+            duplicateInfo: { isDuplicate: true },
+            requiresOverride: true,
+          });
+        }
+      }
+
+      // Support both single email (legacy) and multiple emails
+      const emails = recipientEmails || (recipientEmail ? [recipientEmail] : undefined);
+
+      const updatedInvoice = await invoiceServices.updateInvoiceStatus(invoiceId, status, rejectionReason, emails);
 
       // Emit WebSocket event for status update
       const wsService = getWebSocketService();
-      // wsService.emitInvoiceStatusUpdated(userId, parseInt(id), status, updatedInvoice);
       wsService.emitInvoiceStatusUpdated(userId, parseInt(id), status);
+
+      // Check if we need to update job status based on all invoices for this attachment
+      if (updatedInvoice && updatedInvoice.attachmentId) {
+        try {
+          // Get all invoices for this attachment
+          const allInvoices = await invoiceServices.getInvoicesByAttachmentId(updatedInvoice.attachmentId);
+          const activeInvoices = allInvoices.filter((inv: any) => inv.status !== "deleted");
+
+          if (activeInvoices.length > 0) {
+            const statuses = activeInvoices.map((inv: any) => inv.status);
+            const hasPending = statuses.some((s: string) => s === "pending" || s === "processing");
+            const hasFailed = statuses.some((s: string) => s === "failed");
+            const allApprovedOrRejected = statuses.every((s: string) => s === "approved" || s === "rejected");
+
+            let jobStatus: string;
+            if (hasFailed) {
+              jobStatus = "failed";
+            } else if (allApprovedOrRejected && statuses.length > 0) {
+              jobStatus = "approved";
+            } else if (hasPending) {
+              jobStatus = "processed";
+            } else {
+              jobStatus = "processed";
+            }
+
+            // Emit job status update with additional job context
+            const jobUpdate = {
+              jobStatus,
+              invoiceStatusCounts: {
+                approved: activeInvoices.filter((inv: any) => inv.status === "approved").length,
+                rejected: activeInvoices.filter((inv: any) => inv.status === "rejected").length,
+                pending: activeInvoices.filter((inv: any) => inv.status === "pending" || inv.status === "processing").length,
+              },
+              invoiceCount: activeInvoices.length,
+            };
+
+            wsService.emitJobStatusUpdated(userId, updatedInvoice.attachmentId.toString(), jobStatus, jobUpdate);
+          }
+        } catch (error) {
+          console.error("Error calculating job status after invoice update:", error);
+          // Don't fail the request if job status calculation fails
+        }
+      }
 
       return res.status(200).json({
         success: true,
@@ -612,6 +699,49 @@ class InvoiceController {
       return res.status(statusCode).json({
         success: false,
         error: error.message || "Internal server error",
+      });
+    }
+  }
+
+  async createOrUpdateSingleModeLineItem(req: Request, res: Response) {
+    try {
+      //@ts-ignore
+      const userId = req.user.id;
+      const {
+        invoiceId,
+        itemType,
+        resourceId,
+        customerId,
+        quantity,
+        rate,
+        totalAmount,
+        description
+      } = req.body;
+
+      if (!invoiceId || !itemType || !resourceId || !totalAmount) {
+        throw new BadRequestError("Invoice ID, item type, resource ID, and total amount are required");
+      }
+
+      const response = await invoiceServices.createOrUpdateSingleModeLineItem({
+        userId,
+        invoiceId: parseInt(invoiceId),
+        itemType,
+        resourceId,
+        customerId,
+        quantity: quantity || "1",
+        rate: rate || totalAmount,
+        totalAmount,
+        description: description || "Invoice Total"
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: response,
+      });
+    } catch (error: any) {
+      return res.status(error.statusCode || 500).json({
+        success: false,
+        error: error.message,
       });
     }
   }

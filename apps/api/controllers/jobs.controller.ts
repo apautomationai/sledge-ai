@@ -34,6 +34,20 @@ class JobsController {
             // Get associated invoices
             const invoices = await invoiceServices.getInvoicesByAttachmentId(jobId);
 
+            // Get vendor data from QuickBooks if available
+            let vendorData = null;
+            if (invoices.length > 0) {
+                // Find the first invoice with a vendorId
+                const invoiceWithVendor = invoices.find((inv: any) => inv.vendorId);
+                if (invoiceWithVendor?.vendorId) {
+                    try {
+                        vendorData = await invoiceServices.getQuickBooksVendorById(invoiceWithVendor.vendorId);
+                    } catch (error) {
+                        console.error(`Failed to fetch vendor data for vendorId ${invoiceWithVendor.vendorId}:`, error);
+                    }
+                }
+            }
+
             // Calculate job status
             let jobStatus: "pending" | "processing" | "processed" | "approved" | "rejected" | "failed" = "pending";
             const invoiceCount = invoices.length;
@@ -69,11 +83,6 @@ class JobsController {
                 jobStatus = "processed";
             }
 
-            // Get vendor name from first invoice if available
-            const vendorName = invoiceCount > 0 && invoices[0]?.vendorName
-                ? invoices[0].vendorName
-                : null;
-
             // Calculate invoice status breakdown
             const activeInvoices = invoices.filter((inv: any) => inv.status !== "deleted");
             const invoiceStatusCounts = {
@@ -88,7 +97,7 @@ class JobsController {
                     ...attachment,
                     invoiceCount,
                     jobStatus,
-                    vendorName,
+                    vendorData,
                     invoiceStatusCounts,
                 },
             };
@@ -137,6 +146,20 @@ class JobsController {
                             attachment.id
                         );
 
+                        // Get vendor data from QuickBooks if available
+                        let vendorData = null;
+                        if (invoices.length > 0) {
+                            // Find the first invoice with a vendorId
+                            const invoiceWithVendor = invoices.find((inv: any) => inv.vendorId);
+                            if (invoiceWithVendor?.vendorId) {
+                                try {
+                                    vendorData = await invoiceServices.getQuickBooksVendorById(invoiceWithVendor.vendorId);
+                                } catch (error) {
+                                    console.error(`Failed to fetch vendor data for vendorId ${invoiceWithVendor.vendorId}:`, error);
+                                }
+                            }
+                        }
+
                         // Calculate job status based on attachment status and invoice statuses
                         let jobStatus: "pending" | "processing" | "processed" | "approved" | "rejected" | "failed" = "pending";
                         const invoiceCount = invoices.length;
@@ -179,11 +202,6 @@ class JobsController {
                             jobStatus = "processed";
                         }
 
-                        // Get vendor name from first invoice if available
-                        const vendorName = invoiceCount > 0 && invoices[0]?.vendorName
-                            ? invoices[0].vendorName
-                            : null;
-
                         // Calculate invoice status breakdown (excluding deleted)
                         const activeInvoices = invoices.filter((inv: any) => inv.status !== "deleted");
                         const invoiceStatusCounts = {
@@ -196,8 +214,9 @@ class JobsController {
                             ...attachment,
                             invoiceCount,
                             jobStatus,
-                            vendorName,
                             invoiceStatusCounts,
+                            vendorData,
+                            duplicateInvoices: activeInvoices.filter((inv: any) => inv.isDuplicate).length,
                         };
                     } catch (error) {
                         console.error(`Failed to fetch invoices for attachment ${attachment.id}:`, error);
@@ -206,6 +225,7 @@ class JobsController {
                             invoiceCount: 0,
                             jobStatus: "pending" as const,
                             invoiceStatusCounts: { approved: 0, rejected: 0, pending: 0 },
+                            duplicateInvoices: 0,
                         };
                     }
                 })
@@ -245,11 +265,6 @@ class JobsController {
                 switch (sortBy) {
                     case "job":
                         comparison = String(a.id).localeCompare(String(b.id));
-                        break;
-                    case "vendor":
-                        const vendorA = a.vendorName || "";
-                        const vendorB = b.vendorName || "";
-                        comparison = vendorA.localeCompare(vendorB);
                         break;
                     case "source":
                         const sourceA = a.provider || "";

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
 import {
   Accordion,
@@ -18,7 +18,7 @@ import { ScrollArea } from "@workspace/ui/components/scroll-area";
 
 import { formatLabel, formatDate } from "@/lib/utility/formatters";
 import { client } from "@/lib/axios-client";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
 import { LineItemsTable } from "./line-items-table";
 import { AddLineItemDialog } from "./add-line-item-dialog";
@@ -27,8 +27,8 @@ import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select";
 import { LineItemAutocomplete } from "./line-item-autocomplete-simple";
-import { fetchQuickBooksAccounts, fetchQuickBooksItems } from "@/lib/services/quickbooks.service";
-import type { QuickBooksAccount, QuickBooksItem, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
+import { fetchQuickBooksAccountsFromDB, fetchQuickBooksProductsFromDB } from "@/lib/services/quickbooks.service";
+import type { DBQuickBooksAccount, DBQuickBooksProduct, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
 import { useQuickBooksData } from "./quickbooks-data-provider";
 
 const FormField = ({
@@ -38,6 +38,7 @@ const FormField = ({
   isEditing,
   onChange,
   onDateChange,
+  highlighted = false,
 }: {
   fieldKey: string;
   label: string;
@@ -45,6 +46,7 @@ const FormField = ({
   isEditing: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDateChange?: (fieldKey: string, dateString: string | undefined) => void;
+  highlighted?: boolean;
 }) => {
   const isDateField = fieldKey === 'invoiceDate' || fieldKey === 'dueDate';
   const isBooleanField = typeof value === 'boolean';
@@ -92,6 +94,7 @@ const FormField = ({
         className="text-xs font-medium"
       >
         {label}
+        {highlighted && <span className="text-red-500 ml-1">*</span>}
         {isTotalAmountField && (
           <span className="ml-1 text-xs text-muted-foreground font-normal">(Auto-calculated)</span>
         )}
@@ -108,11 +111,11 @@ const FormField = ({
         <Input
           id={fieldKey}
           name={fieldKey}
-          value={inputValue}
+          value={isDateField ? (formatDate(value as string) ?? "") : inputValue}
           readOnly={!isEditing || isArrayField || isBooleanField || isTotalAmountField}
           onChange={handleChange}
           onBlur={handleBlur}
-          className="h-8 read-only:bg-muted/50 read-only:border-dashed"
+          className="h-8 read-only:bg-muted/50 read-only:border-dashed read-only:cursor-not-allowed"
         />
       )}
     </div>
@@ -127,7 +130,7 @@ interface InvoiceDetailsFormProps {
   onDetailsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   selectedFields: string[];
   setSelectedFields: React.Dispatch<React.SetStateAction<string[]>>;
-  onSave: () => Promise<void>;
+  onSave: (vendorData?: any, customerData?: any) => Promise<void>;
   onReject: () => Promise<void>;
   onApprove: () => Promise<void>;
   onCancel: () => void;
@@ -152,7 +155,6 @@ export default function InvoiceDetailsForm({
   setIsEditing,
   onDetailsChange,
   selectedFields,
-  setSelectedFields,
   onSave,
   onReject,
   onApprove,
@@ -160,11 +162,6 @@ export default function InvoiceDetailsForm({
   onApprovalSuccess,
   onInvoiceDetailsUpdate,
   onFieldChange,
-  setInvoicesList,
-  setSelectedInvoiceId,
-  setInvoiceDetails: setInvoiceDetailsFromParent,
-  setOriginalInvoiceDetails: setOriginalInvoiceDetailsFromParent,
-  setInvoiceDetailsCache,
   lineItemChangesRef,
 }: InvoiceDetailsFormProps) {
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
@@ -172,10 +169,19 @@ export default function InvoiceDetailsForm({
   const [localInvoiceDetails, setLocalInvoiceDetails] = useState<InvoiceDetails>(invoiceDetails);
   const [isQuickBooksConnected, setIsQuickBooksConnected] = useState<boolean | null>(null);
   const [lineItemChanges, setLineItemChanges] = useState<Record<number, Partial<LineItem>>>({});
+
+  // Check if invoice is finalized (approved or rejected)
+  const isInvoiceFinalized = invoiceDetails.status === "approved" || invoiceDetails.status === "rejected";
   const [selectedLineItems, setSelectedLineItems] = useState<Set<number>>(new Set());
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showChangeTypeDialog, setShowChangeTypeDialog] = useState(false);
+  const [lineItemsViewMode, setLineItemsViewMode] = useState<'single' | 'expand'>('single');
+
+  // Ref to access single mode save function
+  const singleModeSaveRef = useRef<(() => Promise<void>) | null>(null);
+  // Accordion state management
+  const [accordionValue, setAccordionValue] = useState<string[]>(["invoice-info", "line-items"]);
   // Use shared QuickBooks data from context
   const { customers: bulkCustomers, isLoadingCustomers, loadCustomers } = useQuickBooksData();
 
@@ -244,6 +250,7 @@ export default function InvoiceDetailsForm({
   // Method to save all line item changes
   const saveLineItemChanges = async () => {
     const changeEntries = Object.entries(lineItemChanges);
+
     if (changeEntries.length === 0) {
       return; // No changes to save
     }
@@ -251,9 +258,9 @@ export default function InvoiceDetailsForm({
     try {
       // Save all line item changes in parallel
       await Promise.all(
-        changeEntries.map(([lineItemId, changes]) =>
-          client.patch(`/api/v1/invoice/line-items/${lineItemId}`, changes)
-        )
+        changeEntries.map(([lineItemId, changes]) => {
+          return client.patch(`/api/v1/invoice/line-items/${lineItemId}`, changes);
+        })
       );
 
       // Clear the changes after successful save
@@ -261,7 +268,11 @@ export default function InvoiceDetailsForm({
 
       // Refresh line items to get updated data
       if (invoiceDetails?.id) {
-        const response: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`);
+        const url = lineItemsViewMode
+          ? `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}?viewType=${lineItemsViewMode}`
+          : `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`;
+
+        const response: any = await client.get(url);
         if (response.success) {
           // Sort line items by name (item_name)
           const sortedLineItems = [...response.data].sort((a, b) => {
@@ -297,7 +308,12 @@ export default function InvoiceDetailsForm({
 
       // Refresh line items to get updated data
       if (invoiceDetails?.id) {
-        const response: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`);
+        const viewType = lineItemsViewMode ? getApiViewType(lineItemsViewMode) : undefined;
+        const url = viewType
+          ? `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}?viewType=${viewType}`
+          : `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`;
+
+        const response: any = await client.get(url);
         if (response.success) {
           const sortedLineItems = [...response.data].sort((a, b) => {
             const nameA = (a.item_name || '').toLowerCase();
@@ -319,7 +335,7 @@ export default function InvoiceDetailsForm({
   const loadBulkAccounts = async () => {
     setIsLoadingBulkData(true);
     try {
-      const accountsData = await fetchQuickBooksAccounts();
+      const accountsData = await fetchQuickBooksAccountsFromDB();
       setBulkAccounts(accountsData);
     } catch (error) {
       console.error("Error loading accounts:", error);
@@ -333,7 +349,7 @@ export default function InvoiceDetailsForm({
   const loadBulkItems = async () => {
     setIsLoadingBulkData(true);
     try {
-      const itemsData = await fetchQuickBooksItems();
+      const itemsData = await fetchQuickBooksProductsFromDB();
       setBulkItems(itemsData);
     } catch (error) {
       console.error("Error loading products/services:", error);
@@ -351,13 +367,16 @@ export default function InvoiceDetailsForm({
 
     setIsApplyingBulkChange(true);
     try {
+      // bulkResourceId and bulkCustomerId now already contain quickbooks_id values
+      // No need to extract them again since we store them directly in state
+
       // Update all selected line items in parallel
       await Promise.all(
         Array.from(selectedLineItems).map((lineItemId) =>
           client.patch(`/api/v1/invoice/line-items/${lineItemId}`, {
             itemType: bulkItemType,
-            resourceId: bulkResourceId,
-            customerId: bulkCustomerId, // Apply customer to all selected items
+            resourceId: bulkResourceId, // Already contains quickbooks_id
+            customerId: bulkCustomerId, // Already contains quickbooks_id
           })
         )
       );
@@ -366,7 +385,12 @@ export default function InvoiceDetailsForm({
 
       // Refresh line items to get updated data
       if (invoiceDetails?.id) {
-        const response: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`);
+        const viewType = lineItemsViewMode ? getApiViewType(lineItemsViewMode) : undefined;
+        const url = viewType
+          ? `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}?viewType=${viewType}`
+          : `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`;
+
+        const response: any = await client.get(url);
         if (response.success) {
           const sortedLineItems = [...response.data].sort((a, b) => {
             const nameA = (a.item_name || '').toLowerCase();
@@ -440,33 +464,44 @@ export default function InvoiceDetailsForm({
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
-  // Fetch line items when invoice details change
-  useEffect(() => {
-    const fetchLineItems = async () => {
-      if (!invoiceDetails?.id) return;
+  // Helper function to convert viewMode to API viewType
+  const getApiViewType = (viewMode: 'single' | 'expand'): 'single' | 'expanded' => {
+    return viewMode === 'expand' ? 'expanded' : 'single';
+  };
 
-      setIsLoadingLineItems(true);
-      try {
-        const response: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`);
-        if (response.success) {
-          // Sort line items by name (item_name)
-          const sortedLineItems = [...response.data].sort((a, b) => {
-            const nameA = (a.item_name || '').toLowerCase();
-            const nameB = (b.item_name || '').toLowerCase();
-            return nameA.localeCompare(nameB);
-          });
-          setLineItems(sortedLineItems);
-        }
-      } catch (error) {
-        console.error("Error fetching line items:", error);
-        setLineItems([]);
-      } finally {
-        setIsLoadingLineItems(false);
+  // Function to fetch line items
+  const fetchLineItems = async (viewMode?: 'single' | 'expand') => {
+    if (!invoiceDetails?.id) return;
+
+    setIsLoadingLineItems(true);
+    try {
+      const viewType = viewMode ? getApiViewType(viewMode) : undefined;
+      const url = viewType
+        ? `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}?viewType=${viewType}`
+        : `/api/v1/invoice/line-items/invoice/${invoiceDetails.id}`;
+
+      const response: any = await client.get(url);
+      if (response.success) {
+        // Sort line items by name (item_name)
+        const sortedLineItems = [...response.data].sort((a, b) => {
+          const nameA = (a.item_name || '').toLowerCase();
+          const nameB = (b.item_name || '').toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+        setLineItems(sortedLineItems);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching line items:", error);
+      setLineItems([]);
+    } finally {
+      setIsLoadingLineItems(false);
+    }
+  };
 
-    fetchLineItems();
-  }, [invoiceDetails?.id]);
+  // Fetch line items when invoice details change or view mode changes
+  useEffect(() => {
+    fetchLineItems(lineItemsViewMode);
+  }, [invoiceDetails?.id, lineItemsViewMode]);
 
   // Calculate and update total amount whenever line items change
   useEffect(() => {
@@ -521,7 +556,66 @@ export default function InvoiceDetailsForm({
     onDetailsChange(syntheticEvent);
   };
 
+  // Local state for customer data
+  const [customerData, setCustomerData] = useState({
+    displayName: localInvoiceDetails.customerData?.displayName || localInvoiceDetails.customerData?.companyName || '',
+  });
+
+  // Update customer data when invoice details change
+  useEffect(() => {
+    if (localInvoiceDetails.customerData) {
+      setCustomerData({
+        displayName: localInvoiceDetails.customerData.displayName || localInvoiceDetails.customerData.companyName || '',
+      });
+    }
+  }, [localInvoiceDetails.customerData]);
+
+  // Handle customer data changes
+  const handleCustomerDataChange = (field: string, value: string) => {
+    setCustomerData(prev => ({ ...prev, [field]: value }));
+
+    // Notify parent that there are unsaved changes
+    if (onFieldChange) {
+      onFieldChange();
+    }
+  };
+  const [vendorData, setVendorData] = useState({
+    displayName: localInvoiceDetails.vendorData?.displayName || localInvoiceDetails.vendorData?.companyName || '',
+    primaryEmail: localInvoiceDetails.vendorData?.primaryEmail || '',
+    primaryPhone: localInvoiceDetails.vendorData?.primaryPhone || '',
+    billAddrLine1: localInvoiceDetails.vendorData?.billAddrLine1 || '',
+    billAddrCity: localInvoiceDetails.vendorData?.billAddrCity || '',
+    billAddrState: localInvoiceDetails.vendorData?.billAddrState || '',
+    billAddrPostalCode: localInvoiceDetails.vendorData?.billAddrPostalCode || '',
+  });
+
+  // Update vendor data when invoice details change
+  useEffect(() => {
+    if (localInvoiceDetails.vendorData) {
+      setVendorData({
+        displayName: localInvoiceDetails.vendorData.displayName || localInvoiceDetails.vendorData.companyName || '',
+        primaryEmail: localInvoiceDetails.vendorData.primaryEmail || '',
+        primaryPhone: localInvoiceDetails.vendorData.primaryPhone || '',
+        billAddrLine1: localInvoiceDetails.vendorData.billAddrLine1 || '',
+        billAddrCity: localInvoiceDetails.vendorData.billAddrCity || '',
+        billAddrState: localInvoiceDetails.vendorData.billAddrState || '',
+        billAddrPostalCode: localInvoiceDetails.vendorData.billAddrPostalCode || '',
+      });
+    }
+  }, [localInvoiceDetails.vendorData]);
+
+  // Handle vendor data changes
+  const handleVendorDataChange = (field: string, value: string) => {
+    setVendorData(prev => ({ ...prev, [field]: value }));
+
+    // Notify parent that there are unsaved changes
+    if (onFieldChange) {
+      onFieldChange();
+    }
+  };
+
   const allFields = Object.keys(invoiceDetails || {});
+
   const hiddenFields = [
     "id",
     "userId",
@@ -534,17 +628,46 @@ export default function InvoiceDetailsForm({
     "sourcePdfUrl",
     "s3JsonKey",
     "isDeleted",
-    "deletedAt"
+    "deletedAt",
+    'vendorId',
+    'vendorData',
+    'customerId',
+    'customerData',
+    'vendorAddress',
+    'vendorPhone',
+    'vendorEmail',
+    'rejectionEmailSender',
+    'rejectionReason',
+    'senderEmail'
   ];
   const fieldsToDisplay = allFields.filter(key => !hiddenFields.includes(key));
 
-
-
   return (
     <div className="h-full flex flex-col gap-2">
+      {/* Duplicate Invoice Warning Banner */}
+      {invoiceDetails.isDuplicate && (
+        <div className="bg-orange-50 border-2 border-orange-500 rounded-lg p-3 flex-col items-start gap-3 dark:bg-orange-950 dark:border-orange-700">
+          <div className="flex items-end gap-1">
+            <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+            <h3 className="font-semibold text-orange-800 dark:text-orange-300 text-sm">
+              Duplicate Invoice Detected
+            </h3>
+          </div>
+          <p className="text-orange-700 dark:text-orange-400 text-xs mt-2">
+            This invoice has the same invoice number and vendor as another invoice in the system.
+            Please change the invoice number to remove this warning and enable approval.
+          </p>
+        </div>
+      )}
+
       {/* Accordion Sections */}
       <div className="flex-1 overflow-hidden min-h-0">
-        <Accordion type="multiple" defaultValue={["invoice-info", "line-items"]} className="h-full flex flex-col gap-2">
+        <Accordion
+          type="multiple"
+          value={accordionValue}
+          onValueChange={setAccordionValue}
+          className="h-full flex flex-col gap-2"
+        >
           {/* Section 1: Invoice Information - 50% height when expanded */}
           <AccordionItem value="invoice-info" className="border rounded-lg bg-card flex-1 min-h-0 flex flex-col data-[state=closed]:flex-none overflow-hidden">
             <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
@@ -553,17 +676,166 @@ export default function InvoiceDetailsForm({
             <AccordionContent className="px-4 pb-3 flex-1 min-h-0 overflow-hidden data-[state=open]:flex data-[state=open]:flex-col h-full">
               <ScrollArea className="flex-1 pr-2 h-full">
                 <div className="space-y-2.5 py-2">
-                  {fieldsToDisplay.map((key) => (
-                    <FormField
-                      key={key}
-                      fieldKey={key}
-                      label={formatLabel(key)}
-                      value={localInvoiceDetails[key as keyof InvoiceDetails] ?? null}
-                      isEditing={true}
-                      onChange={onDetailsChange}
-                      onDateChange={handleDateChange}
+                  {/* Highlighted Fields - At the Top */}
+                  <FormField
+                    key="invoiceNumber"
+                    fieldKey="invoiceNumber"
+                    label="Invoice Number"
+                    value={localInvoiceDetails.invoiceNumber ?? null}
+                    isEditing={!isInvoiceFinalized}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  <FormField
+                    key="totalAmount"
+                    fieldKey="totalAmount"
+                    label="Total Amount"
+                    value={localInvoiceDetails.totalAmount ?? null}
+                    isEditing={!isInvoiceFinalized}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  <FormField
+                    key="totalQuantity"
+                    fieldKey="totalQuantity"
+                    label="Total Quantity"
+                    value={localInvoiceDetails.totalQuantity ?? null}
+                    isEditing={!isInvoiceFinalized}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  <FormField
+                    key="totalTax"
+                    fieldKey="totalTax"
+                    label="Total Tax"
+                    value={localInvoiceDetails.totalTax ?? null}
+                    isEditing={!isInvoiceFinalized}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  <FormField
+                    key="invoiceDate"
+                    fieldKey="invoiceDate"
+                    label="Invoice Date"
+                    value={localInvoiceDetails.invoiceDate ?? null}
+                    isEditing={!isInvoiceFinalized}
+                    onChange={onDetailsChange}
+                    onDateChange={handleDateChange}
+                    highlighted={true}
+                  />
+
+                  {/* Vendor Information Section */}
+                  <div className="space-y-1">
+                    <Label htmlFor="vendorName" className="text-xs font-medium">
+                      Vendor Name
+                    </Label>
+                    <Input
+                      id="vendorName"
+                      name="vendorName"
+                      value={vendorData.displayName}
+                      onChange={(e) => handleVendorDataChange('displayName', e.target.value)}
+                      placeholder="Enter vendor name"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
                     />
-                  ))}
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="vendorEmail" className="text-xs font-medium">
+                      Vendor Email
+                    </Label>
+                    <Input
+                      id="vendorEmail"
+                      name="vendorEmail"
+                      type="email"
+                      value={vendorData.primaryEmail}
+                      onChange={(e) => handleVendorDataChange('primaryEmail', e.target.value)}
+                      placeholder="Enter vendor email"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="vendorPhone" className="text-xs font-medium">
+                      Vendor Phone
+                    </Label>
+                    <Input
+                      id="vendorPhone"
+                      name="vendorPhone"
+                      type="tel"
+                      value={vendorData.primaryPhone}
+                      onChange={(e) => handleVendorDataChange('primaryPhone', e.target.value)}
+                      placeholder="Enter vendor phone"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="vendorAddress" className="text-xs font-medium">
+                      Vendor Address
+                    </Label>
+                    <Input
+                      id="vendorAddress"
+                      name="vendorAddress"
+                      value={vendorData.billAddrLine1}
+                      onChange={(e) => handleVendorDataChange('billAddrLine1', e.target.value)}
+                      placeholder="Enter vendor address"
+                      className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                      readOnly={isInvoiceFinalized}
+                    />
+                  </div>
+
+                  {/* Customer Name Field */}
+                  {localInvoiceDetails.customerData && (
+                    <div className="space-y-1">
+                      <Label htmlFor="customerName" className="text-xs font-medium">
+                        Customer Name
+                      </Label>
+                      <Input
+                        id="customerName"
+                        name="customerName"
+                        value={customerData.displayName}
+                        onChange={(e) => handleCustomerDataChange('displayName', e.target.value)}
+                        placeholder="Enter customer name"
+                        className="h-8 read-only:cursor-not-allowed read-only:bg-muted"
+                        readOnly={isInvoiceFinalized}
+                      />
+                    </div>
+                  )}
+
+                  {/* Rest of the fields (excluding highlighted fields since they're shown at top) */}
+                  {fieldsToDisplay
+                    .filter(key => !['invoiceNumber', 'totalAmount', 'totalQuantity', 'totalTax', 'invoiceDate'].includes(key)) // Exclude highlighted fields since they're shown at top
+                    .map((key) => {
+                      const value = localInvoiceDetails[key as keyof InvoiceDetails];
+                      // Skip if the value is an object (like vendorData)
+                      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                        return null;
+                      }
+
+                      return (
+                        <FormField
+                          key={key}
+                          fieldKey={key}
+                          label={formatLabel(key)}
+                          value={value ?? null}
+                          isEditing={!isInvoiceFinalized}
+                          onChange={onDetailsChange}
+                          onDateChange={handleDateChange}
+                          highlighted={false}
+                        />
+                      );
+                    })}
                 </div>
               </ScrollArea>
             </AccordionContent>
@@ -571,93 +843,74 @@ export default function InvoiceDetailsForm({
 
           {/* Section 2: Line Items - 50% height when expanded */}
           <AccordionItem value="line-items" className="border rounded-lg bg-card flex-1 min-h-0 flex flex-col data-[state=closed]:flex-none overflow-hidden">
-            <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
-              <div className="flex items-center gap-2 flex-1">
-                <span className="text-sm font-semibold">Line Items ({lineItems.length})</span>
-                {selectedLineItems.size > 0 && (
+            <div className="relative">
+              <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-sm font-semibold">Line Items ({lineItems.length})</span>
+                  {/* Single/Expand Toggle */}
                   <div className="flex items-center gap-2 ml-4">
-                    <span className="text-xs text-muted-foreground">({selectedLineItems.size} selected)</span>
-                    {/* <Button
-                      size="sm"
-                      className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={async () => {
-                        if (selectedLineItems.size === 0) return;
-
-                        try {
-                          const response: any = await client.post(
-                            `/api/v1/invoice/invoices/${invoiceDetails.id}/split`,
-                            { lineItemIds: Array.from(selectedLineItems) }
-                          );
-
-                          if (response.success) {
-                            toast.success("Invoice split successfully");
-                            setSelectedLineItems(new Set());
-
-                            // Refresh the invoices list filtered by attachmentId
-                            const attachmentId = invoiceDetails.attachmentId;
-                            const refreshResponse = await client.get(`/api/v1/invoice/invoices?attachmentId=${attachmentId}`);
-                            const invoiceData = refreshResponse.data?.data?.invoices || refreshResponse.data?.invoices || [];
-
-                            if (setInvoicesList) {
-                              setInvoicesList(invoiceData);
-                            }
-
-                            // Find and select the new split invoice (first one in the list)
-                            if (invoiceData.length > 0 && setSelectedInvoiceId) {
-                              const firstInvoice = invoiceData[0];
-                              setSelectedInvoiceId(firstInvoice.id);
-
-                              // Fetch details for the first invoice
-                              const detailsResponse = await client.get(`/api/v1/invoice/invoices/${firstInvoice.id}`);
-                              const newDetails = detailsResponse.data;
-
-                              if (setInvoiceDetailsFromParent) {
-                                setInvoiceDetailsFromParent(newDetails);
-                              }
-                              if (setOriginalInvoiceDetailsFromParent) {
-                                setOriginalInvoiceDetailsFromParent(newDetails);
-                              }
-                              if (setInvoiceDetailsCache) {
-                                setInvoiceDetailsCache((prev: any) => ({
-                                  ...prev,
-                                  [newDetails.id]: newDetails
-                                }));
-                              }
-                            }
-                          }
-                        } catch (error) {
-                          console.error("Error splitting invoice:", error);
-                          toast.error("Failed to split invoice");
-                        }
-                      }}
-                    >
-                      Split
-                    </Button> */}
-                    <Button
-                      size="sm"
-                      className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
-                      onClick={() => {
-                        setShowDeleteDialog(true);
-                      }}
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => {
-                        setShowChangeTypeDialog(true);
-                      }}
-                    >
-                      Change Type
-                    </Button>
+                    <span className="text-xs text-muted-foreground">View:</span>
+                    <div className="flex items-center bg-muted rounded-md p-1">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLineItemsViewMode('single');
+                        }}
+                        className={`px-2 py-1 text-xs rounded transition-colors ${lineItemsViewMode === 'single'
+                          ? 'bg-background text-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                      >
+                        Single
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLineItemsViewMode('expand');
+                        }}
+                        className={`px-2 py-1 text-xs rounded transition-colors ${lineItemsViewMode === 'expand'
+                          ? 'bg-background text-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                      >
+                        Expand
+                      </button>
+                    </div>
                   </div>
+                </div>
+                {isLoadingLineItems && (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 )}
-              </div>
-              {isLoadingLineItems && (
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </AccordionTrigger>
+              {/* Move buttons outside of AccordionTrigger */}
+              {selectedLineItems.size > 0 && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10 bg-card px-2 py-1 rounded">
+                  <span className="text-xs text-muted-foreground">({selectedLineItems.size} selected)</span>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowChangeTypeDialog(true);
+                    }}
+                  >
+                    Change Type
+                  </Button>
+                </div>
               )}
-            </AccordionTrigger>
+            </div>
             <AccordionContent className="px-2 pb-3 flex-1 min-h-0 overflow-hidden data-[state=open]:flex data-[state=open]:flex-col h-full">
               <div className="flex flex-col flex-1 min-h-0 h-full">
                 <ScrollArea className="flex-1">
@@ -672,16 +925,20 @@ export default function InvoiceDetailsForm({
                       onUpdate={handleLineItemUpdate}
                       onChange={handleLineItemChange}
                       onDelete={handleLineItemDelete}
-                      isEditing={true}
+                      isEditing={!isInvoiceFinalized}
                       isQuickBooksConnected={isQuickBooksConnected}
                       selectedItems={selectedLineItems}
                       onSelectionChange={setSelectedLineItems}
+                      viewMode={lineItemsViewMode}
+                      invoiceDetails={invoiceDetails}
+                      onLineItemsRefresh={() => fetchLineItems(lineItemsViewMode)}
+                      onSingleModeSaveRef={singleModeSaveRef}
                     />
                   )}
                 </ScrollArea>
 
-                {/* Add Line Item Button */}
-                {invoiceDetails?.id && (
+                {/* Add Line Item Button - Only show in expand mode */}
+                {invoiceDetails?.id && lineItemsViewMode === 'expand' && (
                   <div className="mt-2 flex-shrink-0">
                     <AddLineItemDialog
                       invoiceId={invoiceDetails.id}
@@ -711,6 +968,11 @@ export default function InvoiceDetailsForm({
           onApprovalSuccess={onApprovalSuccess}
           onInvoiceDetailsUpdate={onInvoiceDetailsUpdate}
           onFieldChange={onFieldChange}
+          vendorData={vendorData}
+          customerData={customerData}
+          lineItemsViewMode={lineItemsViewMode}
+          singleModeSaveRef={singleModeSaveRef}
+          isDuplicate={invoiceDetails.isDuplicate}
         />
       </div>
 
@@ -729,10 +991,14 @@ export default function InvoiceDetailsForm({
         onOpenChange={(open) => {
           setShowChangeTypeDialog(open);
           if (open) {
-            // Load customers when dialog opens (from context - will skip if already loaded)
+            // Ensure line-items accordion stays open when dialog opens
+            setAccordionValue(prev => {
+              if (!prev.includes("line-items")) {
+                return [...prev, "line-items"];
+              }
+              return prev;
+            });
             loadCustomers();
-
-            // Load data when dialog opens based on current type
             if (bulkItemType) {
               if (bulkItemType === 'account' && bulkAccounts.length === 0) {
                 loadBulkAccounts();
@@ -745,7 +1011,7 @@ export default function InvoiceDetailsForm({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Change Item Type</DialogTitle>
+            <DialogTitle>Change Cost Type</DialogTitle>
             <DialogDescription>
               Select the item type and category to apply to {selectedLineItems.size} selected line item(s).
             </DialogDescription>
@@ -753,15 +1019,13 @@ export default function InvoiceDetailsForm({
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Item Type</Label>
+              <Label>Cost Type</Label>
               <Select
                 value={bulkItemType || ""}
                 onValueChange={(value) => {
                   const newType = value as 'account' | 'product';
                   setBulkItemType(newType);
-                  setBulkResourceId(null); // Reset resource when type changes
-
-                  // Load data for the selected type
+                  setBulkResourceId(null);
                   if (newType === 'account' && bulkAccounts.length === 0) {
                     loadBulkAccounts();
                   } else if (newType === 'product' && bulkItems.length === 0) {
@@ -770,69 +1034,77 @@ export default function InvoiceDetailsForm({
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select item type" />
+                  <SelectValue placeholder="Select cost type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="account">Account</SelectItem>
-                  <SelectItem value="product">Product/Service</SelectItem>
+                  <SelectItem value="account">Indirect</SelectItem>
+                  <SelectItem value="product">Job Cost</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {bulkItemType && (
               <div className="space-y-2">
-                <Label>{bulkItemType === 'account' ? 'Account' : 'Product/Service'}</Label>
+                <Label>{bulkItemType === 'account' ? 'Indirect' : 'Job Cost'}</Label>
                 {bulkItemType === 'account' ? (
                   <LineItemAutocomplete
                     items={bulkAccounts}
                     value={bulkResourceId}
-                    onSelect={(id) => setBulkResourceId(id)}
+                    onSelect={(id, account) => {
+                      // Store quickbooks_id in state for UI matching
+                      const quickbooksId = account?.quickbooksId || null;
+                      setBulkResourceId(quickbooksId);
+                    }}
                     placeholder="Search accounts..."
                     isLoading={isLoadingBulkData}
-                    getDisplayName={(account: QuickBooksAccount) =>
-                      `${account.Name}${account.AccountType ? ` (${account.AccountType})` : ''}`
+                    getDisplayName={(account: any) =>
+                      account.fullyQualifiedName || account.name || 'Unknown Account'
                     }
                   />
                 ) : (
                   <LineItemAutocomplete
                     items={bulkItems}
                     value={bulkResourceId}
-                    onSelect={(id) => setBulkResourceId(id)}
-                    placeholder="Search products/services..."
+                    onSelect={(id, item) => {
+                      // Store quickbooks_id in state for UI matching
+                      const quickbooksId = item?.quickbooksId || null;
+                      setBulkResourceId(quickbooksId);
+                    }}
+                    placeholder="Search job costs..."
                     isLoading={isLoadingBulkData}
-                    getDisplayName={(item: QuickBooksItem) =>
-                      `${item.Name}${item.Type ? ` (${item.Type})` : ''}`
+                    getDisplayName={(item: any) =>
+                      item.fullyQualifiedName || item.name || 'Unknown Product'
                     }
                   />
                 )}
               </div>
             )}
 
-            {/* Customer Dropdown */}
+            {/* Job Dropdown */}
             <div className="space-y-2">
-              <Label>Customer (Optional)</Label>
+              <Label>Job (Optional)</Label>
               <LineItemAutocomplete
                 items={bulkCustomers}
                 value={bulkCustomerId}
-                onSelect={(id) => {
-                  console.log('🎯 Customer selected:', id);
-                  setBulkCustomerId(id);
+                onSelect={(id, customer) => {
+                  // Store quickbooksId for customers (they use quickbooksId field)
+                  const quickbooksId = customer?.quickbooksId || null;
+                  setBulkCustomerId(quickbooksId);
                 }}
-                placeholder="Search customers..."
+                placeholder="Search jobs..."
                 isLoading={isLoadingCustomers}
                 getDisplayName={(customer: QuickBooksCustomer) => {
-                  const name = customer.DisplayName || customer.CompanyName || `Customer ${customer.Id}`;
-                  console.log('📝 Display name for customer:', customer.Id, '=', name);
+                  const name = customer.displayName || customer.companyName || `Customer ${customer.quickbooksId}`;
                   return name;
                 }}
               />
               {bulkCustomers.length > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  {bulkCustomers.length} customers available
+                  {bulkCustomers.length} jobs available
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                This customer will be applied to all selected line items
+                This job will be applied to all selected line items
               </p>
             </div>
           </div>

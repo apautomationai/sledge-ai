@@ -21,7 +21,6 @@ interface DeleteConfirmationDialogProps {
     warningMessage?: string;
     associatedInvoice?: {
         invoiceNumber: string;
-        vendorName: string;
     };
     isDeleting: boolean;
     confirmText?: string;
@@ -55,9 +54,6 @@ export function DeleteConfirmationDialog({
                                 <div className="mt-2 text-sm">
                                     <p>
                                         <strong>Invoice Number:</strong> {associatedInvoice.invoiceNumber}
-                                    </p>
-                                    <p>
-                                        <strong>Vendor:</strong> {associatedInvoice.vendorName}
                                     </p>
                                 </div>
                             </div>

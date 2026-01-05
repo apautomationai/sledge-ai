@@ -120,7 +120,10 @@ export function IntegrationCard({
       } else if (isQuickBooks) {
         const result = await syncQuickBooksData();
         toast.success("Sync completed successfully", {
-          description: `Products: ${result.data.products.inserted} inserted, ${result.data.products.updated} updated, ${result.data.products.skipped} skipped. Accounts: ${result.data.accounts.inserted} inserted, ${result.data.accounts.updated} updated, ${result.data.accounts.skipped} skipped.`,
+          description: `Products: ${result.data.products.inserted} inserted, ${result.data.products.updated} updated, ${result.data.products.skipped} skipped. 
+                        Accounts: ${result.data.accounts.inserted} inserted, ${result.data.accounts.updated} updated, ${result.data.accounts.skipped} skipped.
+                        Vendors: ${result.data.vendors.inserted} inserted, ${result.data.vendors.updated} updated, ${result.data.vendors.skipped} skipped.
+                        Customers: ${result.data.customers.inserted} inserted, ${result.data.customers.updated} updated, ${result.data.customers.skipped} skipped.`,
         });
       }
     } catch (error: unknown) {
@@ -149,7 +152,7 @@ export function IntegrationCard({
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow space-y-1 p-1 sm:p-2 pt-0">
+      <CardContent className="grow space-y-1 p-1 sm:p-2 pt-0">
         {errorMessage && (
           <Alert variant="destructive" className="border-destructive/30">
             <AlertTriangle className="h-4 w-4" />

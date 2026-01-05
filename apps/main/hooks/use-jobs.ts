@@ -1,157 +1,297 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/axios-client";
 import { useRealtimeInvoices } from "@/hooks/use-realtime-invoices";
 
+export interface VendorData {
+  id: number;
+  displayName: string | null;
+  companyName: string | null;
+  primaryEmail: string | null;
+  primaryPhone: string | null;
+  billAddrLine1: string | null;
+  billAddrCity: string | null;
+  billAddrState: string | null;
+  billAddrPostalCode: string | null;
+  active: boolean | null;
+  quickbooksId: string;
+}
+
 export interface Job {
-    id: string;
-    filename: string;
-    sender: string;
-    receiver: string;
-    provider?: string;
-    created_at: string;
-    invoiceCount: number;
-    jobStatus: "pending" | "processing" | "processed" | "approved" | "rejected" | "failed";
-    vendorName?: string | null;
-    invoiceStatusCounts?: {
-        approved: number;
-        rejected: number;
-        pending: number;
-    };
+  id: string;
+  filename: string;
+  sender: string;
+  receiver: string;
+  provider?: string;
+  created_at: string;
+  invoiceCount: number;
+  jobStatus:
+  | "pending"
+  | "processing"
+  | "processed"
+  | "approved"
+  | "rejected"
+  | "failed";
+  vendorData?: VendorData | null;
+  invoiceStatusCounts?: {
+    approved: number;
+    rejected: number;
+    pending: number;
+  };
 }
 
 interface JobsApiResponse {
-    jobs: Job[];
-    statusCounts: {
-        all: number;
-        pending: number;
-        processing: number;
-        processed: number;
-        approved: number;
-        rejected: number;
-        failed: number;
-    };
-    pagination: {
-        totalJobs: number;
-        page: number;
-        limit: number;
-        totalPages: number;
-    };
+  jobs: Job[];
+  statusCounts: {
+    all: number;
+    pending: number;
+    processing: number;
+    processed: number;
+    approved: number;
+    rejected: number;
+    failed: number;
+  };
+  pagination: {
+    totalJobs: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 interface UseJobsParams {
-    page: number;
-    status?: string;
-    sortBy?: string;
-    sortOrder?: string;
-    search?: string;
+  page: number;
+  status?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  search?: string;
 }
 
-export function useJobs({ page, status = "all", sortBy = "received", sortOrder = "desc", search = "" }: UseJobsParams) {
-    const [jobs, setJobs] = useState<Job[]>([]);
-    const [statusCounts, setStatusCounts] = useState({
-        all: 0,
-        pending: 0,
-        processing: 0,
-        processed: 0,
-        approved: 0,
-        failed: 0,
-    });
-    const [totalPages, setTotalPages] = useState(1);
-    const [isLoading, setIsLoading] = useState(true);
+const defaultStatusCounts = {
+  all: 0,
+  pending: 0,
+  processing: 0,
+  processed: 0,
+  approved: 0,
+  rejected: 0,
+  failed: 0,
+};
 
-    const fetchJobs = useCallback(async () => {
-        try {
-            setIsLoading(true);
+async function fetchJobs(params: UseJobsParams): Promise<JobsApiResponse> {
+  const searchParams = new URLSearchParams({
+    page: params.page.toString(),
+    limit: "10",
+    status: params.status || "all",
+    sortBy: params.sortBy || "received",
+    sortOrder: params.sortOrder || "desc",
+  });
 
-            // Build query parameters
-            const params = new URLSearchParams({
-                page: page.toString(),
-                limit: "10",
-                status,
-                sortBy,
-                sortOrder,
-            });
+  if (params.search) {
+    searchParams.append("search", params.search);
+  }
 
-            if (search) {
-                params.append("search", search);
-            }
+  const response = await client.get(`api/v1/jobs?${searchParams.toString()}`);
 
-            const response = await client.get(
-                `api/v1/jobs?${params.toString()}`
-            );
+  // Handle the response structure
+  if (response.data?.data?.jobs) {
+    return response.data.data;
+  } else if (response.data?.jobs) {
+    return response.data;
+  }
 
-            console.log("Jobs API Response:", response);
+  return {
+    jobs: [],
+    statusCounts: defaultStatusCounts,
+    pagination: { totalJobs: 0, page: 1, limit: 10, totalPages: 1 },
+  };
+}
 
-            // Handle the response structure: { status: "success", data: { jobs: [], statusCounts: {}, pagination: {} } }
-            if (response.data?.data?.jobs) {
-                setJobs(response.data.data.jobs);
-                setStatusCounts(response.data.data.statusCounts || statusCounts);
-                setTotalPages(response.data.data.pagination?.totalPages || 1);
-            } else if (response.data?.jobs) {
-                // Fallback if structure is different
-                setJobs(response.data.jobs);
-                setStatusCounts(response.data.statusCounts || statusCounts);
-                setTotalPages(response.data.pagination?.totalPages || 1);
-            } else {
-                console.warn("Unexpected response structure:", response.data);
-                setJobs([]);
-            }
-        } catch (error) {
-            console.error("Failed to fetch jobs:", error);
-            setJobs([]);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [page, status, sortBy, sortOrder, search]);
+export function useJobs({
+  page,
+  status = "all",
+  sortBy = "received",
+  sortOrder = "desc",
+  search = "",
+}: UseJobsParams) {
+  const queryClient = useQueryClient();
 
-    // Initial fetch
-    useEffect(() => {
-        fetchJobs();
-    }, [fetchJobs]);
+  const queryKey = ["jobs", { page, status, sortBy, sortOrder, search }];
 
-    // Set up real-time WebSocket connection
-    const { joinInvoiceList, leaveInvoiceList } = useRealtimeInvoices({
-        onRefreshNeeded: () => {
-            console.log("🔄 WebSocket: Refresh needed - fetching jobs");
-            fetchJobs();
-        },
-        onInvoiceCreated: (invoiceId) => {
-            console.log("✅ WebSocket: Invoice created:", invoiceId, "- fetching jobs");
-            fetchJobs();
-        },
-        onInvoiceUpdated: (invoiceId) => {
-            console.log("📝 WebSocket: Invoice updated:", invoiceId, "- fetching jobs");
-            fetchJobs();
-        },
-        onInvoiceStatusUpdated: (invoiceId, status) => {
-            console.log("🔔 WebSocket: Invoice status updated:", invoiceId, status, "- fetching jobs");
-            fetchJobs();
-        },
-        onAttachmentStatusUpdated: (attachmentId, status) => {
-            console.log("📎 WebSocket: Attachment status updated:", attachmentId, status, "- fetching jobs");
-            fetchJobs();
-        },
-        enableToasts: false,
-        autoConnect: true,
-    });
+  const query = useQuery({
+    queryKey,
+    queryFn: () => fetchJobs({ page, status, sortBy, sortOrder, search }),
+  });
 
-    // Join invoice list room when component mounts
-    useEffect(() => {
-        console.log("🔌 Jobs: Joining invoice list room");
-        joinInvoiceList();
-        return () => {
-            console.log("🔌 Jobs: Leaving invoice list room");
-            leaveInvoiceList();
-        };
-    }, [joinInvoiceList, leaveInvoiceList]);
+  // Debounce mechanism to prevent duplicate updates
+  const lastUpdateRef = useRef<{ [jobId: string]: number }>({});
 
-    return {
-        jobs,
-        statusCounts,
-        totalPages,
-        isLoading,
-        refetch: fetchJobs,
+  // Helper function to remove job from cache
+  const removeJobFromCache = useCallback((jobId: string) => {
+    const updateCacheData = (oldData: JobsApiResponse | undefined): JobsApiResponse | undefined => {
+      if (!oldData || !oldData.jobs.some(job => String(job.id) === String(jobId))) {
+        return oldData;
+      }
+
+      const filteredJobs = oldData.jobs.filter(job => String(job.id) !== String(jobId));
+      const statusCounts = {
+        all: filteredJobs.length,
+        pending: filteredJobs.filter(j => j.jobStatus === "pending").length,
+        processing: filteredJobs.filter(j => j.jobStatus === "processing").length,
+        processed: filteredJobs.filter(j => j.jobStatus === "processed").length,
+        approved: filteredJobs.filter(j => j.jobStatus === "approved" || j.jobStatus === "rejected").length,
+        rejected: 0,
+        failed: filteredJobs.filter(j => j.jobStatus === "failed").length,
+      };
+      const updatedPagination = {
+        ...oldData.pagination,
+        totalJobs: Math.max(0, oldData.pagination.totalJobs - 1),
+        totalPages: Math.ceil(Math.max(0, oldData.pagination.totalJobs - 1) / oldData.pagination.limit),
+      };
+
+      return { ...oldData, jobs: filteredJobs, statusCounts, pagination: updatedPagination };
     };
+    
+    queryClient.setQueriesData({ queryKey: ["jobs"] }, updateCacheData);
+    queryClient.setQueryData(queryKey, updateCacheData);
+  }, [queryClient, queryKey]);
+
+  // Helper function to update job in cache
+  const updateJobInCache = (jobId: string, updates: Partial<Job>) => {
+    // Debounce: ignore updates that happen within 100ms of the last update for the same job
+    const now = Date.now();
+    const lastUpdate = lastUpdateRef.current[jobId] || 0;
+    if (now - lastUpdate < 100) {
+      return;
+    }
+    lastUpdateRef.current[jobId] = now;
+
+    queryClient.setQueriesData(
+      { queryKey: ["jobs"] },
+      (oldData: JobsApiResponse | undefined) => {
+        if (!oldData) {
+          return oldData;
+        }
+
+        const jobIndex = oldData.jobs.findIndex(job => String(job.id) === String(jobId));
+        if (jobIndex === -1) {
+          return oldData;
+        }
+
+        const updatedJobs = oldData.jobs.map(job =>
+          String(job.id) === String(jobId) ? { ...job, ...updates } : job
+        );
+
+        // Update status counts based on the new job statuses
+        const statusCounts = {
+          all: updatedJobs.length,
+          pending: updatedJobs.filter(j => j.jobStatus === "pending").length,
+          processing: updatedJobs.filter(j => j.jobStatus === "processing").length,
+          processed: updatedJobs.filter(j => j.jobStatus === "processed").length,
+          approved: updatedJobs.filter(j => j.jobStatus === "approved" || j.jobStatus === "rejected").length,
+          rejected: 0, // Combined with approved
+          failed: updatedJobs.filter(j => j.jobStatus === "failed").length,
+        };
+
+        return {
+          ...oldData,
+          jobs: updatedJobs,
+          statusCounts,
+        };
+      }
+    );
+  };
+
+  // Set up real-time WebSocket connection
+  const { joinInvoiceList, leaveInvoiceList } = useRealtimeInvoices({
+    onRefreshNeeded: () => {
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onInvoiceCreated: () => {
+      // New invoice created - this might affect job status, but attachment status will handle it
+    },
+    onInvoiceUpdated: () => {
+      // Invoice updated - this might affect job status, but attachment status will handle it
+    },
+    onInvoiceStatusUpdated: (invoiceId: number, newStatus: string) => {
+      // Invoice status changed - this might affect job status
+      // We'll let the job status update event handle this instead of calling API
+    },
+    onAttachmentStatusUpdated: (attachmentId: number, newStatus: string, attachmentData?: any) => {
+      // Attachment status updated - update job with full data if available
+      const jobId = attachmentId.toString();
+      
+      if (newStatus === "skipped") {
+        removeJobFromCache(jobId);
+        return;
+      }
+
+      let jobStatus: Job["jobStatus"] = "pending";
+
+      switch (newStatus) {
+        case "pending":
+          jobStatus = "pending";
+          break;
+        case "processing":
+          jobStatus = "processing";
+          break;
+        case "failed":
+          jobStatus = "failed";
+          break;
+        case "success":
+        case "completed":
+          jobStatus = "processed"; // Will be refined by invoice statuses
+          break;
+        default:
+          jobStatus = "processed";
+      }
+
+      // Create update object with status and any additional attachment data
+      const updates: Partial<Job> = { jobStatus };
+
+      // If we have full attachment data, map relevant fields to job fields
+      if (attachmentData) {
+        // Map attachment fields to job fields as needed (only fields that exist in Job interface)
+        if (attachmentData.filename) updates.filename = attachmentData.filename;
+        if (attachmentData.sender) updates.sender = attachmentData.sender;
+        if (attachmentData.receiver) updates.receiver = attachmentData.receiver;
+        if (attachmentData.provider) updates.provider = attachmentData.provider;
+        if (attachmentData.created_at) updates.created_at = attachmentData.created_at;
+        // Note: Only updating fields that exist in the Job interface
+      }
+
+      updateJobInCache(jobId, updates);
+    },
+    onJobStatusUpdated: (jobId: string, newStatus: string, jobData?: any) => {
+      // Direct job status update - use full job data if available
+      const updates: Partial<Job> = { jobStatus: newStatus as Job["jobStatus"] };
+
+      // If we have full job data, use it to update all fields
+      if (jobData) {
+        Object.assign(updates, jobData);
+      }
+
+      updateJobInCache(jobId, updates);
+    },
+    enableToasts: false,
+    autoConnect: true,
+  });
+
+  // Join invoice list room when component mounts
+  useEffect(() => {
+    joinInvoiceList();
+    return () => {
+      leaveInvoiceList();
+    };
+  }, [joinInvoiceList, leaveInvoiceList]);
+
+  return {
+    jobs: query.data?.jobs || [],
+    statusCounts: query.data?.statusCounts || defaultStatusCounts,
+    totalPages: query.data?.pagination?.totalPages || 1,
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    refetch: query.refetch,
+  };
 }

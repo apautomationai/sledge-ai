@@ -131,7 +131,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const handleConnectGmail = async () => {
         try {
             localStorage.setItem("onboarding_mode", "true");
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/google/auth`;
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/gmail`;
             const res: any = await client.get(url);
             if (res.url) {
                 window.location.href = res.url;
@@ -144,7 +144,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const handleConnectMicrosoft = async () => {
         try {
             localStorage.setItem("onboarding_mode", "true");
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/outlook/auth`;
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/outlook`;
             const res: any = await client.get(url);
             if (res.url) {
                 window.location.href = res.url;
@@ -233,40 +233,40 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     };
 
     return (
-        <div className="min-h-screen  flex items-center justify-center p-4">
+        <div className="flex items-center justify-center py-6 h-full">
             {/* Success Animation Overlay */}
             {showSuccessAnimation && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/95 backdrop-blur-sm">
                     <div className="animate-in zoom-in-50 duration-500">
-                        <CheckCircle2 className="h-48 w-48 text-green-500 animate-pulse" strokeWidth={2} />
+                        <CheckCircle2 className="h-32 w-32 text-green-500 animate-pulse" strokeWidth={2} />
                     </div>
                 </div>
             )}
 
-            <Card className="w-full max-w-3xl border-gray-700/50 backdrop-blur-sm">
-                <CardContent className="p-12">
+            <Card className="w-full max-w-3xl">
+                <CardContent className="p-8">
                     {/* Header */}
-                    <div className="text-center mb-12">
-                        <h1 className="text-4xl font-bold text-white mb-3">Welcome to Sledge</h1>
-                        <p className="text-gray-400 text-lg">Complete these steps to activate autonomous AP</p>
+                    <div className="text-center mb-8">
+                        <h1 className="text-3xl font-bold mb-2">Welcome to Sledge</h1>
+                        <p className="text-muted-foreground text-base">Complete these steps to activate autonomous AP</p>
                     </div>
 
                     {/* Email Connection Section */}
-                    <div className="mb-10">
-                        <h2 className="text-gray-300 text-lg mb-6">Connect your email you receive invoices at</h2>
-                        <div className="flex items-center gap-6">
+                    <div className="mb-6">
+                        <h2 className="text-foreground text-base mb-4">Connect your email you receive invoices at</h2>
+                        <div className="flex items-center gap-4">
                             {/* Gmail Button */}
                             <button
                                 onClick={handleConnectGmail}
-                                disabled={isGmailConnected}
-                                className="flex-1 bg-gray-800/50 h-36 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
+                                disabled={isGmailConnected || isOutlookConnected}
+                                className="flex-1 bg-muted/50 h-28 hover:bg-muted border rounded-xl p-6 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
                             >
                                 <div className="flex items-center justify-center">
                                     <Image
                                         src="/images/logos/gmail.png"
                                         alt="Gmail"
-                                        width={80}
-                                        height={80}
+                                        width={64}
+                                        height={64}
 
                                         className="group-hover:scale-110 transition-transform duration-200"
                                     />
@@ -276,15 +276,15 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                             {/* Microsoft/Outlook Button */}
                             <button
                                 onClick={handleConnectMicrosoft}
-                                disabled={isOutlookConnected}
-                                className="flex-1 bg-gray-800/50 h-36 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
+                                disabled={isOutlookConnected || isGmailConnected}
+                                className="flex-1 bg-muted/50 h-28 hover:bg-muted border rounded-xl p-6 transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
                             >
                                 <div className="flex items-center justify-center">
                                     <Image
                                         src="/images/logos/microsoft.png"
                                         alt="Microsoft"
-                                        width={80}
-                                        height={80}
+                                        width={64}
+                                        height={64}
                                         className="group-hover:scale-110 transition-transform duration-200"
                                     />
                                 </div>
@@ -293,44 +293,44 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                             {/* Status Indicator */}
                             <div className="flex-shrink-0">
                                 {isEmailConnected ? (
-                                    <CheckCircle2 className="h-16 w-16 text-green-500" />
+                                    <CheckCircle2 className="h-12 w-12 text-green-500" />
                                 ) : (
-                                    <Circle className="h-16 w-16 text-gray-600" strokeWidth={3} />
+                                    <Circle className="h-12 w-12 text-muted-foreground" strokeWidth={3} />
                                 )}
                             </div>
                         </div>
                     </div>
 
                     {/* QuickBooks Connection Section */}
-                    <div className="mb-10">
-                        <h2 className="text-gray-300 text-lg mb-6">Connect your accounting platform</h2>
-                        <div className="flex items-center gap-6">
+                    <div className="mb-6">
+                        <h2 className="text-foreground text-base mb-4">Connect your accounting platform</h2>
+                        <div className="flex items-center gap-4">
                             {/* QuickBooks Button */}
                             <button
                                 onClick={handleConnectQuickBooks}
                                 disabled={isQuickBooksConnected || !isEmailConnected}
-                                className="flex-1 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-2xl p-8 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
+                                className="w-[calc(50%-0.5rem)] bg-muted/50 h-28 hover:bg-muted border rounded-xl p-6 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group focus:outline-none focus:ring-0"
                             >
                                 <div className="flex items-center justify-center">
                                     <Image
                                         src="/images/logos/quickbooks.png"
                                         alt="QuickBooks"
-                                        width={80}
-                                        height={80}
+                                        width={64}
+                                        height={64}
                                         className="group-hover:scale-110 transition-transform duration-200"
                                     />
                                 </div>
                             </button>
 
                             {/* Empty space to match layout */}
-                            <div className="flex-1"></div>
+                            <div className="w-[calc(50%-0.5rem)]"></div>
 
                             {/* Status Indicator */}
                             <div className="flex-shrink-0">
                                 {isQuickBooksConnected ? (
-                                    <CheckCircle2 className="h-16 w-16 text-green-500" />
+                                    <CheckCircle2 className="h-12 w-12 text-green-500" />
                                 ) : (
-                                    <Circle className="h-16 w-16 text-gray-600" strokeWidth={3} />
+                                    <Circle className="h-12 w-12 text-muted-foreground" strokeWidth={3} />
                                 )}
                             </div>
                         </div>
@@ -338,12 +338,12 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
 
                     {/* Complete Button - Only show when all integrations are connected */}
                     {canComplete && !showSuccessAnimation && (
-                        <div className="mt-12 flex justify-center">
+                        <div className="mt-8 flex justify-center">
                             <Button
                                 size="lg"
                                 onClick={handleCompleteOnboarding}
                                 disabled={isCompleting}
-                                className="px-12 py-6 text-lg bg-gray-700 hover:bg-gray-600 text-white rounded-xl focus:outline-none focus:ring-0"
+                                className="px-10 py-5 text-base rounded-xl"
                             >
                                 {isCompleting ? "Setting up..." : "Go to Dashboard"}
                             </Button>

@@ -13,6 +13,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { QUICKBOOKS_EMBEDDING_DIMENSION } from "@/lib/vector.constants";
 import { usersModel } from "./users.model";
+import { projectVendorsModel } from "./project-vendors.model";
 
 // quickbooks schema doc https://developer.intuit.com/app/developer/qbo/docs/api/accounting/all-entities/vendor
 
@@ -80,6 +81,8 @@ export const quickbooksVendorsModel = pgTable(
     metaDataLastUpdatedTime: timestamp("meta_data_last_updated_time"),
     // Vector embedding
     embedding: vector("embedding", { dimensions: QUICKBOOKS_EMBEDDING_DIMENSION }),
+    // Project relationship
+    projectId: integer("project_id"),
     // Timestamps
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -91,10 +94,13 @@ export const quickbooksVendorsModel = pgTable(
 
 export const quickbooksVendorsRelations = relations(
   quickbooksVendorsModel,
-  ({ one }) => ({
+  ({ one, many }) => ({
     user: one(usersModel, {
       fields: [quickbooksVendorsModel.userId],
       references: [usersModel.id],
     }),
+    projectVendors: many(projectVendorsModel),
   })
 );
+
+

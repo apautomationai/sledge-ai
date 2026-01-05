@@ -29,7 +29,7 @@ export default function DashboardDataView({
   };
 
   return (
-    <div className="flex flex-col h-full min-h-screen overflow-hidden">
+    <div className="flex flex-col overflow-x-hidden">
       <header className="flex items-center justify-between py-2 flex-shrink-0">
         <div>
           <h1 className="text-xl font-semibold text-foreground">Overview</h1>
@@ -46,7 +46,7 @@ export default function DashboardDataView({
       <div className={isLoading ? "opacity-50 pointer-events-none" : ""}>
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-3 mb-6">
-          <Link href="/invoice-review">
+          <Link href="/jobs">
             <Button variant="default" className="gap-2">
               <FileText className="h-4 w-4" />
               Review Invoices

@@ -1,5 +1,25 @@
 // @/lib/types/invoice.ts
 
+import { VendorData } from "@/hooks/use-jobs";
+
+export type CustomerData = {
+  id: number | null;
+  displayName: string | null;
+  companyName: string | null;
+  givenName: string | null;
+  familyName: string | null;
+  primaryEmail: string | null;
+  primaryPhone: string | null;
+  billAddrLine1: string | null;
+  billAddrCity: string | null;
+  billAddrState: string | null;
+  billAddrPostalCode: string | null;
+  billAddrCountry: string | null;
+  balance: string | null;
+  active: boolean | null;
+  quickbooksId: string | null;
+};
+
 export type Attachment = {
   id: string;
   userId: number;
@@ -23,12 +43,13 @@ export type InvoiceStatus = "pending" | "approved" | "rejected" | "failed" | "no
 export type InvoiceListItem = {
   id: number;
   invoiceNumber: string;
-  vendorName: string | null;
   totalAmount: string | null;
   status: InvoiceStatus | null;
+  isDuplicate: boolean;
   isDeleted?: boolean;
   deletedAt?: string | null;
   createdAt: string;
+  vendorData: VendorData
 };
 
 export interface InvoiceDetails {
@@ -36,14 +57,12 @@ export interface InvoiceDetails {
   userId: number;
   attachmentId: number;
   invoiceNumber: string;
-  vendorName: string | null;
-  vendorAddress: string | null;
-  vendorPhone: string | null;
-  vendorEmail: string | null;
-  customerName: string | null;
+  vendorId?: number | null;
+  customerId: number | null;
   invoiceDate: string | null;
   dueDate: string | null;
   totalAmount: string | null;
+  totalQuantity: string | null;
   currency: string | null;
   totalTax: string | null;
   lineItems: string | null;
@@ -52,12 +71,16 @@ export interface InvoiceDetails {
   rate: string | null;
   description: string | null;
   status: InvoiceStatus | null;
+  isDuplicate: boolean;
   isDeleted?: boolean;
   deletedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   fileUrl: string;
   sourcePdfUrl: string | null;
+  senderEmail?: string | null;
+  vendorData?: VendorData | null;
+  customerData?: CustomerData | null;
 }
 
 
@@ -72,6 +95,9 @@ export interface LineItem {
   itemType?: 'account' | 'product' | null;
   resourceId?: string | null;
   customerId?: string | null;
+  viewType?: 'single' | 'expanded';
+  createdAt?: string;
+  updatedAt?: string;
 }
 /**
  *
@@ -81,7 +107,6 @@ export interface LineItem {
 export interface AssociatedInvoiceDetails {
   id: number;
   invoiceNumber: string;
-  vendorName: string;
 }
 
 /**

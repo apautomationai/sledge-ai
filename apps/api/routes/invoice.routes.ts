@@ -8,6 +8,9 @@ const router = Router();
 // Get dashboard metrics
 router.get("/dashboard", authenticate, requireSubscriptionAccess, invoiceController.getDashboardMetrics);
 
+// Get invoice trends
+router.get("/trends", authenticate, requireSubscriptionAccess, invoiceController.getInvoiceTrends);
+
 // Create a new invoice
 router.post("/invoices", authenticate, requireSubscriptionAccess, invoiceController.insertInvoice);
 
@@ -48,6 +51,9 @@ router.get("/line-items/invoice/:invoiceId", authenticate, requireSubscriptionAc
 
 // Create a line item
 router.post("/line-items", authenticate, requireSubscriptionAccess, invoiceController.createLineItem);
+
+// Create or update single mode line item
+router.post("/line-items/single-mode", authenticate, requireSubscriptionAccess, invoiceController.createOrUpdateSingleModeLineItem);
 
 // Update a line item
 router.patch("/line-items/:id", authenticate, requireSubscriptionAccess, invoiceController.updateLineItem);

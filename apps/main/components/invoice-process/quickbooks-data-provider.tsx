@@ -46,10 +46,8 @@ export function QuickBooksDataProvider({ children, autoLoad = true }: QuickBooks
 
         setIsLoadingAccounts(true);
         try {
-            console.log('📦 Loading QuickBooks accounts...');
             const data = await fetchQuickBooksAccounts();
             setAccounts(data);
-            console.log('✅ Loaded', data.length, 'accounts');
         } catch (error) {
             console.error('❌ Error loading accounts:', error);
         } finally {
@@ -62,10 +60,8 @@ export function QuickBooksDataProvider({ children, autoLoad = true }: QuickBooks
 
         setIsLoadingItems(true);
         try {
-            console.log('📦 Loading QuickBooks items...');
             const data = await fetchQuickBooksItems();
             setItems(data);
-            console.log('✅ Loaded', data.length, 'items');
         } catch (error) {
             console.error('❌ Error loading items:', error);
         } finally {
@@ -78,10 +74,8 @@ export function QuickBooksDataProvider({ children, autoLoad = true }: QuickBooks
 
         setIsLoadingCustomers(true);
         try {
-            console.log('📦 Loading QuickBooks customers...');
             const data = await fetchQuickBooksCustomers();
             setCustomers(data);
-            console.log('✅ Loaded', data.length, 'customers');
         } catch (error) {
             console.error('❌ Error loading customers:', error);
         } finally {
@@ -100,7 +94,6 @@ export function QuickBooksDataProvider({ children, autoLoad = true }: QuickBooks
     // Auto-load on mount if enabled
     useEffect(() => {
         if (autoLoad) {
-            console.log('🚀 Auto-loading QuickBooks data...');
             loadCustomers(); // Load customers first as they're most commonly used
             // Accounts and items will be loaded on-demand
         }

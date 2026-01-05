@@ -2,7 +2,9 @@ import { BadRequestError, NotFoundError } from "@/helpers/errors";
 import db from "@/lib/db";
 import { attachmentsModel } from "@/models/attachments.model";
 import { invoiceModel, lineItemsModel } from "@/models/invoice.model";
-import { count, desc, eq, getTableColumns, and, sql, gte, lt, inArray } from "drizzle-orm";
+import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
+import { quickbooksCustomersModel } from "@/models/quickbooks-customers.model";
+import { count, desc, eq, getTableColumns, and, sql, gte, lt, lte, inArray, ne } from "drizzle-orm";
 import { PDFDocument } from "pdf-lib";
 import { s3Client, uploadBufferToS3 } from "@/helpers/s3upload";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
@@ -10,6 +12,8 @@ import { streamToBuffer } from "@/lib/utils/steamToBuffer";
 import { Readable } from "stream";
 import { generateS3PublicUrl } from "@/lib/utils/s3";
 import { QuickBooksService } from "@/services/quickbooks.service";
+import { emailService } from "@/services/email.service";
+import { usersModel } from "@/models/users.model";
 const { v4: uuidv4 } = require("uuid");
 
 const quickbooksService = new QuickBooksService();
@@ -53,14 +57,12 @@ export class InvoiceServices {
         if (existingInvoice) {
           // Check if data is different from existing invoice
           const hasChanges =
-            existingInvoice.vendorName !== invoiceData.vendorName ||
-            existingInvoice.vendorAddress !== invoiceData.vendorAddress ||
-            existingInvoice.vendorPhone !== invoiceData.vendorPhone ||
-            existingInvoice.vendorEmail !== invoiceData.vendorEmail ||
-            existingInvoice.customerName !== invoiceData.customerName ||
+            existingInvoice.vendorId !== invoiceData.vendorId ||
+            existingInvoice.customerId !== invoiceData.customerId ||
             existingInvoice.invoiceDate?.getTime() !== invoiceData.invoiceDate?.getTime() ||
             existingInvoice.dueDate?.getTime() !== invoiceData.dueDate?.getTime() ||
             existingInvoice.totalAmount !== invoiceData.totalAmount ||
+            existingInvoice.totalQuantity !== invoiceData.totalQuantity ||
             existingInvoice.currency !== invoiceData.currency ||
             existingInvoice.totalTax !== invoiceData.totalTax ||
             existingInvoice.description !== invoiceData.description ||
@@ -73,14 +75,12 @@ export class InvoiceServices {
             const [updatedInvoice] = await tx
               .update(invoiceModel)
               .set({
-                vendorName: invoiceData.vendorName,
-                vendorAddress: invoiceData.vendorAddress,
-                vendorPhone: invoiceData.vendorPhone,
-                vendorEmail: invoiceData.vendorEmail,
-                customerName: invoiceData.customerName,
+                vendorId: invoiceData.vendorId,
+                customerId: invoiceData.customerId,
                 invoiceDate: invoiceData.invoiceDate,
                 dueDate: invoiceData.dueDate,
                 totalAmount: invoiceData.totalAmount,
+                totalQuantity: invoiceData.totalQuantity,
                 currency: invoiceData.currency,
                 totalTax: invoiceData.totalTax,
                 description: invoiceData.description,
@@ -99,11 +99,31 @@ export class InvoiceServices {
             invoice = existingInvoice;
           }
         } else {
-          // Create new invoice
+          // Check for duplicates: same invoice number + same vendor + same user
+          let isDuplicate = false;
+          if (invoiceData.vendorId && invoiceData.invoiceNumber) {
+            const duplicates = await tx
+              .select()
+              .from(invoiceModel)
+              .where(
+                and(
+                  eq(invoiceModel.userId, invoiceData.userId),
+                  eq(invoiceModel.vendorId, invoiceData.vendorId),
+                  eq(invoiceModel.invoiceNumber, invoiceData.invoiceNumber),
+                  eq(invoiceModel.isDeleted, false),
+                  ne(invoiceModel.status, "rejected")
+                )
+              );
+
+            isDuplicate = duplicates.length > 0;
+          }
+
+          // Create new invoice with duplicate flag if needed
           const [newInvoice] = await tx
             .insert(invoiceModel)
             .values({
               ...invoiceData,
+              isDuplicate,
               fileUrl: invoiceData.fileKey && generateS3PublicUrl(invoiceData.fileKey),
               createdAt: new Date(),
               updatedAt: new Date(),
@@ -135,7 +155,7 @@ export class InvoiceServices {
                     // Use quickbooks_id as resourceId
                     resourceId = topMatch.quickbooksId;
                     itemType = 'product' as const;
-                    console.log(`Found QuickBooks product for "${item.item_name}": ${topMatch.name} (ID: ${resourceId})`);
+                    // Found QuickBooks product match
                   }
                 } catch (error) {
                   console.error(`Error searching for product "${item.item_name}":`, error);
@@ -188,19 +208,39 @@ export class InvoiceServices {
         id: invoiceModel.id,
         userId: invoiceModel.userId,
         invoiceNumber: invoiceModel.invoiceNumber,
+        vendorId: invoiceModel.vendorId,
         totalAmount: invoiceModel.totalAmount,
         attachmentId: invoiceModel.attachmentId,
         attachmentUrl: attachmentsModel.fileUrl,
+        senderEmail: attachmentsModel.sender,
         fileUrl: invoiceModel.fileUrl,
         createdAt: invoiceModel.createdAt,
-        vendorName: invoiceModel.vendorName,
         invoiceDate: invoiceModel.invoiceDate,
         status: invoiceModel.status,
+        isDuplicate: invoiceModel.isDuplicate,
+        // Vendor data from quickbooks_vendors table
+        vendorData: {
+          id: quickbooksVendorsModel.id,
+          displayName: quickbooksVendorsModel.displayName,
+          companyName: quickbooksVendorsModel.companyName,
+          primaryEmail: quickbooksVendorsModel.primaryEmail,
+          primaryPhone: quickbooksVendorsModel.primaryPhone,
+          billAddrLine1: quickbooksVendorsModel.billAddrLine1,
+          billAddrCity: quickbooksVendorsModel.billAddrCity,
+          billAddrState: quickbooksVendorsModel.billAddrState,
+          billAddrPostalCode: quickbooksVendorsModel.billAddrPostalCode,
+          active: quickbooksVendorsModel.active,
+          quickbooksId: quickbooksVendorsModel.quickbooksId,
+        },
       })
       .from(invoiceModel)
       .leftJoin(
         attachmentsModel,
         eq(invoiceModel.attachmentId, attachmentsModel.id),
+      )
+      .leftJoin(
+        quickbooksVendorsModel,
+        eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
       )
       .where(and(...whereConditions))
       .orderBy(desc(invoiceModel.createdAt))
@@ -225,6 +265,7 @@ export class InvoiceServices {
         id: invoiceModel.id,
         invoiceNumber: invoiceModel.invoiceNumber,
         status: invoiceModel.status,
+        isDuplicate: invoiceModel.isDuplicate,
         createdAt: invoiceModel.createdAt,
       })
       .from(invoiceModel)
@@ -245,11 +286,52 @@ export class InvoiceServices {
       .select({
         ...getTableColumns(invoiceModel),
         sourcePdfUrl: attachmentsModel.fileUrl,
+        senderEmail: attachmentsModel.sender,
+        // Vendor data from quickbooks_vendors table
+        vendorData: {
+          id: quickbooksVendorsModel.id,
+          displayName: quickbooksVendorsModel.displayName,
+          companyName: quickbooksVendorsModel.companyName,
+          primaryEmail: quickbooksVendorsModel.primaryEmail,
+          primaryPhone: quickbooksVendorsModel.primaryPhone,
+          billAddrLine1: quickbooksVendorsModel.billAddrLine1,
+          billAddrCity: quickbooksVendorsModel.billAddrCity,
+          billAddrState: quickbooksVendorsModel.billAddrState,
+          billAddrPostalCode: quickbooksVendorsModel.billAddrPostalCode,
+          active: quickbooksVendorsModel.active,
+          quickbooksId: quickbooksVendorsModel.quickbooksId,
+        },
+        // Customer data from quickbooks_customers table
+        customerData: {
+          id: quickbooksCustomersModel.id,
+          displayName: quickbooksCustomersModel.displayName,
+          companyName: quickbooksCustomersModel.companyName,
+          givenName: quickbooksCustomersModel.givenName,
+          familyName: quickbooksCustomersModel.familyName,
+          primaryEmail: quickbooksCustomersModel.primaryEmail,
+          primaryPhone: quickbooksCustomersModel.primaryPhone,
+          billAddrLine1: quickbooksCustomersModel.billAddrLine1,
+          billAddrCity: quickbooksCustomersModel.billAddrCity,
+          billAddrState: quickbooksCustomersModel.billAddrState,
+          billAddrPostalCode: quickbooksCustomersModel.billAddrPostalCode,
+          billAddrCountry: quickbooksCustomersModel.billAddrCountry,
+          balance: quickbooksCustomersModel.balance,
+          active: quickbooksCustomersModel.active,
+          quickbooksId: quickbooksCustomersModel.quickbooksId,
+        },
       })
       .from(invoiceModel)
       .leftJoin(
         attachmentsModel,
         eq(invoiceModel.attachmentId, attachmentsModel.id),
+      )
+      .leftJoin(
+        quickbooksVendorsModel,
+        eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
+      )
+      .leftJoin(
+        quickbooksCustomersModel,
+        eq(invoiceModel.customerId, quickbooksCustomersModel.id),
       )
       .where(
         and(
@@ -271,8 +353,9 @@ export class InvoiceServices {
         id: invoiceModel.id,
         status: invoiceModel.status,
         invoiceNumber: invoiceModel.invoiceNumber,
-        vendorName: invoiceModel.vendorName,
+        vendorId: invoiceModel.vendorId,
         totalAmount: invoiceModel.totalAmount,
+        isDuplicate: invoiceModel.isDuplicate,
       })
       .from(invoiceModel)
       .where(
@@ -294,17 +377,262 @@ export class InvoiceServices {
       throw new NotFoundError("No invoice found to update.");
     }
 
-
     try {
-      const [response] = await db
-        .update(invoiceModel)
-        .set({ ...updatedData, updatedAt: new Date() })
-        .where(eq(invoiceModel.id, invoiceId))
-        .returning();
+      // Check if vendor data is included in the update
+      const vendorData = (updatedData as any).vendorData;
+      const customerData = (updatedData as any).customerData;
 
-      return response;
+      // Update the invoice (exclude vendorData and customerData from invoice update)
+      const { vendorData: _, customerData: __, ...invoiceUpdateData } = updatedData as any;
+
+      // Re-check for duplicates if invoice number is being updated
+      if (invoiceUpdateData.invoiceNumber && invoiceUpdateData.invoiceNumber !== existingInvoice.invoiceNumber) {
+        // Use vendorId from update data if provided, otherwise use existing
+        const vendorIdToCheck = invoiceUpdateData.vendorId ?? existingInvoice.vendorId;
+
+        if (vendorIdToCheck) {
+          // Check for duplicates: same invoice number + same vendor + same user (excluding current invoice)
+          const duplicates = await db
+            .select()
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, existingInvoice.userId),
+                eq(invoiceModel.vendorId, vendorIdToCheck),
+                eq(invoiceModel.invoiceNumber, invoiceUpdateData.invoiceNumber),
+                eq(invoiceModel.isDeleted, false),
+                ne(invoiceModel.status, "rejected"),
+                ne(invoiceModel.id, invoiceId)
+              )
+            );
+
+          // If duplicate exists, prevent the update and throw error
+          if (duplicates.length > 0) {
+            throw new BadRequestError("This invoice number already exists for this vendor. Please use a different invoice number.");
+          }
+
+          // If no duplicate, set isDuplicate to false (clearing any previous duplicate flag)
+          invoiceUpdateData.isDuplicate = false;
+        } else {
+          // If no vendor, can't be a duplicate, so set to false
+          invoiceUpdateData.isDuplicate = false;
+        }
+      }
+
+      await db
+        .update(invoiceModel)
+        .set({ ...invoiceUpdateData, updatedAt: new Date() })
+        .where(eq(invoiceModel.id, invoiceId));
+
+      // Update vendor data if provided and vendorId exists
+      if (vendorData && existingInvoice.vendorId) {
+        const vendorUpdateData: any = {};
+
+        // Map vendor fields from frontend to database fields
+        if (vendorData.displayName !== undefined) {
+          vendorUpdateData.displayName = vendorData.displayName;
+        }
+        if (vendorData.primaryEmail !== undefined) {
+          vendorUpdateData.primaryEmail = vendorData.primaryEmail;
+        }
+        if (vendorData.primaryPhone !== undefined) {
+          vendorUpdateData.primaryPhone = vendorData.primaryPhone;
+        }
+        if (vendorData.billAddrLine1 !== undefined) {
+          vendorUpdateData.billAddrLine1 = vendorData.billAddrLine1;
+        }
+        if (vendorData.billAddrCity !== undefined) {
+          vendorUpdateData.billAddrCity = vendorData.billAddrCity;
+        }
+        if (vendorData.billAddrState !== undefined) {
+          vendorUpdateData.billAddrState = vendorData.billAddrState;
+        }
+        if (vendorData.billAddrPostalCode !== undefined) {
+          vendorUpdateData.billAddrPostalCode = vendorData.billAddrPostalCode;
+        }
+
+        // Only update if there are vendor fields to update
+        if (Object.keys(vendorUpdateData).length > 0) {
+          vendorUpdateData.updatedAt = new Date();
+
+          await db
+            .update(quickbooksVendorsModel)
+            .set(vendorUpdateData)
+            .where(eq(quickbooksVendorsModel.id, existingInvoice.vendorId));
+        }
+      }
+
+      // Update customer data if provided and customerId exists
+      if (customerData && existingInvoice.customerId) {
+        const customerUpdateData: any = {};
+
+        // Map customer fields from frontend to database fields
+        if (customerData.displayName !== undefined) {
+          customerUpdateData.displayName = customerData.displayName;
+        }
+
+        // Only update if there are customer fields to update
+        if (Object.keys(customerUpdateData).length > 0) {
+          customerUpdateData.updatedAt = new Date();
+
+          // Get current customer data BEFORE updating for QuickBooks comparison
+          let currentCustomerData = null;
+          try {
+            const quickbooksService = new (await import('./quickbooks.service')).QuickBooksService();
+            const integration = await quickbooksService.getUserIntegration(existingInvoice.userId);
+
+            if (integration) {
+              // Get current customer data before update
+              [currentCustomerData] = await db
+                .select({
+                  quickbooksId: quickbooksCustomersModel.quickbooksId,
+                  syncToken: quickbooksCustomersModel.syncToken,
+                  displayName: quickbooksCustomersModel.displayName,
+                })
+                .from(quickbooksCustomersModel)
+                .where(eq(quickbooksCustomersModel.id, existingInvoice.customerId))
+                .limit(1);
+
+              // Update local database first
+              await db
+                .update(quickbooksCustomersModel)
+                .set(customerUpdateData)
+                .where(eq(quickbooksCustomersModel.id, existingInvoice.customerId));
+
+              // Now sync to QuickBooks if we have the necessary data
+              if (currentCustomerData?.quickbooksId && currentCustomerData?.syncToken) {
+                // Check what actually changed
+                const hasChanges = (
+                  customerData.displayName !== undefined && customerData.displayName !== currentCustomerData.displayName
+                );
+
+                if (hasChanges) {
+                  console.log("Syncing customer changes to QuickBooks...");
+
+                  // Prepare QuickBooks update data
+                  const qbCustomerData: any = {
+                    syncToken: currentCustomerData.syncToken
+                  };
+
+                  if (customerData.displayName !== undefined && customerData.displayName !== currentCustomerData.displayName) {
+                    qbCustomerData.name = customerData.displayName;
+                  }
+
+                  // Update in QuickBooks (we'll need to implement updateCustomer method)
+                  const updatedQBCustomer = await quickbooksService.updateCustomer(
+                    integration,
+                    currentCustomerData.quickbooksId,
+                    qbCustomerData
+                  );
+
+                  // Update sync token with response
+                  const newSyncToken = updatedQBCustomer?.QueryResponse?.Customer?.[0]?.SyncToken ||
+                    updatedQBCustomer?.Customer?.SyncToken ||
+                    updatedQBCustomer?.SyncToken;
+
+                  if (newSyncToken) {
+                    await db
+                      .update(quickbooksCustomersModel)
+                      .set({
+                        syncToken: newSyncToken,
+                        updatedAt: new Date()
+                      })
+                      .where(eq(quickbooksCustomersModel.id, existingInvoice.customerId));
+                  }
+                } else {
+                  console.log("No customer changes detected for QuickBooks sync");
+                }
+              }
+            } else {
+              // No QuickBooks integration, just update local database
+              await db
+                .update(quickbooksCustomersModel)
+                .set(customerUpdateData)
+                .where(eq(quickbooksCustomersModel.id, existingInvoice.customerId));
+            }
+          } catch (qbError) {
+            console.error("QuickBooks customer sync error:", qbError);
+            // If QuickBooks sync fails, still update local database
+            if (!currentCustomerData) {
+              await db
+                .update(quickbooksCustomersModel)
+                .set(customerUpdateData)
+                .where(eq(quickbooksCustomersModel.id, existingInvoice.customerId));
+            }
+          }
+        }
+      }
+
+      // Fetch the updated invoice with vendor and customer data using JOIN
+      const [updatedInvoiceWithData] = await db
+        .select({
+          ...getTableColumns(invoiceModel),
+          sourcePdfUrl: attachmentsModel.fileUrl,
+          senderEmail: attachmentsModel.sender,
+          // Vendor data from quickbooks_vendors table
+          vendorData: {
+            id: quickbooksVendorsModel.id,
+            displayName: quickbooksVendorsModel.displayName,
+            companyName: quickbooksVendorsModel.companyName,
+            primaryEmail: quickbooksVendorsModel.primaryEmail,
+            primaryPhone: quickbooksVendorsModel.primaryPhone,
+            billAddrLine1: quickbooksVendorsModel.billAddrLine1,
+            billAddrCity: quickbooksVendorsModel.billAddrCity,
+            billAddrState: quickbooksVendorsModel.billAddrState,
+            billAddrPostalCode: quickbooksVendorsModel.billAddrPostalCode,
+            active: quickbooksVendorsModel.active,
+            quickbooksId: quickbooksVendorsModel.quickbooksId,
+          },
+          // Customer data from quickbooks_customers table
+          customerData: {
+            id: quickbooksCustomersModel.id,
+            displayName: quickbooksCustomersModel.displayName,
+            companyName: quickbooksCustomersModel.companyName,
+            givenName: quickbooksCustomersModel.givenName,
+            familyName: quickbooksCustomersModel.familyName,
+            primaryEmail: quickbooksCustomersModel.primaryEmail,
+            primaryPhone: quickbooksCustomersModel.primaryPhone,
+            billAddrLine1: quickbooksCustomersModel.billAddrLine1,
+            billAddrCity: quickbooksCustomersModel.billAddrCity,
+            billAddrState: quickbooksCustomersModel.billAddrState,
+            billAddrPostalCode: quickbooksCustomersModel.billAddrPostalCode,
+            billAddrCountry: quickbooksCustomersModel.billAddrCountry,
+            balance: quickbooksCustomersModel.balance,
+            active: quickbooksCustomersModel.active,
+            quickbooksId: quickbooksCustomersModel.quickbooksId,
+          },
+        })
+        .from(invoiceModel)
+        .leftJoin(
+          attachmentsModel,
+          eq(invoiceModel.attachmentId, attachmentsModel.id),
+        )
+        .leftJoin(
+          quickbooksVendorsModel,
+          eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
+        )
+        .leftJoin(
+          quickbooksCustomersModel,
+          eq(invoiceModel.customerId, quickbooksCustomersModel.id),
+        )
+        .where(
+          and(
+            eq(invoiceModel.id, invoiceId),
+            eq(invoiceModel.isDeleted, false)
+          )
+        );
+
+      if (!updatedInvoiceWithData) {
+        throw new NotFoundError("Invoice not found after update");
+      }
+
+      return updatedInvoiceWithData;
     } catch (error) {
-      console.log(error);
+      console.error("Error updating invoice:", error);
+      // Re-throw the error if it's already a BadRequestError or NotFoundError
+      if (error instanceof BadRequestError || error instanceof NotFoundError) {
+        throw error;
+      }
       throw new BadRequestError("Unable to update invoice");
     }
   }
@@ -345,12 +673,19 @@ export class InvoiceServices {
     }
   }
 
-  async getInvoiceLineItems(invoiceId: number) {
+  async getInvoiceLineItems(invoiceId: number, viewType?: 'single' | 'expanded') {
     try {
+      const whereConditions = [eq(lineItemsModel.invoiceId, invoiceId)];
+
+      // Filter by view type if specified
+      if (viewType) {
+        whereConditions.push(eq(lineItemsModel.viewType, viewType));
+      }
+
       const lineItems = await db
         .select()
         .from(lineItemsModel)
-        .where(eq(lineItemsModel.invoiceId, invoiceId));
+        .where(and(...whereConditions));
 
       return lineItems;
     } catch (error) {
@@ -666,17 +1001,22 @@ export class InvoiceServices {
     }
   }
 
-  async getLineItemsByInvoiceId(invoiceId: number) {
+  async getLineItemsByInvoiceId(invoiceId: number, viewType?: 'single' | 'expanded') {
     try {
+      const whereConditions = [
+        eq(lineItemsModel.invoiceId, invoiceId),
+        eq(lineItemsModel.isDeleted, false)
+      ];
+
+      // Filter by view type if specified
+      if (viewType) {
+        whereConditions.push(eq(lineItemsModel.viewType, viewType));
+      }
+
       const lineItems = await db
         .select()
         .from(lineItemsModel)
-        .where(
-          and(
-            eq(lineItemsModel.invoiceId, invoiceId),
-            eq(lineItemsModel.isDeleted, false)
-          )
-        );
+        .where(and(...whereConditions));
 
       return lineItems;
     } catch (error) {
@@ -685,18 +1025,92 @@ export class InvoiceServices {
     }
   }
 
-  async updateInvoiceStatus(invoiceId: number, status: string) {
+  async updateInvoiceStatus(invoiceId: number, status: string, rejectionReason?: string, recipientEmails?: string[]) {
     try {
-      const [updatedInvoice] = await db
+      // Store comma-separated emails for backward compatibility in DB
+      const emailsString = recipientEmails?.join(', ') || null;
+
+      // Update the invoice status
+      await db
         .update(invoiceModel)
         .set({
           status: status as any,
+          rejectionEmailSender: emailsString,
+          rejectionReason: rejectionReason || null,
           updatedAt: new Date()
         })
-        .where(eq(invoiceModel.id, invoiceId))
-        .returning();
+        .where(eq(invoiceModel.id, invoiceId));
 
-      return updatedInvoice;
+      // Fetch the updated invoice with vendor data using JOIN
+      const [updatedInvoiceWithVendor] = await db
+        .select({
+          ...getTableColumns(invoiceModel),
+          sourcePdfUrl: attachmentsModel.fileUrl,
+          // Vendor data from quickbooks_vendors table
+          vendorData: {
+            id: quickbooksVendorsModel.id,
+            displayName: quickbooksVendorsModel.displayName,
+            companyName: quickbooksVendorsModel.companyName,
+            primaryEmail: quickbooksVendorsModel.primaryEmail,
+            primaryPhone: quickbooksVendorsModel.primaryPhone,
+            billAddrLine1: quickbooksVendorsModel.billAddrLine1,
+            billAddrCity: quickbooksVendorsModel.billAddrCity,
+            billAddrState: quickbooksVendorsModel.billAddrState,
+            billAddrPostalCode: quickbooksVendorsModel.billAddrPostalCode,
+            active: quickbooksVendorsModel.active,
+            quickbooksId: quickbooksVendorsModel.quickbooksId,
+          },
+          userData: {
+            firstName: usersModel.firstName,
+            lastName: usersModel.lastName,
+            companyName: usersModel.businessName,
+          },
+        })
+        .from(invoiceModel)
+        .leftJoin(
+          attachmentsModel,
+          eq(invoiceModel.attachmentId, attachmentsModel.id),
+        )
+        .leftJoin(
+          quickbooksVendorsModel,
+          eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
+        )
+        .leftJoin(
+          usersModel,
+          eq(invoiceModel.userId, usersModel.id),
+        )
+        .where(
+          and(
+            eq(invoiceModel.id, invoiceId),
+            eq(invoiceModel.isDeleted, false)
+          )
+        );
+
+      if (!updatedInvoiceWithVendor) {
+        throw new NotFoundError("Invoice not found after update");
+      }
+
+      // Send rejection email if status is "rejected" and recipient emails are provided
+      if (status === "rejected" && recipientEmails && recipientEmails.length > 0) {
+        const senderName = `${updatedInvoiceWithVendor?.userData?.firstName} ${updatedInvoiceWithVendor?.userData?.lastName}`.trim() || 'Me';
+        const senderCompany = updatedInvoiceWithVendor?.userData?.companyName || 'My Company';
+        try {
+          await emailService.sendInvoiceRejectionEmail({
+            to: recipientEmails,
+            invoiceNumber: updatedInvoiceWithVendor.invoiceNumber || `INV-${invoiceId}`,
+            vendorName: updatedInvoiceWithVendor.vendorData?.displayName || undefined,
+            rejectionReason: rejectionReason,
+            senderName: senderName,
+            senderCompany: senderCompany,
+            invoiceFileUrl: updatedInvoiceWithVendor.fileUrl || undefined,
+          });
+          console.log(`Rejection email sent to ${recipientEmails.join(', ')} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
+        } catch (emailError) {
+          console.error("Failed to send rejection email:", emailError);
+        }
+      }
+
+      return updatedInvoiceWithVendor;
     } catch (error) {
       console.error("Error updating invoice status:", error);
       throw error;
@@ -761,11 +1175,8 @@ export class InvoiceServices {
           userId: originalInvoice.userId,
           attachmentId: originalInvoice.attachmentId,
           invoiceNumber: newInvoiceNumber,
-          vendorName: originalInvoice.vendorName,
-          vendorAddress: originalInvoice.vendorAddress,
-          vendorPhone: originalInvoice.vendorPhone,
-          vendorEmail: originalInvoice.vendorEmail,
-          customerName: originalInvoice.customerName,
+          vendorId: originalInvoice.vendorId,
+          customerId: originalInvoice.customerId,
           invoiceDate: originalInvoice.invoiceDate,
           dueDate: originalInvoice.dueDate,
           totalAmount: originalInvoice.totalAmount,
@@ -866,11 +1277,8 @@ export class InvoiceServices {
           userId: originalInvoice.userId,
           attachmentId: originalInvoice.attachmentId,
           invoiceNumber: newInvoiceNumber,
-          vendorName: originalInvoice.vendorName,
-          vendorAddress: originalInvoice.vendorAddress,
-          vendorPhone: originalInvoice.vendorPhone,
-          vendorEmail: originalInvoice.vendorEmail,
-          customerName: originalInvoice.customerName,
+          vendorId: originalInvoice.vendorId,
+          customerId: originalInvoice.customerId,
           invoiceDate: originalInvoice.invoiceDate,
           dueDate: originalInvoice.dueDate,
           totalAmount: totalAmount,
@@ -1119,26 +1527,10 @@ export class InvoiceServices {
         invoiceConditions.push(lt(invoiceModel.createdAt, endDate));
       }
 
-      const [invoicesThisMonthResult] = await db
+      const [invoicesResult] = await db
         .select({ count: count() })
         .from(invoiceModel)
         .where(and(...invoiceConditions));
-
-      // Count pending invoices in the selected date range
-      const pendingConditions = [
-        eq(invoiceModel.userId, userId),
-        eq(invoiceModel.isDeleted, false),
-        eq(invoiceModel.status, "pending"),
-      ];
-      if (startDate && endDate) {
-        pendingConditions.push(gte(invoiceModel.createdAt, startDate));
-        pendingConditions.push(lt(invoiceModel.createdAt, endDate));
-      }
-
-      const [pendingThisMonthResult] = await db
-        .select({ count: count() })
-        .from(invoiceModel)
-        .where(and(...pendingConditions));
 
       // Count approved invoices in the selected date range
       const approvedConditions = [
@@ -1151,7 +1543,7 @@ export class InvoiceServices {
         approvedConditions.push(lt(invoiceModel.createdAt, endDate));
       }
 
-      const [approvedThisMonthResult] = await db
+      const [approvedResult] = await db
         .select({ count: count() })
         .from(invoiceModel)
         .where(and(...approvedConditions));
@@ -1167,10 +1559,22 @@ export class InvoiceServices {
         rejectedConditions.push(lt(invoiceModel.createdAt, endDate));
       }
 
-      const [rejectedThisMonthResult] = await db
+      const [rejectedResult] = await db
         .select({ count: count() })
         .from(invoiceModel)
         .where(and(...rejectedConditions));
+
+      // Count ALL pending invoices (not date-filtered) for "Pending Review"
+      const [allPendingResult] = await db
+        .select({ count: count() })
+        .from(invoiceModel)
+        .where(
+          and(
+            eq(invoiceModel.userId, userId),
+            eq(invoiceModel.isDeleted, false),
+            eq(invoiceModel.status, "pending")
+          )
+        );
 
       // Calculate total outstanding (sum of totalAmount for ALL pending invoices)
       const [totalOutstandingResult] = await db
@@ -1186,18 +1590,256 @@ export class InvoiceServices {
           )
         );
 
+      const metrics = {
+        invoicesThisMonth: invoicesResult.count,
+        pendingThisMonth: allPendingResult.count, // All pending invoices, not date-filtered
+        approvedThisMonth: approvedResult.count,
+        rejectedThisMonth: rejectedResult.count,
+        totalOutstanding: parseFloat(totalOutstandingResult.total || "0"),
+      };
+
       return {
         recentInvoices,
-        metrics: {
-          invoicesThisMonth: invoicesThisMonthResult.count,
-          pendingThisMonth: pendingThisMonthResult.count,
-          approvedThisMonth: approvedThisMonthResult.count,
-          rejectedThisMonth: rejectedThisMonthResult.count,
-          totalOutstanding: parseFloat(totalOutstandingResult.total || "0"),
-        },
+        metrics,
       };
     } catch (error) {
       console.error("Error fetching dashboard metrics:", error);
+      throw error;
+    }
+  }
+
+  async getInvoiceTrends(userId: number, dateRange: 'monthly' | 'all-time' = 'monthly') {
+    try {
+      const now = new Date();
+      let trendData: any[] = [];
+
+      if (dateRange === 'monthly') {
+        // Get weekly data for current month
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        // Calculate actual weeks of the current month
+        const weeks: { start: Date; end: Date; name: string }[] = [];
+        let currentWeekStart = new Date(startOfMonth);
+
+        // Find the first Monday of the month (or start of month if it's later)
+        const firstDayOfWeek = startOfMonth.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        if (firstDayOfWeek !== 1) { // If not Monday
+          // Go back to the previous Monday, but not before start of month
+          const daysToSubtract = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+          currentWeekStart.setDate(currentWeekStart.getDate() - daysToSubtract);
+          if (currentWeekStart < startOfMonth) {
+            currentWeekStart = new Date(startOfMonth);
+          }
+        }
+
+        let weekNumber = 1;
+        while (currentWeekStart <= endOfMonth) {
+          const weekEnd = new Date(currentWeekStart);
+          weekEnd.setDate(weekEnd.getDate() + 6);
+
+          // Don't go beyond end of month
+          if (weekEnd > endOfMonth) {
+            weekEnd.setTime(endOfMonth.getTime());
+          }
+
+          // Only include weeks that have at least one day in the current month
+          if (weekEnd >= startOfMonth) {
+            weeks.push({
+              start: new Date(Math.max(currentWeekStart.getTime(), startOfMonth.getTime())),
+              end: new Date(weekEnd),
+              name: `Week ${weekNumber}`
+            });
+            weekNumber++;
+          }
+
+          // Move to next week
+          currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+        }
+
+        // Generate data for each week
+        for (const week of weeks) {
+          const [invoiceCount] = await db
+            .select({ count: count() })
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, userId),
+                eq(invoiceModel.isDeleted, false),
+                inArray(invoiceModel.status, ['pending', 'approved']),
+                gte(invoiceModel.invoiceDate, week.start),
+                lte(invoiceModel.invoiceDate, week.end)
+              )
+            );
+
+          const [totalAmount] = await db
+            .select({
+              total: sql<string>`COALESCE(SUM(${invoiceModel.totalAmount}::numeric), 0)`,
+            })
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, userId),
+                eq(invoiceModel.isDeleted, false),
+                inArray(invoiceModel.status, ['pending', 'approved']),
+                gte(invoiceModel.invoiceDate, week.start),
+                lte(invoiceModel.invoiceDate, week.end)
+              )
+            );
+
+          trendData.push({
+            name: week.name,
+            invoices: invoiceCount.count,
+            amount: parseFloat(totalAmount.total || "0"),
+          });
+        }
+      } else {
+        // Get yearly data for all-time view
+        const earliestYear = 1970; // Start from a reasonable earliest year
+        const currentYear = now.getFullYear();
+
+        for (let year = earliestYear; year <= currentYear; year++) {
+          const yearStart = new Date(year, 0, 1);
+          const yearEnd = new Date(year, 11, 31, 23, 59, 59);
+
+          const [invoiceCount] = await db
+            .select({ count: count() })
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, userId),
+                eq(invoiceModel.isDeleted, false),
+                inArray(invoiceModel.status, ['pending', 'approved']),
+                gte(invoiceModel.invoiceDate, yearStart),
+                lte(invoiceModel.invoiceDate, yearEnd)
+              )
+            );
+
+          const [totalAmount] = await db
+            .select({
+              total: sql<string>`COALESCE(SUM(${invoiceModel.totalAmount}::numeric), 0)`,
+            })
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, userId),
+                eq(invoiceModel.isDeleted, false),
+                inArray(invoiceModel.status, ['pending', 'approved']),
+                gte(invoiceModel.invoiceDate, yearStart),
+                lte(invoiceModel.invoiceDate, yearEnd)
+              )
+            );
+
+          // Only include years that have data
+          if (invoiceCount.count > 0) {
+            trendData.push({
+              name: year.toString(),
+              invoices: invoiceCount.count,
+              amount: parseFloat(totalAmount.total || "0"),
+            });
+          }
+        }
+      }
+
+      return trendData;
+    } catch (error) {
+      console.error("Error fetching invoice trends:", error);
+      throw error;
+    }
+  }
+
+  async getQuickBooksVendorById(vendorId: number) {
+    const vendor = await db
+      .select({
+        id: quickbooksVendorsModel.id,
+        displayName: quickbooksVendorsModel.displayName,
+        companyName: quickbooksVendorsModel.companyName,
+        primaryEmail: quickbooksVendorsModel.primaryEmail,
+        primaryPhone: quickbooksVendorsModel.primaryPhone,
+        billAddrLine1: quickbooksVendorsModel.billAddrLine1,
+        billAddrCity: quickbooksVendorsModel.billAddrCity,
+        billAddrState: quickbooksVendorsModel.billAddrState,
+        billAddrPostalCode: quickbooksVendorsModel.billAddrPostalCode,
+        active: quickbooksVendorsModel.active,
+        quickbooksId: quickbooksVendorsModel.quickbooksId,
+      })
+      .from(quickbooksVendorsModel)
+      .where(eq(quickbooksVendorsModel.id, vendorId))
+      .limit(1);
+
+    return vendor.length > 0 ? vendor[0] : null;
+  }
+
+  async createOrUpdateSingleModeLineItem(data: {
+    userId: number;
+    invoiceId: number;
+    itemType: 'account' | 'product';
+    resourceId: string;
+    customerId?: string;
+    quantity?: string;
+    rate?: string;
+    totalAmount: string;
+    description: string;
+  }) {
+    try {
+      // Get existing single mode line item for this invoice
+      const [existingSingleItem] = await db
+        .select()
+        .from(lineItemsModel)
+        .where(
+          and(
+            eq(lineItemsModel.invoiceId, data.invoiceId),
+            eq(lineItemsModel.viewType, 'single')
+          )
+        );
+
+      let lineItemData;
+
+      if (existingSingleItem) {
+        // Update existing single mode line item (no QuickBooks item creation needed)
+        const [updatedLineItem] = await db
+          .update(lineItemsModel)
+          .set({
+            item_name: data.description,
+            description: data.description,
+            quantity: data.quantity || "1",
+            rate: data.rate || data.totalAmount,
+            amount: data.totalAmount,
+            itemType: data.itemType,
+            resourceId: data.resourceId,
+            customerId: data.customerId,
+            updatedAt: new Date(),
+          })
+          .where(eq(lineItemsModel.id, existingSingleItem.id))
+          .returning();
+
+        lineItemData = updatedLineItem;
+      } else {
+        // Create new single mode line item (no QuickBooks item creation needed - use existing resourceId)
+        const [newLineItem] = await db
+          .insert(lineItemsModel)
+          .values({
+            invoiceId: data.invoiceId,
+            item_name: data.description,
+            description: data.description,
+            quantity: data.quantity || "1",
+            rate: data.rate || data.totalAmount,
+            amount: data.totalAmount,
+            itemType: data.itemType,
+            resourceId: data.resourceId, // This is already a QuickBooks ID from the dropdown selection
+            customerId: data.customerId,
+            viewType: 'single',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+
+        lineItemData = newLineItem;
+      }
+
+      return lineItemData;
+    } catch (error: any) {
+      console.error("Error in createOrUpdateSingleModeLineItem:", error);
       throw error;
     }
   }
