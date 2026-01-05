@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { InvoiceDetails } from "@/lib/types/invoice";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui/components/tooltip";
 
 // Categorized rejection reasons
 const REJECTION_REASONS = {
@@ -110,6 +111,9 @@ interface ConfirmationModalsProps {
   onFieldChange?: () => void;
   vendorData?: any;
   customerData?: any;
+  lineItemsViewMode?: 'single' | 'expand';
+  singleModeSaveRef?: React.MutableRefObject<(() => Promise<void>) | null>;
+  isDuplicate?: boolean;
 }
 
 export default function ConfirmationModals({
@@ -120,6 +124,9 @@ export default function ConfirmationModals({
   onInvoiceDetailsUpdate,
   vendorData,
   customerData,
+  lineItemsViewMode,
+  singleModeSaveRef,
+  isDuplicate = false,
 }: ConfirmationModalsProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
@@ -249,6 +256,17 @@ export default function ConfirmationModals({
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
+
+    // If in single mode and single mode save function is available, call it first
+    if (lineItemsViewMode === 'single' && singleModeSaveRef?.current) {
+      try {
+        await singleModeSaveRef.current();
+      } catch (error) {
+        console.error('Error saving single mode data:', error);
+        // Continue with regular save even if single mode save fails
+      }
+    }
+
     await onSave(vendorData, customerData);
     setIsSaving(false);
   };
@@ -293,8 +311,11 @@ export default function ConfirmationModals({
         return { isValid: true, incompleteItems: [] };
       }
 
-      // Fetch line items from database
-      const response: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceId}`);
+      // Determine which line items to validate based on current view mode
+      const viewTypeToCheck = lineItemsViewMode === 'single' ? 'single' : 'expanded';
+
+      // Fetch line items from database based on current view mode
+      const response: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceId}?viewType=${viewTypeToCheck}`);
 
       if (!response.success || !response.data) {
         return { isValid: true, incompleteItems: [] };
@@ -303,13 +324,22 @@ export default function ConfirmationModals({
       const lineItems = response.data;
       const incompleteItems: string[] = [];
 
+      // If in single mode and no single line item exists, it's invalid
+      if (lineItemsViewMode === 'single' && lineItems.length === 0) {
+        return {
+          isValid: false,
+          incompleteItems: ['Single line item not configured. Please configure Cost Type and Category in single mode.']
+        };
+      }
+
       // Check each line item for missing itemType or resourceId
       lineItems.forEach((item: any) => {
         const hasItemType = item.itemType && (item.itemType === 'account' || item.itemType === 'product');
         const hasResourceId = item.resourceId && item.resourceId.trim() !== '';
 
         if (!hasItemType || !hasResourceId) {
-          incompleteItems.push(item.item_name || `Line Item ${item.id}`);
+          const itemName = item.item_name || item.description || `Line Item ${item.id}`;
+          incompleteItems.push(itemName);
         }
       });
 
@@ -329,6 +359,17 @@ export default function ConfirmationModals({
     // Step 0: Auto-save if there are unsaved changes (check if onFieldChange was called)
     // We'll always save before approval to ensure latest changes are persisted
     setIsSaving(true);
+
+    // If in single mode and single mode save function is available, call it first
+    if (lineItemsViewMode === 'single' && singleModeSaveRef?.current) {
+      try {
+        await singleModeSaveRef.current();
+      } catch (error) {
+        console.error('Error saving single mode data:', error);
+        // Continue with regular save even if single mode save fails
+      }
+    }
+
     await onSave(vendorData, customerData);
     setIsSaving(false);
 
@@ -355,22 +396,100 @@ export default function ConfirmationModals({
     setIsApproving(true);
 
     try {
-      // Step 1: Get line items from database using invoice ID
+      // Step 1: Get line items from database using invoice ID based on current view mode
       const invoiceId = invoiceDetails.id;
       if (!invoiceId) {
         throw new Error("Invoice ID not found");
       }
 
-      const dbLineItemsResponse: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceId}`);
+      // Use the appropriate line items based on current view mode
+      const viewTypeToUse = lineItemsViewMode === 'single' ? 'single' : 'expanded';
+      const dbLineItemsResponse: any = await client.get(`/api/v1/invoice/line-items/invoice/${invoiceId}?viewType=${viewTypeToUse}`);
 
       if (dbLineItemsResponse.success && dbLineItemsResponse.data.length > 0) {
         const lineItems = dbLineItemsResponse.data;
         const totalAmountFromPopup = parseFloat(invoiceDetails?.totalAmount ?? "0") || 0;
         const lineItemsSum = lineItems.reduce((sum: number, item: any) => sum + (parseFloat(item.amount) || 0), 0);
         const discountAmount = lineItemsSum - totalAmountFromPopup;
-        const vendorId = invoiceDetails?.vendorData?.quickbooksId;
+        let vendorId = invoiceDetails?.vendorData?.quickbooksId;
 
         const totalTaxAmount = parseFloat(invoiceDetails?.totalTax ?? "0") || 0;
+
+        // Only create vendor in QuickBooks if it's a local vendor (starts with "LOCAL_")
+        // If we already have a real QuickBooks vendor ID, use it directly
+        if (vendorId && vendorId.startsWith("LOCAL_")) {
+          console.log("Local vendor detected, creating in QuickBooks first...");
+
+          try {
+            // Create vendor in QuickBooks first
+            const createVendorResponse = await client.post("/api/v1/quickbooks/create-vendor", {
+              name: invoiceDetails?.vendorData?.displayName || invoiceDetails?.vendorData?.companyName || "Unknown Vendor",
+              email: invoiceDetails?.vendorData?.primaryEmail || undefined,
+              phone: invoiceDetails?.vendorData?.primaryPhone || undefined,
+              address: invoiceDetails?.vendorData?.billAddrLine1 || undefined,
+            });
+
+            // Handle different response formats from QuickBooks API
+            let newQuickBooksVendorId = null;
+
+            if (createVendorResponse.data?.success) {
+              // Try different response paths for both newly created and existing vendors
+              if (createVendorResponse.data?.vendor?.QueryResponse?.Vendor?.[0]?.Id) {
+                // This handles both new vendor creation and existing vendor return
+                newQuickBooksVendorId = createVendorResponse.data.vendor.QueryResponse.Vendor[0].Id;
+              } else if (createVendorResponse.data?.vendor?.Vendor?.Id) {
+                // Alternative format for direct vendor creation
+                newQuickBooksVendorId = createVendorResponse.data.vendor.Vendor.Id;
+              } else if (createVendorResponse.data?.data?.QueryResponse?.Vendor?.[0]?.Id) {
+                // Another possible response format
+                newQuickBooksVendorId = createVendorResponse.data.data.QueryResponse.Vendor[0].Id;
+              }
+            }
+
+            if (newQuickBooksVendorId) {
+              // Update the vendorId to use the new QuickBooks vendor ID
+              vendorId = newQuickBooksVendorId;
+              console.log(`Created vendor in QuickBooks with ID: ${vendorId}`);
+
+              // Optional: Update the local vendor record with the real QuickBooks ID
+              // This prevents creating the same vendor multiple times in QuickBooks
+              try {
+                await client.patch(`/api/v1/vendors/${invoiceDetails?.vendorData?.id}`, {
+                  quickbooksId: newQuickBooksVendorId
+                });
+              } catch (updateError) {
+                console.warn("Failed to update local vendor with QuickBooks ID:", updateError);
+                // Don't fail the bill creation if local update fails
+              }
+            } else {
+              console.error("Vendor creation response:", createVendorResponse.data);
+              throw new Error("Failed to create vendor in QuickBooks - no ID returned in response");
+            }
+          } catch (vendorError: any) {
+            console.error("Error creating vendor in QuickBooks:", vendorError);
+
+            // Show specific error for vendor creation failure
+            toast.dismiss();
+            toast.error("Vendor Creation Failed", {
+              description: `Cannot create bill: ${vendorError.response?.data?.error || vendorError.message || 'Failed to create vendor in QuickBooks'}`,
+              duration: 7000,
+            });
+            setIsDialogOpen(false);
+            setIsApproving(false);
+            return;
+          }
+        } else if (!vendorId) {
+          // If no vendor ID at all, show error
+          toast.dismiss();
+          toast.error("Vendor Missing", {
+            description: "No vendor information found for this invoice. Cannot create bill in QuickBooks.",
+            duration: 7000,
+          });
+          setIsDialogOpen(false);
+          setIsApproving(false);
+          return;
+        }
+        // If vendorId exists and doesn't start with "LOCAL_", it's already a valid QuickBooks ID - use it directly
 
         try {
           await client.post("/api/v1/quickbooks/create-bill", {
@@ -384,7 +503,10 @@ export default function ConfirmationModals({
             ...(discountAmount > 0 && {
               discountAmount: discountAmount,
               discountDescription: "Invoice Discount"
-            })
+            }),
+            // Include PDF attachment URL
+            attachmentUrl: invoiceDetails.fileUrl || invoiceDetails.sourcePdfUrl,
+            invoiceNumber: invoiceDetails.invoiceNumber
           });
 
         } catch (error: any) {
@@ -484,8 +606,18 @@ export default function ConfirmationModals({
     setIsRejecting(true);
 
     try {
-      // Save invoice changes first
-      await onSave();
+      // Save invoice changes first (including single mode if applicable)
+      // If in single mode and single mode save function is available, call it first
+      if (lineItemsViewMode === 'single' && singleModeSaveRef?.current) {
+        try {
+          await singleModeSaveRef.current();
+        } catch (error) {
+          console.error('Error saving single mode data:', error);
+          // Continue with regular save even if single mode save fails
+        }
+      }
+
+      await onSave(vendorData, customerData);
 
       const invoiceId = invoiceDetails.id;
 
@@ -744,13 +876,26 @@ export default function ConfirmationModals({
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <Button
-            onClick={handleApproveClick}
-            className="bg-green-600 text-white hover:bg-green-700"
-            disabled={isApproving || isSaving}
-          >
-            {isApproving ? "Approving..." : "Approve"}
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={isDuplicate ? "cursor-not-allowed" : ""}>
+                  <Button
+                    onClick={handleApproveClick}
+                    className="bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                    disabled={isApproving || isSaving || isDuplicate}
+                  >
+                    {isApproving ? "Approving..." : "Approve"}
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              {isDuplicate && (
+                <TooltipContent>
+                  <p>Cannot approve duplicate invoice. Please change the invoice number first.</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogContent>
               <DialogHeader>
@@ -776,7 +921,8 @@ export default function ConfirmationModals({
                         'vendorData',
                         'isDeleted',
                         'deletedAt',
-                        'vendorId'
+                        'vendorId',
+                        'customerData'
                       ];
                       return !hiddenFields.includes(key);
                     })
@@ -878,9 +1024,14 @@ export default function ConfirmationModals({
       <Dialog open={isLineItemsErrorOpen} onOpenChange={setIsLineItemsErrorOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Line Items Incomplete</DialogTitle>
+            <DialogTitle>
+              {lineItemsViewMode === 'single' ? 'Single Line Item Incomplete' : 'Line Items Incomplete'}
+            </DialogTitle>
             <DialogDescription>
-              Some line items are missing required categorization. Please complete all line items before approving the invoice.
+              {lineItemsViewMode === 'single'
+                ? 'The single line item is missing required categorization. Please complete the Cost Type and Category before approving the invoice.'
+                : 'Some line items are missing required categorization. Please complete all line items before approving the invoice.'
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="my-4 max-h-[400px] overflow-y-auto">
@@ -893,17 +1044,30 @@ export default function ConfirmationModals({
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-orange-800">
-                    Missing Item Type and Resource Selection
+                    {lineItemsViewMode === 'single'
+                      ? 'Missing Cost Type and Category Selection'
+                      : 'Missing Item Type and Resource Selection'
+                    }
                   </h3>
                   <div className="mt-2 text-sm text-orange-700">
                     <p className="mb-2">
-                      The following line items need both an item type (Account or Cost Code) and a selection:
+                      {lineItemsViewMode === 'single'
+                        ? 'Please configure the single line item with:'
+                        : 'The following line items need both an item type (Indirect or Job Cost) and a selection:'
+                      }
                     </p>
-                    <ul className="list-disc list-inside space-y-1">
-                      {incompleteLineItems.map((itemName, index) => (
-                        <li key={index} className="font-medium">{itemName}</li>
-                      ))}
-                    </ul>
+                    {lineItemsViewMode === 'single' ? (
+                      <ul className="list-disc list-inside space-y-1">
+                        <li className="font-medium">Cost Type (Indirect or Job Cost)</li>
+                        <li className="font-medium">Category selection based on Cost Type</li>
+                      </ul>
+                    ) : (
+                      <ul className="list-disc list-inside space-y-1">
+                        {incompleteLineItems.map((itemName, index) => (
+                          <li key={index} className="font-medium">{itemName}</li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
               </div>
@@ -911,7 +1075,9 @@ export default function ConfirmationModals({
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">OK, I'll Complete Them</Button>
+              <Button variant="outline">
+                {lineItemsViewMode === 'single' ? 'OK, I\'ll Configure It' : 'OK, I\'ll Complete Them'}
+              </Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>

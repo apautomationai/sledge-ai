@@ -742,7 +742,7 @@ export class QuickBooksController {
 
       res.json({
         success: true,
-        data: newVendor,
+        vendor: newVendor,
       });
     } catch (error) {
       next(error);
@@ -754,7 +754,18 @@ export class QuickBooksController {
     try {
       // @ts-ignore - user is added by auth middleware
       const userId = req.user?.id;
-      const { vendorId, lineItems, totalAmount, totalTax, dueDate, invoiceDate, discountAmount, discountDescription } = req.body;
+      const {
+        vendorId,
+        lineItems,
+        totalAmount,
+        totalTax,
+        dueDate,
+        invoiceDate,
+        discountAmount,
+        discountDescription,
+        attachmentUrl,
+        invoiceNumber
+      } = req.body;
 
       if (!userId) {
         throw new BadRequestError("User not authenticated");
@@ -770,7 +781,7 @@ export class QuickBooksController {
         throw new NotFoundError("QuickBooks integration not found");
       }
 
-      const newBill = await quickbooksService.createBill(integration, {
+      const newBill = await quickbooksService.createBillWithAttachment(integration, {
         vendorId,
         lineItems,
         totalAmount,
@@ -779,6 +790,8 @@ export class QuickBooksController {
         invoiceDate,
         discountAmount,
         discountDescription,
+        attachmentUrl,
+        invoiceNumber,
       });
 
       res.json({
