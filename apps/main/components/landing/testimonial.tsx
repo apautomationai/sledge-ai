@@ -24,7 +24,7 @@ export function Testimonial() {
         <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan'] text-center mb-6 md:mb-10">
           WHAT OUR CUSTOMERS ARE SAYING.
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xl:gap-3 2xl:gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {testimonials.map((testimonial, index) => (
             <div key={index}>
               {/* Mobile Card Design */}

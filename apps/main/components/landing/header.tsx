@@ -21,6 +21,8 @@ export function Header() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [industriesDropdownOpen, setIndustriesDropdownOpen] = useState(false);
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+  const [mobileIndustriesDropdownOpen, setMobileIndustriesDropdownOpen] = useState(false);
   const bodyRef = useRef<HTMLElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const industriesDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -70,37 +72,21 @@ export function Header() {
     };
   }, [dropdownOpen, industriesDropdownOpen]);
 
-  // Prevent body scroll without causing jump to top
+  // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (!bodyRef.current) return;
 
     if (mobileMenuOpen) {
-      // Save the current scroll position
-      const scrollY = window.scrollY;
-
       // Add a class to body that prevents scrolling
       bodyRef.current.classList.add("no-scroll");
-
-      // Set the top position to maintain scroll position visually
-      bodyRef.current.style.top = `-${scrollY}px`;
     } else {
-      // Get the saved scroll position from the top style
-      const scrollY = Math.abs(parseInt(bodyRef.current.style.top || "0"));
-
       // Remove the no-scroll class
       bodyRef.current.classList.remove("no-scroll");
-
-      // Reset the top style
-      bodyRef.current.style.top = "";
-
-      // Restore the scroll position
-      window.scrollTo(0, scrollY);
     }
 
     return () => {
       if (bodyRef.current) {
         bodyRef.current.classList.remove("no-scroll");
-        bodyRef.current.style.top = "";
       }
     };
   }, [mobileMenuOpen]);
@@ -334,10 +320,12 @@ export function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 lg:hidden"
-              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 z-40 lg:hidden pointer-events-none"
             >
-              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+              <div
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto"
+                onClick={() => setMobileMenuOpen(false)}
+              />
             </motion.div>
 
             {/* Mobile menu panel */}
@@ -346,7 +334,7 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-neutral-900 shadow-2xl shadow-yellow-500/20 border-l-4 border-yellow-600/30 lg:hidden"
+              className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-neutral-900 shadow-2xl shadow-yellow-500/20 border-l-4 border-yellow-600/30 lg:hidden pointer-events-auto"
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
@@ -378,28 +366,24 @@ export function Header() {
                       item.name === "Products" ? (
                         <div key={item.name}>
                           <button
-                            onClick={() => setDropdownOpen(!dropdownOpen)}
+                            onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
                             className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
                           >
                             {item.name}
                             <img
                               src="/images/logos/arrow-down.svg"
                               alt="dropdown arrow"
-                              className={`w-4 h-4 transition-transform duration-300 ${dropdownOpen ? "rotate-180" : ""}`}
+                              className={`w-4 h-4 transition-transform duration-300 ${mobileDropdownOpen ? "rotate-180" : ""}`}
                               style={{
                                 filter: "invert(1) brightness(0.8)",
                               }}
                             />
                           </button>
-                          {dropdownOpen && (
+                          {mobileDropdownOpen && (
                             <div className="mt-2 ml-4 space-y-2">
-                              <Link
-                                href="/product/overview"
+                              <a
+                                href="/product"
                                 className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
-                                onClick={() => {
-                                  setDropdownOpen(false);
-                                  setMobileMenuOpen(false);
-                                }}
                               >
                                 <img
                                   src="/images/logos/roadmap.svg"
@@ -411,14 +395,10 @@ export function Header() {
                                   }}
                                 />
                                 Product overview
-                              </Link>
-                              <Link
-                                href="/product/account-payable"
+                              </a>
+                              <a
+                                href="/product/ai-accounts-payable"
                                 className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
-                                onClick={() => {
-                                  setDropdownOpen(false);
-                                  setMobileMenuOpen(false);
-                                }}
                               >
                                 <img
                                   src="/images/logos/DocumentScan.svg"
@@ -430,14 +410,10 @@ export function Header() {
                                   }}
                                 />
                                 AI Accounts Payable
-                              </Link>
-                              <Link
-                                href="/product/integration"
+                              </a>
+                              <a
+                                href="/integration"
                                 className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
-                                onClick={() => {
-                                  setDropdownOpen(false);
-                                  setMobileMenuOpen(false);
-                                }}
                               >
                                 <img
                                   src="/images/logos/Connect.svg"
@@ -449,7 +425,7 @@ export function Header() {
                                   }}
                                 />
                                 Integrations
-                              </Link>
+                              </a>
                             </div>
                           )}
                         </div>
@@ -457,7 +433,7 @@ export function Header() {
                         <div key={item.name}>
                           <button
                             onClick={() =>
-                              setIndustriesDropdownOpen(!industriesDropdownOpen)
+                              setMobileIndustriesDropdownOpen(!mobileIndustriesDropdownOpen)
                             }
                             className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
                           >
@@ -466,32 +442,24 @@ export function Header() {
                               src="/images/logos/arrow-down.svg"
                               alt="dropdown arrow"
                               className={`w-4 h-4 transition-transform duration-300 ${
-                                industriesDropdownOpen ? "rotate-180" : ""
+                                mobileIndustriesDropdownOpen ? "rotate-180" : ""
                               }`}
                               style={{
                                 filter: "invert(1) brightness(0.8)",
                               }}
                             />
                           </button>
-                          {industriesDropdownOpen && (
+                          {mobileIndustriesDropdownOpen && (
                             <div className="mt-2 ml-4 space-y-2">
                               <a
-                                href="#construction"
+                                href="/industries/construction"
                                 className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
-                                onClick={() => {
-                                  setIndustriesDropdownOpen(false);
-                                  setMobileMenuOpen(false);
-                                }}
                               >
                                 Construction
                               </a>
                               <a
-                                href="#concrete"
+                                href="/industries/concrete"
                                 className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
-                                onClick={() => {
-                                  setIndustriesDropdownOpen(false);
-                                  setMobileMenuOpen(false);
-                                }}
                               >
                                 Concrete
                               </a>
@@ -503,17 +471,6 @@ export function Header() {
                           key={item.name}
                           href={item.href}
                           className="block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setMobileMenuOpen(false);
-                            // Wait for menu to close before scrolling
-                            setTimeout(() => {
-                              const target = document.querySelector(item.href);
-                              if (target) {
-                                target.scrollIntoView({ behavior: "smooth" });
-                              }
-                            }, 300);
-                          }}
                         >
                           {item.name}
                         </a>
@@ -537,9 +494,7 @@ export function Header() {
       {/* Add this CSS to your global styles */}
       <style jsx global>{`
         body.no-scroll {
-          position: fixed;
-          width: 100%;
-          overflow-y: scroll;
+          overflow: hidden;
         }
       `}</style>
     </>
