@@ -9,6 +9,8 @@ import { quickbooksCustomersModel } from "@/models/quickbooks-customers.model";
 import { BadRequestError, InternalServerError } from "@/helpers/errors";
 import { integrationsService } from "./integrations.service";
 import { embeddingsService } from "./embeddings.service";
+import FormData from 'form-data';
+import { Readable } from 'stream';
 
 // QuickBooks integration type based on generic integrations model
 interface QuickBooksIntegration {
@@ -549,6 +551,8 @@ export class QuickBooksService {
     invoiceDate?: string;
     discountAmount?: number;
     discountDescription?: string;
+    attachmentUrl?: string;
+    invoiceNumber?: string;
   }) {
     try {
       // Get a default expense account for fallback scenarios
@@ -672,7 +676,11 @@ export class QuickBooksService {
           value: billData.vendorId
         },
         ...(billData.dueDate && { DueDate: billData.dueDate }),
-        ...(billData.invoiceDate && { TxnDate: billData.invoiceDate })
+        ...(billData.invoiceDate && { TxnDate: billData.invoiceDate }),
+        // Add attachment URL as memo if provided
+        ...(billData.attachmentUrl && {
+          Memo: `Invoice PDF: ${billData.attachmentUrl}${billData.invoiceNumber ? ` (Invoice #${billData.invoiceNumber})` : ''}`
+        })
       };
 
       // Try to create the bill with item-based lines first
@@ -758,7 +766,11 @@ export class QuickBooksService {
               value: billData.vendorId
             },
             ...(billData.dueDate && { DueDate: billData.dueDate }),
-            ...(billData.invoiceDate && { TxnDate: billData.invoiceDate })
+            ...(billData.invoiceDate && { TxnDate: billData.invoiceDate }),
+            // Add attachment URL as memo if provided
+            ...(billData.attachmentUrl && {
+              Memo: `Invoice PDF: ${billData.attachmentUrl}${billData.invoiceNumber ? ` (Invoice #${billData.invoiceNumber})` : ''}`
+            })
           };
 
           return await this.makeApiCall(integration, "bill", "POST", fallbackPayload);
@@ -769,6 +781,126 @@ export class QuickBooksService {
       }
     } catch (error) {
       console.error("Error creating QuickBooks bill:", error);
+      throw error;
+    }
+  }
+
+  // Upload and attach PDF to QuickBooks bill
+  async attachPdfToBill(integration: QuickBooksIntegration, billId: string, attachmentUrl: string) {
+    try {
+      // Download the PDF from the URL
+      const response = await fetch(attachmentUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to download PDF: ${response.statusText}`);
+      }
+
+      const pdfBuffer = await response.arrayBuffer();
+      const fileName = `Invoice_${billId}.pdf`;
+
+      // Get realmId from metadata
+      const realmId = integration.metadata?.realmId;
+      if (!realmId) {
+        throw new Error("QuickBooks realm ID not found in integration metadata");
+      }
+
+      // Upload the file using multipart form data
+      const form = new FormData();
+
+      // Create a readable stream from the buffer for better compatibility
+      const pdfStream = Readable.from(Buffer.from(pdfBuffer));
+
+      // Add the file content with proper headers for QuickBooks API
+      form.append('file_content_01', pdfStream, {
+        filename: fileName,
+        contentType: 'application/pdf',
+        knownLength: pdfBuffer.byteLength
+      });
+
+      // Add the attachable metadata as a separate form field
+      const metadata = {
+        AttachableRef: [{
+          EntityRef: {
+            type: 'Bill',
+            value: billId
+          }
+        }],
+        ContentType: 'application/pdf',
+        FileName: fileName
+      };
+      form.append('file_metadata_01', JSON.stringify(metadata), {
+        contentType: 'application/json'
+      });
+
+      // Upload to QuickBooks using axios
+      const uploadUrl = `${this.baseUrl}/v3/company/${realmId}/upload`;
+
+      const uploadResponse = await axios.post(uploadUrl, form, {
+        headers: {
+          'Authorization': `Bearer ${integration.accessToken}`,
+          'Accept': 'application/json',
+          ...form.getHeaders()
+        },
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity
+      });
+
+      return uploadResponse.data;
+    } catch (error: any) {
+      console.error("Error attaching PDF to QuickBooks bill:", error);
+      // Don't throw error here - bill creation should succeed even if attachment fails
+      return null;
+    }
+  }
+
+  // Enhanced createBill method with attachment support
+  async createBillWithAttachment(integration: QuickBooksIntegration, billData: {
+    vendorId: string;
+    lineItems: Array<{
+      id: number;
+      item_name: string;
+      description?: string;
+      quantity: number;
+      rate: number;
+      amount: number;
+      itemType: 'account' | 'product';
+      resourceId: string;
+      customerId?: string;
+    }>;
+    totalAmount: number;
+    totalTax?: number;
+    dueDate?: string;
+    invoiceDate?: string;
+    discountAmount?: number;
+    discountDescription?: string;
+    attachmentUrl?: string;
+    invoiceNumber?: string;
+  }) {
+    try {
+      // Create the bill using the existing method (which includes attachment URL in memo)
+      const billResponse = await this.createBill(integration, billData);
+
+      // If attachment URL is provided, try to attach the actual PDF file
+      // Try multiple possible paths for the bill ID based on QuickBooks API response structure
+      let billId = null;
+      if (billResponse?.Bill?.Id) {
+        billId = billResponse.Bill.Id;
+      } else if (billResponse?.QueryResponse?.Bill?.[0]?.Id) {
+        billId = billResponse.QueryResponse.Bill[0].Id;
+      } else if (billResponse?.Id) {
+        billId = billResponse.Id;
+      }
+
+      if (billData.attachmentUrl && billId) {
+        const attachmentResponse = await this.attachPdfToBill(
+          integration,
+          billId,
+          billData.attachmentUrl
+        );
+      }
+
+      return billResponse;
+    } catch (error) {
+      console.error("Error in createBillWithAttachment:", error);
       throw error;
     }
   }
@@ -1092,6 +1224,23 @@ export class QuickBooksService {
         throw new Error("Invalid vendor name after sanitization");
       }
 
+      // First, check if a vendor with this name already exists in QuickBooks
+      try {
+        const existingVendorsResponse = await this.makeApiCall(
+          integration,
+          `query?query=SELECT * FROM Vendor WHERE DisplayName = '${sanitizedName.replace(/'/g, "\\'")}'`
+        );
+
+        if (existingVendorsResponse?.QueryResponse?.Vendor?.length > 0) {
+          // Vendor already exists, return the existing vendor
+          console.log(`Vendor "${sanitizedName}" already exists in QuickBooks, returning existing vendor`);
+          return existingVendorsResponse;
+        }
+      } catch (searchError) {
+        console.warn("Error searching for existing vendor, proceeding with creation:", searchError);
+        // Continue with creation if search fails
+      }
+
       // Build QuickBooks Vendor payload with additional information
       const payload: any = {
         DisplayName: sanitizedName
@@ -1118,7 +1267,25 @@ export class QuickBooksService {
         };
       }
 
-      return this.makeApiCall(integration, "vendor", "POST", payload);
+      try {
+        return await this.makeApiCall(integration, "vendor", "POST", payload);
+      } catch (createError: any) {
+        // If we still get a "name already exists" error, try with a unique suffix
+        if (createError.message?.includes('The name supplied already exists')) {
+          console.log(`Vendor name "${sanitizedName}" conflicts, trying with unique suffix`);
+
+          // Add timestamp suffix to make it unique
+          const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+          const uniqueName = `${sanitizedName.substring(0, 90)} ${timestamp}`.trim(); // Leave room for suffix
+
+          payload.DisplayName = uniqueName;
+
+          return await this.makeApiCall(integration, "vendor", "POST", payload);
+        } else {
+          // Re-throw other errors
+          throw createError;
+        }
+      }
     } catch (error) {
       console.error("Error creating QuickBooks vendor:", error);
       throw error;
