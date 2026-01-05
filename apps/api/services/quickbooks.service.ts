@@ -891,7 +891,7 @@ export class QuickBooksService {
       }
 
       if (billData.attachmentUrl && billId) {
-        const attachmentResponse = await this.attachPdfToBill(
+        await this.attachPdfToBill(
           integration,
           billId,
           billData.attachmentUrl
