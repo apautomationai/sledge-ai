@@ -298,8 +298,8 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                                             <SelectValue placeholder="Select cost type..." />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="account">Account</SelectItem>
-                                            <SelectItem value="product">Cost Code</SelectItem>
+                                            <SelectItem value="account">Indirect</SelectItem>
+                                            <SelectItem value="product">Job Cost</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 )}

@@ -6,7 +6,7 @@ const features = [
   "AI formatting and validation",
   "Human-in-the-loop approval and rejection",
   "AI-powered QuickBooks bill creation",
-  "Automated vendor, cost code, and customer mapping",
+  "Automated vendor, job cost, and customer mapping",
   "Full audit trail and status history",
 ];
 
