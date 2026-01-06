@@ -4,7 +4,6 @@ import React, { useEffect, Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
@@ -12,6 +11,8 @@ import axios from "axios";
 import { SignInSchema } from "@/lib/validators";
 import { setCookie } from "cookies-next";
 import { clearQueryCache } from "@/lib/query-client";
+import { PasswordInput } from "@/components/auth/password-input";
+import { SubmitButton } from "@/components/auth/submit-button";
 
 interface SignInFormState {
   message: string;
@@ -32,32 +33,11 @@ const MicrosoftIcon = () => (
   <img src="/images/Type=Microsoft.svg" alt="Microsoft" className="w-5 h-5" />
 );
 
-function SubmitButton({ isLoading }: { isLoading: boolean }) {
-  return (
-    <Button
-      className="w-full font-bold py-3 px-4 uppercase font-['Inter'] text-base leading-6 cursor-pointer"
-      style={{ background: '#E3B02F', border: 'none', borderRadius: '4px', color: '#292524' }}
-      type="submit"
-      disabled={isLoading}
-    >
-      {isLoading ? (
-        <div className="flex items-center justify-center">
-          <Loader2 className="animate-spin h-5 w-5 mr-2" />
-          Logging In...
-        </div>
-      ) : (
-        "LOG IN"
-      )}
-    </Button>
-  );
-}
-
 function SignInFormComponent() {
   const [state, setState] = useState<SignInFormState>({
     message: "",
     success: false,
   });
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -280,40 +260,19 @@ function SignInFormComponent() {
             </div>
 
             <div className="self-stretch flex flex-col gap-1 items-end">
-              <div className="self-stretch flex flex-col gap-1">
-                <Label htmlFor="password" className="self-stretch text-white text-sm font-medium font-['Inter']">
-                  Password
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder=""
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="self-stretch h-11 pr-10 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
-                    required
-                    minLength={6}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent hover:text-gray-400 text-gray-400 z-20 cursor-pointer"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                {state.errors?.password && (
-                  <p className="text-sm text-red-400 mt-1">{state.errors.password[0]}</p>
-                )}
-              </div>
+              <PasswordInput
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                variant="signin"
+                errors={state.errors?.password}
+                placeholder=""
+                label="Password"
+                showLabel={true}
+                showHint={false}
+                required={true}
+              />
               <Link
                 href="/forget-password"
                 className="self-stretch text-right text-zinc-400 text-xs font-normal font-['Inter'] underline leading-4"
@@ -329,7 +288,7 @@ function SignInFormComponent() {
             </div>
           )}
 
-          <SubmitButton isLoading={isLoading} />
+          <SubmitButton label="LOG IN" pendingLabel="Logging In..." variant="default" isLoading={isLoading} />
         </form>
 
         <div className="inline-flex justify-center items-center gap-1 w-full">

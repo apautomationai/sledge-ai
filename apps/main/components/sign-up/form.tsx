@@ -2,13 +2,13 @@
 
 import React, { useEffect, useActionState, useState } from "react";
 import Link from "next/link";
-import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { signUpAction, SignUpFormState } from "@/app/(auth)/sign-up/actions";
+import { PasswordInput } from "@/components/auth/password-input";
+import { SubmitButton } from "@/components/auth/submit-button";
 
 const initialState: SignUpFormState = {
   message: "",
@@ -22,85 +22,6 @@ const GoogleIcon = () => (
 const MicrosoftIcon = () => (
   <img src="/images/Type=Microsoft.svg" alt="Microsoft" className="w-5 h-5" />
 );
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button
-      className="flex-1 w-full px-4 py-3 flex justify-center items-center gap-2 overflow-hidden font-bold uppercase font-['Inter'] text-base leading-6 cursor-pointer"
-      style={{ background: '#E3B02F', border: 'none', borderRadius: '4px', color: '#292524' }}
-      type="submit"
-      disabled={pending}
-    >
-      {pending ? (
-        <div className="flex items-center justify-center">
-          <Loader2 className="animate-spin h-5 w-5 mr-2" />
-          Creating Account...
-        </div>
-      ) : (
-        <div className="justify-start">SIGN UP</div>
-      )}
-    </Button>
-  );
-}
-
-function PasswordInput({
-  id,
-  name,
-  placeholder,
-  errors,
-  value,
-  onChange
-}: {
-  id: string;
-  name: string;
-  placeholder: string;
-  errors?: string[];
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}) {
-  const [showPassword, setShowPassword] = useState(false);
-
-  return (
-    <div className="self-stretch flex flex-col justify-start items-end gap-1">
-      <div className="self-stretch flex flex-col justify-start items-start gap-1">
-        <Label htmlFor={id} className="self-stretch justify-start text-white text-sm font-medium font-['Inter']">
-          Password<span className="text-red-400 ml-1 md:inline hidden">*</span>
-        </Label>
-        <div className="relative w-full">
-          <Input
-            id={id}
-            name={name}
-            type={showPassword ? "text" : "password"}
-            placeholder={placeholder}
-            required
-            minLength={6}
-            value={value}
-            onChange={onChange}
-            className="self-stretch h-11 pr-10 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent hover:text-gray-400 text-gray-400 z-20 cursor-pointer"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-        {errors && (
-          <p className="text-sm text-red-400 mt-1">{errors[0]}</p>
-        )}
-      </div>
-      <div className="self-stretch justify-start text-zinc-400 text-xs font-normal font-['Inter'] leading-4 md:hidden">At least 6 characters</div>
-    </div>
-  );
-}
 
 export default function SignUpForm() {
   const [state, formAction] = useActionState(signUpAction, initialState);
@@ -293,10 +214,15 @@ export default function SignUpForm() {
             <PasswordInput
               id="password"
               name="password"
-              placeholder="6+ characters"
-              errors={state.errors?.password}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              variant="default"
+              errors={state.errors?.password}
+              placeholder="6+ characters"
+              label="Password"
+              showLabel={true}
+              showHint={true}
+              required={true}
             />
           </div>
 
@@ -307,7 +233,7 @@ export default function SignUpForm() {
           )}
 
           <div className="self-stretch inline-flex justify-end items-center gap-4">
-            <SubmitButton />
+            <SubmitButton label="SIGN UP" pendingLabel="Creating Account..." variant="default" />
           </div>
         </form>
 

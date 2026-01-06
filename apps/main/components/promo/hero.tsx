@@ -1,10 +1,18 @@
 import Link from "next/link";
-import Image from "next/image";
 
 export function PromoHero() {
   return (
-    <section className="relative flex items-center justify-center w-full h-[338px] md:py-16 md:h-auto bg-[url('/images/promo.png')] bg-cover bg-center bg-no-repeat md:bg-none">
-      {/* Background Image Overlay - Only on mobile */}
+    <section className="relative flex items-center justify-center w-full h-[338px] md:py-16 md:h-auto">
+      {/* Mobile Video Background with Overlay */}
+      <video
+        src="/videos/lead-gen-hero-video.mp4"
+        autoPlay
+        loop
+        muted
+        playsInline
+        poster="/images/promo.png"
+        className="absolute inset-0 w-full h-full object-cover md:hidden"
+      />
       <div className="absolute inset-0 w-full h-full bg-black/60 md:hidden" />
 
       <div className="relative mx-auto max-w-[1400px] w-full px-6 md:px-8 lg:px-12 pt-[174px] md:pt-0">
@@ -30,12 +38,14 @@ export function PromoHero() {
           </div>
 
           <div className="mt-8 md:mt-12 items-center justify-center hidden md:flex">
-            <Image
-              src="/images/promo.png"
-              alt="Sledge Demo"
-              width={913}
-              height={546}
-              className="rounded-lg shadow-2xl"
+            <video
+              src="/videos/lead-gen-hero-video.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              poster="/images/promo.png"
+              className="rounded-lg shadow-2xl w-[913px] h-[546px] object-cover"
             />
           </div>
         </div>
