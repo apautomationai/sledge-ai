@@ -11,7 +11,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'This is test 1.2',
+          'This is test 1.3',
       },
     },
   },
