@@ -33,6 +33,8 @@ jobs:
         run: pnpm install --filter=main --frozen-lockfile
 
       - name: Run Chromatic
-        uses: chromaui/action@latest
-        with:
-          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+        # uses: chromaui/action@latest
+        # with:
+        #   projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+        run: pnpm chromatic --project-token=${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+        working-directory: apps/main
