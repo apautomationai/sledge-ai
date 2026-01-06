@@ -16,8 +16,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        # with:
-        #   fetch-depth: 1
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,8 +30,9 @@ jobs:
           version: '10.18.0'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --filter=main --frozen-lockfile
 
       - name: Run Chromatic
-        run: pnpm chromatic --project-token=${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-        working-directory: apps/main
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}

@@ -11,7 +11,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A versatile button component built with Tailwind CSS. Supports multiple variants, sizes, and states with full dark mode compatibility.',
+          'This is test 1.',
       },
     },
   },
