@@ -2,7 +2,7 @@ name: Chromatic CI
 
 on:
   push:
-    branches: [ci-cd]
+    branches: [main, dev]
     paths:
       - 'apps/main/**'
       - 'packages/**'
@@ -33,8 +33,5 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Chromatic
-        # uses: chromaui/action@latest
-        # with:
-        #   projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
         run: pnpm chromatic --project-token=${{ secrets.CHROMATIC_PROJECT_TOKEN }}
         working-directory: apps/main
