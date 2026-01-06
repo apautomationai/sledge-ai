@@ -48,12 +48,16 @@ function PasswordInput({
   id,
   name,
   placeholder,
-  errors
+  errors,
+  value,
+  onChange
 }: {
   id: string;
   name: string;
   placeholder: string;
   errors?: string[];
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -71,8 +75,9 @@ function PasswordInput({
             placeholder={placeholder}
             required
             minLength={6}
-            className="self-stretch h-11 pr-10 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
-            style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
+            value={value}
+            onChange={onChange}
+            className="self-stretch h-11 pr-10 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
           />
           <Button
             type="button"
@@ -99,6 +104,14 @@ function PasswordInput({
 
 export default function SignUpForm() {
   const [state, formAction] = useActionState(signUpAction, initialState);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    businessName: "",
+    email: "",
+    password: "",
+  });
 
   const handleGoogleSignIn = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -195,8 +208,9 @@ export default function SignUpForm() {
                   name="firstName"
                   placeholder="John"
                   required
-                  className="self-stretch h-11 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
-                  style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  className="self-stretch h-11 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
                 />
                 {state.errors?.firstName && (
                   <p className="text-sm text-red-400 mt-1">{state.errors.firstName[0]}</p>
@@ -212,8 +226,9 @@ export default function SignUpForm() {
                   name="lastName"
                   placeholder="Doe"
                   required
-                  className="self-stretch h-11 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
-                  style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  className="self-stretch h-11 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
                 />
                 {state.errors?.lastName && (
                   <p className="text-sm text-red-400 mt-1">{state.errors.lastName[0]}</p>
@@ -229,8 +244,9 @@ export default function SignUpForm() {
                 id="phone"
                 name="phone"
                 placeholder="+1234567890"
-                className="self-stretch h-11 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
-                style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="self-stretch h-11 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
               />
               {state.errors?.phone && (
                 <p className="text-sm text-red-400 mt-1">{state.errors.phone[0]}</p>
@@ -246,8 +262,9 @@ export default function SignUpForm() {
                 name="businessName"
                 placeholder="Business Name"
                 required
-                className="self-stretch h-11 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
-                style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
+                value={formData.businessName}
+                onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                className="self-stretch h-11 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
               />
               {state.errors?.businessName && (
                 <p className="text-sm text-red-400 mt-1">{state.errors.businessName[0]}</p>
@@ -264,8 +281,9 @@ export default function SignUpForm() {
                 type="email"
                 required
                 placeholder="you@example.com"
-                className="self-stretch h-11 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
-                style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="self-stretch h-11 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
               />
               {state.errors?.email && (
                 <p className="text-sm text-red-400 mt-1">{state.errors.email[0]}</p>
@@ -277,6 +295,8 @@ export default function SignUpForm() {
               name="password"
               placeholder="6+ characters"
               errors={state.errors?.password}
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
           </div>
 

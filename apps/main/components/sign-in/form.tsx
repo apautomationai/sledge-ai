@@ -59,6 +59,10 @@ function SignInFormComponent() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -84,9 +88,8 @@ function SignInFormComponent() {
     e.preventDefault();
     setIsLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email");
-    const password = formData.get("password");
+    const email = formData.email;
+    const password = formData.password;
 
     // Validate with Zod
     const validatedFields = SignInSchema.safeParse({ email, password });
@@ -265,8 +268,9 @@ function SignInFormComponent() {
                   name="email"
                   type="email"
                   placeholder=""
-                  className="self-stretch h-11 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
-                  style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="self-stretch h-11 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
                   required
                 />
               </div>
@@ -286,8 +290,9 @@ function SignInFormComponent() {
                     name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder=""
-                    className="self-stretch h-11 pr-10 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
-                    style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="self-stretch h-11 pr-10 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
                     required
                     minLength={6}
                   />

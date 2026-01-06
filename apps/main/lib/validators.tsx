@@ -5,7 +5,7 @@ export const signUpSchema = z.object({
   firstName: z.string().min(2, { message: "First name is required." }),
   lastName: z.string().min(2, { message: "Last name is required." }),
   email: z.string().email({ message: "Please enter a valid email." }),
-  phone: z.string().max(20, { message: "Please enter a valid phone number." }),
+  phone: z.string().max(20, { message: "Please enter a valid phone number." }).optional(),
   businessName: z.string().min(2, { message: "Business name is required." }),
   password: z
     .string()

@@ -48,10 +48,14 @@ function PasswordInput({
   id,
   name,
   errors,
+  value,
+  onChange,
 }: {
   id: string;
   name: string;
   errors?: string[];
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -70,6 +74,8 @@ function PasswordInput({
             id={id}
             name={name}
             minLength={6}
+            value={value}
+            onChange={onChange}
             className="self-stretch w-full h-11 px-4 py-2 pr-10 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
             required
           />
@@ -96,6 +102,13 @@ function PasswordInput({
 
 export function FreeTrial() {
   const [state, formAction] = useActionState(signUpAction, initialState);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    businessName: "",
+    email: "",
+    password: "",
+  });
 
   useEffect(() => {
     if (state?.success && state?.redirectTo) {
@@ -198,6 +211,8 @@ export function FreeTrial() {
                       type="text"
                       id="firstName"
                       name="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                       className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
                       required
                     />
@@ -216,6 +231,8 @@ export function FreeTrial() {
                       type="text"
                       id="lastName"
                       name="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                       className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
                       required
                     />
@@ -223,26 +240,6 @@ export function FreeTrial() {
                       <p className="text-sm text-red-400 mt-1">{state.errors.lastName[0]}</p>
                     )}
                   </div>
-                </div>
-
-                {/* Phone Number */}
-                <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                  <label
-                    htmlFor="phone"
-                    className="self-stretch justify-start text-white text-sm font-medium font-['Inter']"
-                  >
-                    Phone number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    placeholder="+1234567890"
-                    className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
-                  />
-                  {state.errors?.phone && (
-                    <p className="text-sm text-red-400 mt-1">{state.errors.phone[0]}</p>
-                  )}
                 </div>
 
                 {/* Business Name */}
@@ -257,6 +254,8 @@ export function FreeTrial() {
                     type="text"
                     id="businessName"
                     name="businessName"
+                    value={formData.businessName}
+                    onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
                     className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
                     required
                   />
@@ -277,6 +276,8 @@ export function FreeTrial() {
                     type="email"
                     id="email"
                     name="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
                     required
                   />
@@ -290,6 +291,8 @@ export function FreeTrial() {
                   id="password"
                   name="password"
                   errors={state.errors?.password}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />
 
                 {/* Form Error */}

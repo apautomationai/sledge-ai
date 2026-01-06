@@ -116,7 +116,7 @@ export function HowItWorks() {
   };
 
   return (
-    <section className="w-full px-6 sm:px-6 md:px-8 lg:px-12 py-12 md:py-16 bg-black">
+    <section className="w-full px-6 sm:px-6 md:px-8 lg:px-12 py-12 md:py-16 ">
       <div className="w-full max-w-[1900px] mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
