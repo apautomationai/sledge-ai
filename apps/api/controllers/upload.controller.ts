@@ -2,6 +2,7 @@ import { BadRequestError, NotFoundError, ForbiddenError } from "@/helpers/errors
 import { uploadServices } from "@/services/upload.services";
 import { sendAttachmentMessage } from "@/helpers/sqs";
 import { attachmentServices } from "@/services/attachment.services";
+import { getWebSocketService } from "@/services/websocket.service";
 import { Request, Response } from "express";
 
 export class UploadController {
@@ -138,6 +139,21 @@ export class UploadController {
           message: "Failed to send attachment to processing queue",
         });
       }
+
+      // Update attachment status to pending (worker will set to "processing" when it starts)
+      const updatedAttachment = await attachmentServices.updateAttachment(
+        attachmentIdNumber,
+        { status: "pending" }
+      );
+
+      // Emit WebSocket event for real-time UI update
+      const wsService = getWebSocketService();
+      wsService.emitAttachmentStatusUpdated(
+        userId,
+        attachmentIdNumber,
+        "pending",
+        updatedAttachment
+      );
 
       return res.status(200).json({
         success: true,
