@@ -879,10 +879,10 @@ export default function ConfirmationModals({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className={isDuplicate ? "cursor-not-allowed" : ""}>
+                <div className={`${isDuplicate && "cursor-not-allowed"}`}>
                   <Button
                     onClick={handleApproveClick}
-                    className="bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                    className={`bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 ${isDuplicate && "bg-gray-400 hover:bg-gray-600"}`}
                     disabled={isApproving || isSaving || isDuplicate}
                   >
                     {isApproving ? "Approving..." : "Approve"}
