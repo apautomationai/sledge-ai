@@ -28,7 +28,7 @@ export function FreeTrial() {
   };
 
   return (
-    <section className="w-full px-6 md:px-8 lg:px-12 pb-12 md:pb-16">
+    <section className="w-full px-6 md:px-8 lg:px-12 pb-12 pt-[24px] md:pb-16">
       <div className="mx-auto max-w-[1400px]">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Column - Features */}
@@ -60,13 +60,13 @@ export function FreeTrial() {
 
           {/* Right Column - Sign Up Form */}
           <div className="relative w-full">
-            <div className="w-full p-12 bg-zinc-900 rounded-lg shadow-[0px_0px_4px_1px_rgba(227,176,47,1.00)] outline outline-1 outline-offset-[-1px] outline-neutral-700 flex flex-col justify-start items-center gap-4">
+            <div className="w-full p-6 sm:p-12 bg-zinc-900 rounded-lg shadow-[0px_0px_4px_1px_rgba(227,176,47,1.00)] outline outline-1 outline-offset-[-1px] outline-neutral-700 flex flex-col justify-start items-center gap-4">
               {/* Header */}
               <div className="flex flex-col justify-start items-center gap-1">
                 <div className="justify-start text-amber-400 text-sm font-bold font-['Inter'] leading-5">
                   LIMITED-TIME OFFER
                 </div>
-                <div className="justify-start text-amber-400 text-5xl font-bold font-['League_Spartan'] uppercase leading-[52px]">
+                <div className="justify-start text-amber-400 md:text-5xl text-3xl font-bold font-['League_Spartan'] uppercase">
                   Get 2 Months Free
                 </div>
               </div>
@@ -79,7 +79,7 @@ export function FreeTrial() {
                   </div>
                 </div>
                 <div className="justify-start">
-                  <span className="text-amber-400 text-5xl font-bold font-['League_Spartan'] uppercase leading-[52px]">
+                  <span className="text-amber-400 text-3xl md:text-5xl font-bold font-['League_Spartan'] uppercase leading-[52px]">
                     $199
                   </span>
                   <span className="text-gray-200 text-2xl font-normal font-['Inter'] leading-10">
@@ -98,8 +98,8 @@ export function FreeTrial() {
               {/* Form */}
               <form onSubmit={handleSubmit} className="self-stretch flex flex-col justify-start items-start gap-4">
                 {/* First Name & Last Name */}
-                <div className="self-stretch flex justify-start items-start gap-4">
-                  <div className="flex-1 flex flex-col justify-start items-start gap-1 min-w-0">
+                <div className="self-stretch flex flex-col sm:flex-row justify-start items-start gap-4">
+                  <div className="w-full sm:flex-1 flex flex-col justify-start items-start gap-1 min-w-0">
                     <label
                       htmlFor="firstName"
                       className="self-stretch justify-start text-white text-sm font-medium font-['Inter']"
@@ -117,7 +117,7 @@ export function FreeTrial() {
                       required
                     />
                   </div>
-                  <div className="flex-1 flex flex-col justify-start items-start gap-1 min-w-0">
+                  <div className="w-full sm:flex-1 flex flex-col justify-start items-start gap-1 min-w-0">
                     <label
                       htmlFor="lastName"
                       className="self-stretch justify-start text-white text-sm font-medium font-['Inter']"
