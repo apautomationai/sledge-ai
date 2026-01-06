@@ -44,10 +44,10 @@ export function Foundation() {
           {/* Right Image */}
           <div className="flex-1 flex justify-end">
             <Image
-              src="/updated-images/image-ai-back-office-tower.png"
+              src="/images/product/image-ai-back-office-tower.png"
               alt="AI Back Office Tower"
-              width={588}
-              height={588}
+              width={500}
+              height={500}
               className="rounded-lg"
             />
           </div>

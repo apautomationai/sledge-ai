@@ -10,11 +10,11 @@ export function Testimonial() {
       title: "President, Ferrocrete Builders Inc",
     },
     {
-      icon: "/images/johnst.png",
+      icon: "/images/john.png",
       quote:
         "Invoice processing used to slow everything down. Now it’s automated. We save hundreds of hours a year and approvals move faster without chasing paperwork.",
-      name: "Raz Danoukh",
-      title: "President, Ferrocrete Builders Inc",
+      name: "John McDaniel",
+      title: "President, Emaar Properties",
     },
   ];
 
@@ -24,11 +24,11 @@ export function Testimonial() {
         <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan'] text-center mb-6 md:mb-10">
           WHAT OUR CUSTOMERS ARE SAYING.
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xl:gap-3 2xl:gap-2">
           {testimonials.map((testimonial, index) => (
             <div key={index}>
               {/* Mobile Card Design */}
-              <div className="lg:hidden p-6 bg-stone-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-600 flex flex-col justify-center items-start gap-6">
+              <div className="md:hidden p-6 bg-stone-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-600 flex flex-col justify-center items-start gap-6">
                 <p className="text-white text-base font-normal font-['Inter'] leading-6">
                   "{testimonial.quote}"
                 </p>
@@ -53,19 +53,19 @@ export function Testimonial() {
               </div>
 
               {/* Desktop Image Design */}
-              <div className="hidden lg:block relative w-full h-[240px] lg:h-[280px] xl:h-[320px] 2xl:h-[360px] overflow-hidden group">
+              <div className="hidden md:block relative w-full h-[240px] lg:h-[280px] xl:h-[320px] 2xl:h-[360px] overflow-hidden group">
                 <Image
-                  src="/updated-images/container-steelplate-wide.png"
+                  src="/images/image 21 (2).png"
                   alt={testimonial.name}
                   fill
                   className="object-contain rounded-2xl"
                 />
 
                 {/* Content Overlay */}
-                <div className="absolute inset-0 flex items-center gap-6 pl-[30px] pr-[38px] pt-[28px] pb-[38px]">
+                <div className="absolute inset-y-0 left-[3%] right-[3%] lg:left-[5%] lg:right-[5%] xl:left-[8%] xl:right-[8%] 2xl:left-[10%] 2xl:right-[10%] min-[1800px]:left-[14%] min-[1800px]:right-[14%] min-[2300px]:left-[18%] min-[2300px]:right-[18%] flex items-center gap-2 lg:gap-3 xl:gap-3 2xl:gap-3 min-[1800px]:gap-5 min-[2300px]:gap-4 p-3 lg:p-4 xl:p-4 2xl:p-5 min-[1800px]:p-8 min-[2300px]:p-6">
                   {/* Profile Image */}
-                  <div className="flex-shrink-0">
-                    <div className="relative w-[167px] h-[167px] rounded-lg overflow-hidden">
+                  <div className="flex-shrink-0 ml-1 lg:ml-2 xl:ml-2 2xl:ml-2 min-[1800px]:ml-4 min-[2300px]:ml-3">
+                    <div className="relative w-20 h-20 lg:w-24 lg:h-24 xl:w-24 xl:h-24 2xl:w-28 2xl:h-28 min-[1800px]:w-[167px] min-[1800px]:h-[167px] min-[2300px]:w-[140px] min-[2300px]:h-[140px] rounded-lg overflow-hidden">
                       <Image
                         src={testimonial.icon}
                         alt={testimonial.name}
@@ -76,7 +76,7 @@ export function Testimonial() {
                   </div>
 
                   {/* Text Content */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-center overflow-hidden">
+                  <div className="flex-1 min-w-0 flex flex-col justify-center pr-2 lg:pr-3 xl:pr-4 2xl:pr-5 min-[1800px]:pr-10 min-[2300px]:pr-6 overflow-hidden">
                     <p className="text-white text-xs lg:text-sm xl:text-sm 2xl:text-base min-[1800px]:text-xl min-[2300px]:text-base mb-2 min-[1800px]:mb-3 min-[2300px]:mb-2 leading-relaxed line-clamp-3 lg:line-clamp-4">
                       "{testimonial.quote}"
                     </p>
