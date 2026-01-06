@@ -1,118 +1,132 @@
-// app/contact/page.tsx
-'use client';
-
-import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Header } from '@/components/landing/header';
 import { Footer } from '@/components/landing/footer';
+import { Mail, Building2, Clock, Link2, LucideIcon } from 'lucide-react';
+import Link from 'next/link';
 import ContactForm from '@/components/landing/contact-form';
-import ContactInfo from '@/components/landing/contact-info';
-import { 
-  AnimatedEmail, 
-  AnimatedIntegration, 
-  AnimatedNotification,
-  // ProfessionalWave,
-  FloatingElements,
-  GeometricPattern,
-  ProfessionalIcons,
-  PulsingOrb
-} from '@/components/landing/animated-icons';
 
-export default function ContactPage() {
-  const [isSubmitted, setIsSubmitted] = useState(false);
+interface ContactCardData {
+  icon: LucideIcon;
+  title: string;
+  subtitle: string;
+  detail: string;
+  href?: string;
+}
 
-  return (
-    <>
-    <Header />
-    <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Background Elements */}
-      <GeometricPattern />
-      <FloatingElements />
-      <ProfessionalIcons />
-      {/* <ProfessionalWave /> */}
+const contactCards: ContactCardData[] = [
+  {
+    icon: Mail,
+    title: 'Support Email',
+    subtitle: 'Get a response within 24 hours',
+    detail: 'support@getsledge.com',
+    href: 'mailto:support@getsledge.com',
+  },
+  {
+    icon: Building2,
+    title: 'Company',
+    subtitle: 'Las Vegas, Nevada, USA',
+    detail: 'Sledge AI Inc.',
+  },
+  {
+    icon: Clock,
+    title: 'Support Coverage',
+    subtitle: 'Available during business hours',
+    detail: 'Mon - Fri: 9AM - 6PM',
+  },
+  {
+    icon: Link2,
+    title: 'Links',
+    subtitle: 'Legal information',
+    detail: 'Privacy Policy & Terms',
+    href: '/privacy-policy',
+  },
+];
 
-      {/* Main Content */}
-      <div className="relative max-w-7xl mx-auto my-16">
-        {/* Header Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-500 to-emerald-600 bg-clip-text text-transparent mb-4"
-          >
-            Get In Touch
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-xl text-slate-600 max-w-2xl mx-auto"
-          >
-            We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-          </motion.p>
-        </motion.div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Form */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <ContactForm onSuccess={() => setIsSubmitted(true)} />
-          </motion.div>
-
-          {/* Contact Information */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-          >
-            <ContactInfo />
-          </motion.div>
+function ContactCard({ card }: { card: ContactCardData }) {
+  const content = (
+    <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-700 cursor-pointer transition-all duration-300 hover:border-zinc-600 flex-1">
+      <div className="flex items-start gap-4">
+        <div className="p-3 rounded-lg bg-zinc-800">
+          <card.icon className="w-6 h-6 text-zinc-400" />
         </div>
-
-        {/* Success Message */}
-        {isSubmitted && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              className="bg-white rounded-2xl p-8 max-w-md mx-4 text-center border border-slate-200/60 backdrop-blur-sm"
-            >
-              <div className="flex justify-center mb-4">
-                <AnimatedNotification />
-              </div>
-              <h3 className="text-2xl font-bold text-slate-800 mb-2">Message Sent!</h3>
-              <p className="text-slate-600 mb-6">
-                Thank you for reaching out. We'll get back to you within 24 hours.
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsSubmitted(false)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-              >
-                Close
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        )}
+        <div className="flex-1">
+          <h4 className="text-white text-base font-semibold font-['Inter'] mb-1">
+            {card.title}
+          </h4>
+          <p className="text-zinc-400 text-sm font-normal font-['Inter'] mb-2">
+            {card.subtitle}
+          </p>
+          <p className="text-white text-sm font-medium font-['Inter']">
+            {card.detail}
+          </p>
+        </div>
       </div>
     </div>
-    <Footer />
+  );
+
+  if (card.href) {
+    return (
+      <Link href={card.href} className="block flex-1">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
+}
+
+export default function ContactPage() {
+  return (
+    <>
+      <Header />
+      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Fixed background image */}
+        <div
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+          style={{
+            backgroundImage: "url('/images/gpt4.png')",
+            zIndex: -1,
+          }}
+        />
+        {/* Black overlay with opacity */}
+        <div
+          className="fixed inset-0 bg-black pointer-events-none"
+          style={{
+            opacity: 0.7,
+            zIndex: -1,
+          }}
+        />
+
+        {/* Main Content */}
+        <div className="relative max-w-7xl mx-auto my-16">
+          {/* Header Section */}
+          <div className="text-center mb-16">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 uppercase font-['League_Spartan']">
+              Contact Sledge
+            </h1>
+            <p className="text-lg md:text-xl text-white max-w-3xl mx-auto">
+              Need help with onboarding, integrations, invoice processing, or
+              billing? Send us a message and we will respond as soon as
+              possible.
+            </p>
+          </div>
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Left Side - Contact Form */}
+            <div className="h-full">
+              <ContactForm />
+            </div>
+
+            {/* Right Side - Contact Cards */}
+            <div className="flex flex-col gap-4 h-full">
+              {contactCards.map((card) => (
+                <ContactCard key={card.title} card={card} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      <Footer />
     </>
   );
 }
