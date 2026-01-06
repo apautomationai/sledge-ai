@@ -18,6 +18,7 @@ import {
   FileQuestion,
   Mail,
   ArrowRight,
+  AlertTriangle,
 } from "lucide-react";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
@@ -131,9 +132,15 @@ export default function PrivacyPolicy() {
                     <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
                       This Privacy Notice is intended to reflect enterprise SaaS best practices and is modeled on industry-standard privacy disclosures used by leading construction software platforms, while accurately reflecting Sledge's current operations.
                     </p>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      By accessing or using the Services, you acknowledge that you have read and understood this Privacy Notice.
-                    </p>
+                    <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30">
+                      <h4 className="font-semibold text-white mb-3 flex items-center font-['League_Spartan']">
+                        <AlertTriangle className="w-5 h-5 mr-2 text-amber-400" />
+                        Important Notice
+                      </h4>
+                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                        By accessing or using the Services, you acknowledge that you have read and understood this Privacy Notice.
+                      </p>
+                    </div>
                   </section>
 
                   {/* Section 1 */}
@@ -237,9 +244,11 @@ export default function PrivacyPolicy() {
                       <li>Monitor usage, prevent misuse, and protect the security and integrity of the Services</li>
                       <li>Comply with legal obligations and enforce our agreements</li>
                     </ul>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed font-semibold">
-                      We do not sell personal information.
-                    </p>
+                    <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30 mt-6">
+                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed font-semibold uppercase">
+                        We do not sell personal information.
+                      </p>
+                    </div>
                   </section>
 
                   {/* Section 4 */}
@@ -269,9 +278,15 @@ export default function PrivacyPolicy() {
                     <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
                       The Services rely on automated systems and machine-assisted processing to analyze documents, extract information, and generate structured outputs. These processes may produce derived data such as classifications, metadata, and extracted records.
                     </p>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      Automated outputs may contain errors or omissions and are provided to support your workflows. You remain responsible for reviewing and validating outputs before relying on them for business, financial, legal, or accounting purposes.
-                    </p>
+                    <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30">
+                      <h4 className="font-semibold text-white mb-3 flex items-center font-['League_Spartan']">
+                        <AlertTriangle className="w-5 h-5 mr-2 text-amber-400" />
+                        AI Output Disclaimer
+                      </h4>
+                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                        Automated outputs may contain errors or omissions and are provided to support your workflows. You remain responsible for reviewing and validating outputs before relying on them for business, financial, legal, or accounting purposes.
+                      </p>
+                    </div>
                   </section>
 
                   {/* Section 6 */}
@@ -343,9 +358,15 @@ export default function PrivacyPolicy() {
                     <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
                       We implement administrative, technical, and organizational measures designed to protect information against unauthorized access, loss, misuse, or disclosure. These measures may include access controls, encryption technologies, network security controls, monitoring, and controlled deployment practices.
                     </p>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      No system can be guaranteed to be completely secure, and we cannot guarantee absolute security.
-                    </p>
+                    <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30">
+                      <h4 className="font-semibold text-white mb-3 flex items-center font-['League_Spartan']">
+                        <AlertTriangle className="w-5 h-5 mr-2 text-amber-400" />
+                        Security Disclaimer
+                      </h4>
+                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                        No system can be guaranteed to be completely secure, and we cannot guarantee absolute security.
+                      </p>
+                    </div>
                   </section>
 
                   {/* Section 9 */}
@@ -418,9 +439,11 @@ export default function PrivacyPolicy() {
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
                       13. Children's Privacy
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      The Services are not intended for use by individuals under the age of 18. We do not knowingly collect personal information from children.
-                    </p>
+                    <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30">
+                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                        The Services are not intended for use by individuals under the age of 18. We do not knowingly collect personal information from children.
+                      </p>
+                    </div>
                   </section>
 
                   {/* Section 14 */}

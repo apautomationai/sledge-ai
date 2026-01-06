@@ -12,8 +12,7 @@ import RoiCalculator from "@/components/landing/roi-calculator";
 
 const whatIsItTitle = "AI-Powered Back Office Software for Construction";
 const whatIsItDescription =
-  "Sledge is AI-powered back office software built for construction teams.It automates operational work like document intake, approvals, and accounting workflows using autonomous AI — reducing manual work without changing how teams operate.";
-
+  "Sledge is AI-powered back office software built for construction teams. It automates operational work like document intake, approvals, and accounting workflows using autonomous AI — reducing manual work without changing how teams operate.";
 const builtToRunTitle = "READY TO RUN YOUR BUSINESS BETTER?";
 const builtToRunDescription =
   "No contracts. No setup fees. Connect to QuickBooks when you're ready.";

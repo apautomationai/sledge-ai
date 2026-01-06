@@ -24,13 +24,13 @@ const contactCards: ContactCardData[] = [
     icon: Building2,
     title: 'Company',
     subtitle: 'Las Vegas, Nevada, USA',
-    detail: 'Sledge AI Inc.',
+    detail: 'Sledge',
   },
   {
     icon: Clock,
     title: 'Support Coverage',
     subtitle: 'Available during business hours',
-    detail: 'Mon - Fri: 9AM - 6PM',
+    detail: 'Monday - Friday; 9am - 5pm',
   },
   {
     icon: Link2,

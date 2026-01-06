@@ -14,7 +14,7 @@ export function Testimonial() {
       quote:
         "Invoice processing used to slow everything down. Now it’s automated. We save hundreds of hours a year and approvals move faster without chasing paperwork.",
       name: "John McDaniel",
-      title: "President, Emaar Properties",
+      title: "Project Manager, Ferrocrete Builders Inc",
     },
   ];
 
