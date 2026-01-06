@@ -1,5 +1,3 @@
-"use client";
-
 import { Check } from "lucide-react";
 
 export interface WhatsIncludedProps {

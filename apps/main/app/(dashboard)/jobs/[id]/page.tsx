@@ -214,8 +214,9 @@ export default function JobDetailPage() {
             ));
 
             setIsEditing(false);
-        } catch (err) {
-            toast.error("Failed to save changes");
+        } catch (err: any) {
+            const errorMessage = err?.response?.data?.error || err?.message || "Failed to save changes";
+            toast.error(errorMessage);
         }
     };
 

@@ -36,8 +36,8 @@ export const startFetchEmails = () => {
     return;
   }
   console.log('Email cronjob enabled in production mode');
-  // every 30 minutes
-  nodeCron.schedule("*/30 * * * *", async () => {
+  // every 5 minutes
+  nodeCron.schedule("*/5 * * * *", async () => {
     console.log(`Email sync triggered at: ${new Date().toISOString()}`);
     await fetchEmailsForAllProviders();
   });

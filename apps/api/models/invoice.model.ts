@@ -27,6 +27,11 @@ export const itemTypeEnum = pgEnum("item_type", [
   "product"
 ]);
 
+export const lineItemViewTypeEnum = pgEnum("line_item_view_type", [
+  "single",
+  "expanded"
+]);
+
 export const invoiceModel = pgTable("invoices", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -37,6 +42,7 @@ export const invoiceModel = pgTable("invoices", {
   invoiceDate: timestamp("invoice_date"),
   dueDate: timestamp("due_date"),
   totalAmount: numeric("total_amount"),
+  totalQuantity: numeric("total_quantity"),
   currency: varchar("currency", { length: 10 }),
   totalTax: numeric("total_tax"),
   description: text("description"),
@@ -47,6 +53,7 @@ export const invoiceModel = pgTable("invoices", {
   status: invoiceStatusEnum("status").notNull().default("pending"),
   rejectionEmailSender: varchar("rejection_email_sender", { length: 255 }),
   rejectionReason: text("rejection_reason"),
+  isDuplicate: boolean("is_duplicate").notNull().default(false),
   isDeleted: boolean("is_deleted").notNull().default(false),
   deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -64,8 +71,11 @@ export const lineItemsModel = pgTable("line_items", {
   itemType: itemTypeEnum("item_type"),
   resourceId: varchar("resource_id", { length: 50 }),
   customerId: varchar("customer_id", { length: 50 }),
+  viewType: lineItemViewTypeEnum("view_type").notNull().default("expanded"),
   isDeleted: boolean("is_deleted").notNull().default(false),
   deletedAt: timestamp("deleted_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const lineItemsRelations = relations(lineItemsModel, ({ one }) => ({

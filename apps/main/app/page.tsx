@@ -1,5 +1,3 @@
-"use client";
-
 import { Header } from "@/components/landing/header";
 import { Hero } from "@/components/landing/hero";
 import WhatIsIt from "@/components/landing/what-is-it";
@@ -11,7 +9,6 @@ import { BuiltToRun } from "@/components/product/built-to-run";
 import { Cards } from "@/components/landing/cards";
 import { Testimonial } from "@/components/landing/testimonial";
 import RoiCalculator from "@/components/landing/roi-calculator";
-import { About } from "@/components/landing/about";
 
 const whatIsItTitle = "AI-Powered Back Office Software for Construction";
 const whatIsItDescription =

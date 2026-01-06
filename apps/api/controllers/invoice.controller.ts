@@ -323,12 +323,21 @@ class InvoiceController {
       //@ts-ignore
       const userId = req.user.id;
       const { invoiceId } = req.params;
+      const { viewType } = req.query; // Get viewType from query parameters
 
       if (!invoiceId) {
         throw new BadRequestError("Invoice ID is required");
       }
 
-      const lineItems = await invoiceServices.getLineItemsByInvoiceId(parseInt(invoiceId));
+      // Validate viewType if provided
+      const validViewType = viewType && (viewType === 'single' || viewType === 'expanded')
+        ? viewType as 'single' | 'expanded'
+        : undefined;
+
+      const lineItems = await invoiceServices.getLineItemsByInvoiceId(
+        parseInt(invoiceId),
+        validViewType
+      );
 
       return res.status(200).json({
         success: true,
@@ -501,10 +510,25 @@ class InvoiceController {
         throw new BadRequestError("Status is required");
       }
 
+      const invoiceId = parseInt(id);
+
+      // Check for duplicate warnings before approval
+      if (status === "approved") {
+        const invoice = await invoiceServices.getInvoice(invoiceId);
+        if (invoice?.isDuplicate) {
+          return res.status(403).json({
+            success: false,
+            error: "Duplicate invoice detected. Please change the invoice number to proceed.",
+            duplicateInfo: { isDuplicate: true },
+            requiresOverride: true,
+          });
+        }
+      }
+
       // Support both single email (legacy) and multiple emails
       const emails = recipientEmails || (recipientEmail ? [recipientEmail] : undefined);
 
-      const updatedInvoice = await invoiceServices.updateInvoiceStatus(parseInt(id), status, rejectionReason, emails);
+      const updatedInvoice = await invoiceServices.updateInvoiceStatus(invoiceId, status, rejectionReason, emails);
 
       // Emit WebSocket event for status update
       const wsService = getWebSocketService();
@@ -675,6 +699,49 @@ class InvoiceController {
       return res.status(statusCode).json({
         success: false,
         error: error.message || "Internal server error",
+      });
+    }
+  }
+
+  async createOrUpdateSingleModeLineItem(req: Request, res: Response) {
+    try {
+      //@ts-ignore
+      const userId = req.user.id;
+      const {
+        invoiceId,
+        itemType,
+        resourceId,
+        customerId,
+        quantity,
+        rate,
+        totalAmount,
+        description
+      } = req.body;
+
+      if (!invoiceId || !itemType || !resourceId || !totalAmount) {
+        throw new BadRequestError("Invoice ID, item type, resource ID, and total amount are required");
+      }
+
+      const response = await invoiceServices.createOrUpdateSingleModeLineItem({
+        userId,
+        invoiceId: parseInt(invoiceId),
+        itemType,
+        resourceId,
+        customerId,
+        quantity: quantity || "1",
+        rate: rate || totalAmount,
+        totalAmount,
+        description: description || "Invoice Total"
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: response,
+      });
+    } catch (error: any) {
+      return res.status(error.statusCode || 500).json({
+        success: false,
+        error: error.message,
       });
     }
   }

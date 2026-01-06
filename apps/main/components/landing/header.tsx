@@ -140,7 +140,7 @@ export function Header() {
 
   return (
     <>
-      <header className="w-full bg-[#141414] backdrop-blur-none border-yellow-600/50 relative z-[9999]">
+      <header className="w-full bg-[#141414] backdrop-blur-none shadow-[0_4px_20px_rgba(0,0,0,0.9),0_0_30px_rgba(253,176,34,0.2)] border-yellow-600/50 relative z-[9999]">
         <nav className="w-full px-4 md:px-12" aria-label="Global">
           <div className="relative flex items-center justify-between py-3 md:py-[13px]">
             <Link href="/" className="flex items-center gap-3 z-10">
@@ -177,9 +177,11 @@ export function Header() {
                     </button>
                     {dropdownOpen && (
                       <div className="absolute top-full left-0 mt-2 z-[9999] w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800">
-                        <a
+                        <Link
                           href="/product"
-                          onClick={() => setDropdownOpen(false)}
+                          onClick={(e) => {
+                            setDropdownOpen(false);
+                          }}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
                           <img
@@ -194,10 +196,12 @@ export function Header() {
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Product overview
                           </div>
-                        </a>
-                        <a
+                        </Link>
+                        <Link
                           href="/product/ai-accounts-payable"
-                          onClick={() => setDropdownOpen(false)}
+                          onClick={(e) => {
+                            setDropdownOpen(false);
+                          }}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
                           <img
@@ -212,10 +216,12 @@ export function Header() {
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             AI Accounts Payable
                           </div>
-                        </a>
-                        <a
+                        </Link>
+                        <Link
                           href="/integration"
-                          onClick={() => setDropdownOpen(false)}
+                          onClick={(e) => {
+                            setDropdownOpen(false);
+                          }}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
                           <img
@@ -230,7 +236,7 @@ export function Header() {
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Integrations
                           </div>
-                        </a>
+                        </Link>
                       </div>
                     )}
                   </div>
@@ -260,35 +266,39 @@ export function Header() {
                     </button>
                     {industriesDropdownOpen && (
                       <div className="absolute top-full left-0 mt-2 z-[9999] w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800 inline-flex flex-col justify-start items-start overflow-hidden">
-                        <a
+                        <Link
                           href="/industries/construction"
-                          onClick={() => setIndustriesDropdownOpen(false)}
+                          onClick={(e) => {
+                            setIndustriesDropdownOpen(false);
+                          }}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Construction
                           </div>
-                        </a>
-                        <a
+                        </Link>
+                        <Link
                           href="/industries/concrete"
-                          onClick={() => setIndustriesDropdownOpen(false)}
+                          onClick={(e) => {
+                            setIndustriesDropdownOpen(false);
+                          }}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Concrete
                           </div>
-                        </a>
+                        </Link>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <a
+                  <Link
                     key={item.name}
                     href={item.href}
                     className="text-white font-medium transition-colors duration-300 uppercase text-sm"
                   >
                     {item.name}
-                  </a>
+                  </Link>
                 )
               )}
             </div>
@@ -381,8 +391,12 @@ export function Header() {
                           </button>
                           {mobileDropdownOpen && (
                             <div className="mt-2 ml-4 space-y-2">
-                              <a
+                              <Link
                                 href="/product"
+                                onClick={() => {
+                                  setMobileMenuOpen(false);
+                                  setMobileDropdownOpen(false);
+                                }}
                                 className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                               >
                                 <img
@@ -395,9 +409,13 @@ export function Header() {
                                   }}
                                 />
                                 Product overview
-                              </a>
-                              <a
+                              </Link>
+                              <Link
                                 href="/product/ai-accounts-payable"
+                                onClick={() => {
+                                  setMobileMenuOpen(false);
+                                  setMobileDropdownOpen(false);
+                                }}
                                 className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                               >
                                 <img
@@ -410,9 +428,13 @@ export function Header() {
                                   }}
                                 />
                                 AI Accounts Payable
-                              </a>
-                              <a
+                              </Link>
+                              <Link
                                 href="/integration"
+                                onClick={() => {
+                                  setMobileMenuOpen(false);
+                                  setMobileDropdownOpen(false);
+                                }}
                                 className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                               >
                                 <img
@@ -451,29 +473,38 @@ export function Header() {
                           </button>
                           {mobileIndustriesDropdownOpen && (
                             <div className="mt-2 ml-4 space-y-2">
-                              <a
+                              <Link
                                 href="/industries/construction"
+                                onClick={() => {
+                                  setMobileMenuOpen(false);
+                                  setMobileIndustriesDropdownOpen(false);
+                                }}
                                 className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                               >
                                 Construction
-                              </a>
-                              <a
+                              </Link>
+                              <Link
                                 href="/industries/concrete"
+                                onClick={() => {
+                                  setMobileMenuOpen(false);
+                                  setMobileIndustriesDropdownOpen(false);
+                                }}
                                 className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                               >
                                 Concrete
-                              </a>
+                              </Link>
                             </div>
                           )}
                         </div>
                       ) : (
-                        <a
+                        <Link
                           key={item.name}
                           href={item.href}
+                          onClick={() => setMobileMenuOpen(false)}
                           className="block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase"
                         >
                           {item.name}
-                        </a>
+                        </Link>
                       )
                     )}
                   </div>
