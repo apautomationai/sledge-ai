@@ -9,7 +9,7 @@ import { quickbooksCustomersModel } from "@/models/quickbooks-customers.model";
 import { BadRequestError, InternalServerError } from "@/helpers/errors";
 import { integrationsService } from "./integrations.service";
 import { embeddingsService } from "./embeddings.service";
-import FormData from 'form-data';
+const FormData = require('form-data');
 import { Readable } from 'stream';
 
 // QuickBooks integration type based on generic integrations model
@@ -1399,6 +1399,34 @@ export class QuickBooksService {
     }
   }
 
+  // Update lastSyncedAt timestamp in integration metadata
+  async updateLastSyncedAt(userId: number): Promise<void> {
+    try {
+      const integration = await this.getUserIntegration(userId);
+      if (!integration) {
+        console.error("No QuickBooks integration found for user:", userId);
+        return;
+      }
+
+      const currentMetadata = integration.metadata || {};
+      const updatedMetadata = {
+        ...currentMetadata,
+        lastSyncedAt: new Date().toISOString()
+      };
+
+      await db
+        .update(integrationsModel)
+        .set({
+          metadata: updatedMetadata,
+          updatedAt: new Date()
+        })
+        .where(eq(integrationsModel.id, integration.id));
+
+    } catch (error: any) {
+      console.error("Error updating lastSyncedAt:", error);
+    }
+  }
+
   // Disconnect integration
   async disconnectIntegration(userId: number): Promise<void> {
     try {
@@ -1738,6 +1766,9 @@ export class QuickBooksService {
       }
     }
 
+    // Update lastSyncedAt timestamp after successful products sync
+    await this.updateLastSyncedAt(userId);
+
     return { inserted, updated, skipped };
   }
 
@@ -1856,6 +1887,9 @@ export class QuickBooksService {
         // Continue with next account
       }
     }
+
+    // Update lastSyncedAt timestamp after successful accounts sync
+    await this.updateLastSyncedAt(userId);
 
     return { inserted, updated, skipped };
   }
@@ -2007,6 +2041,9 @@ export class QuickBooksService {
       }
     }
 
+    // Update lastSyncedAt timestamp after successful vendors sync
+    await this.updateLastSyncedAt(userId);
+
     return { inserted, updated, skipped };
   }
 
@@ -2115,6 +2152,9 @@ export class QuickBooksService {
         // Continue with next customer
       }
     }
+
+    // Update lastSyncedAt timestamp after successful customers sync
+    await this.updateLastSyncedAt(userId);
 
     return { inserted, updated, skipped };
   }
