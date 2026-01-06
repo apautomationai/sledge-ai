@@ -3,21 +3,6 @@ import { fn } from 'storybook/test';
 import { expect, within, userEvent } from 'storybook/test';
 import { Button } from './button';
 
-/**
- * Button Component
- * 
- * A modern, accessible button component with multiple variants and sizes.
- * Fully supports dark mode and includes loading states, icons, and full-width options.
- * 
- * ## Features
- * - 🎨 Multiple variants (primary, secondary, outline, ghost, danger)
- * - 📏 Three sizes (small, medium, large)
- * - 🌓 Full dark mode support
- * - ♿ Accessibility built-in
- * - ⏳ Loading state
- * - 🎯 Icon support (before/after text)
- * - 📱 Responsive and full-width option
- */
 const meta = {
   title: 'UI/Button',
   component: Button,
