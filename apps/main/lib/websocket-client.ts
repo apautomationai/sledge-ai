@@ -15,6 +15,7 @@ class WebSocketClient {
     private reconnectAttempts = 0;
     private maxReconnectAttempts = 5;
     private reconnectDelay = 1000;
+    private joinedRooms: Set<string> = new Set();
 
     private constructor() { }
 
@@ -65,11 +66,24 @@ class WebSocketClient {
 
             this.socket.on('connect', () => {
                 this.reconnectAttempts = 0;
+
+                // Rejoin all previously joined rooms after reconnection
+                if (this.joinedRooms.size > 0) {
+                    console.log('🔄 Rejoining rooms:', Array.from(this.joinedRooms));
+                    this.joinedRooms.forEach(room => {
+                        if (room === 'dashboard') {
+                            this.socket?.emit('join_dashboard');
+                        } else if (room === 'invoice_list') {
+                            this.socket?.emit('join_invoice_list');
+                        }
+                    });
+                }
+
                 resolve(this.socket!);
             });
 
             this.socket.on('disconnect', (reason) => {
-                // Handle disconnection
+                console.log('🔌 Socket.IO disconnected:', reason);
             });
 
             this.socket.on('connect_error', (error) => {
@@ -102,6 +116,8 @@ class WebSocketClient {
         if (this.socket) {
             this.socket.disconnect();
             this.socket = null;
+            // Clear joined rooms on explicit disconnect
+            this.joinedRooms.clear();
         }
     }
 
@@ -112,24 +128,32 @@ class WebSocketClient {
     public joinDashboard(): void {
         if (this.socket?.connected) {
             this.socket.emit('join_dashboard');
+            this.joinedRooms.add('dashboard');
+        } else {
+            console.warn('⚠️ Cannot join dashboard: socket not connected');
         }
     }
 
     public leaveDashboard(): void {
         if (this.socket?.connected) {
             this.socket.emit('leave_dashboard');
+            this.joinedRooms.delete('dashboard');
         }
     }
 
     public joinInvoiceList(): void {
         if (this.socket?.connected) {
             this.socket.emit('join_invoice_list');
+            this.joinedRooms.add('invoice_list');
+        } else {
+            console.warn('⚠️ Cannot join invoice_list: socket not connected');
         }
     }
 
     public leaveInvoiceList(): void {
         if (this.socket?.connected) {
             this.socket.emit('leave_invoice_list');
+            this.joinedRooms.delete('invoice_list');
         }
     }
 
