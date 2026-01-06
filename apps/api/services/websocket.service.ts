@@ -156,15 +156,15 @@ export class WebSocketService {
 
     // Emit invoice deleted to user
     public emitInvoiceDeleted(userId: number, invoiceId: number) {
-        const updateData = {
+        const notification = {
             type: 'INVOICE_DELETED',
-            data: { id: invoiceId },
+            invoiceId: invoiceId,
             timestamp: new Date().toISOString()
         };
 
-        this.io.to(`user_${userId}`).emit('invoice_deleted', updateData);
-        this.io.to(`dashboard_${userId}`).emit('dashboard_update', updateData);
-        this.io.to(`invoice_list_${userId}`).emit('invoice_list_update', updateData);
+        this.io.to(`user_${userId}`).emit('invoice_notification', notification);
+        this.io.to(`dashboard_${userId}`).emit('dashboard_notification', notification);
+        this.io.to(`invoice_list_${userId}`).emit('invoice_list_notification', notification);
     }
 
     // Emit attachment status updated
