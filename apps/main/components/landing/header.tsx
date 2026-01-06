@@ -22,7 +22,8 @@ export function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [industriesDropdownOpen, setIndustriesDropdownOpen] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
-  const [mobileIndustriesDropdownOpen, setMobileIndustriesDropdownOpen] = useState(false);
+  const [mobileIndustriesDropdownOpen, setMobileIndustriesDropdownOpen] =
+    useState(false);
   const bodyRef = useRef<HTMLElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const industriesDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -299,7 +300,7 @@ export function Header() {
                   >
                     {item.name}
                   </Link>
-                )
+                ),
               )}
             </div>
 
@@ -376,7 +377,9 @@ export function Header() {
                       item.name === "Products" ? (
                         <div key={item.name}>
                           <button
-                            onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+                            onClick={() =>
+                              setMobileDropdownOpen(!mobileDropdownOpen)
+                            }
                             className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
                           >
                             {item.name}
@@ -455,7 +458,9 @@ export function Header() {
                         <div key={item.name}>
                           <button
                             onClick={() =>
-                              setMobileIndustriesDropdownOpen(!mobileIndustriesDropdownOpen)
+                              setMobileIndustriesDropdownOpen(
+                                !mobileIndustriesDropdownOpen,
+                              )
                             }
                             className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
                           >
@@ -505,7 +510,7 @@ export function Header() {
                         >
                           {item.name}
                         </Link>
-                      )
+                      ),
                     )}
                   </div>
                 </div>
