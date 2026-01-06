@@ -18,7 +18,7 @@ export default function RoiCalculator() {
 
   // Hours in year = ((invoices per month x time per invoice) x 12) / number of workers
   const hoursPerYear = Math.round(
-    (numInvoices * numTime * 12) / 60 / numWorkers
+    (numInvoices * numTime * 12) / 60 / numWorkers,
   );
 
   // Money saved = number of workers * 8 * hourly rate * 5 * 4 * 12
@@ -56,7 +56,7 @@ export default function RoiCalculator() {
                     setInvoicesPerMonth(
                       e.target.value
                         .replace(/[^0-9]/g, "")
-                        .replace(/^0+/, "") || ""
+                        .replace(/^0+/, "") || "",
                     )
                   }
                   className="w-full h-full px-4 bg-transparent text-neutral-100 text-sm md:text-base font-medium font-sans outline-none"
@@ -75,7 +75,7 @@ export default function RoiCalculator() {
                     setTimePerInvoice(
                       e.target.value
                         .replace(/[^0-9]/g, "")
-                        .replace(/^0+/, "") || ""
+                        .replace(/^0+/, "") || "",
                     )
                   }
                   className="w-full h-full px-4 bg-transparent text-neutral-100 text-sm md:text-base font-medium font-sans outline-none"
@@ -94,7 +94,7 @@ export default function RoiCalculator() {
                     setNumberOfWorkers(
                       e.target.value
                         .replace(/[^0-9]/g, "")
-                        .replace(/^0+/, "") || ""
+                        .replace(/^0+/, "") || "",
                     )
                   }
                   className="w-full h-full px-4 bg-transparent text-neutral-100 text-sm md:text-base font-medium font-sans outline-none"
@@ -113,7 +113,7 @@ export default function RoiCalculator() {
                     setHourlyRate(
                       e.target.value
                         .replace(/[^0-9]/g, "")
-                        .replace(/^0+/, "") || ""
+                        .replace(/^0+/, "") || "",
                     )
                   }
                   className="w-full h-full px-4 bg-transparent text-neutral-100 text-sm md:text-base font-medium font-sans outline-none"
@@ -251,7 +251,7 @@ export default function RoiCalculator() {
               {/* CTA Buttons */}
               <div className="w-full flex flex-col justify-center items-center gap-4">
                 <Link
-                  href="/product/ai-account-payable"
+                  href="/product/ai-accounts-payable"
                   className="self-stretch px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors"
                 >
                   <span className="text-center text-stone-800 text-xs lg:text-base font-semibold uppercase leading-tight">
