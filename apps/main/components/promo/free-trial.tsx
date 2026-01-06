@@ -105,6 +105,7 @@ export function FreeTrial() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    phone: "",
     businessName: "",
     email: "",
     password: "",
@@ -116,7 +117,7 @@ export function FreeTrial() {
         description: "Welcome! Redirecting to onboarding...",
       });
       setTimeout(() => {
-        window.location.reload();
+        window.location.href = state.redirectTo!;
       }, 1000);
       return;
     }
@@ -240,6 +241,28 @@ export function FreeTrial() {
                       <p className="text-sm text-red-400 mt-1">{state.errors.lastName[0]}</p>
                     )}
                   </div>
+                </div>
+
+                {/* Phone Number */}
+                <div className="self-stretch flex flex-col justify-start items-start gap-1">
+                  <label
+                    htmlFor="phone"
+                    className="self-stretch justify-start text-white text-sm font-medium font-['Inter']"
+                  >
+                    Phone number
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="+1234567890"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
+                  />
+                  {state.errors?.phone && (
+                    <p className="text-sm text-red-400 mt-1">{state.errors.phone[0]}</p>
+                  )}
                 </div>
 
                 {/* Business Name */}
