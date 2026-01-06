@@ -388,6 +388,7 @@ export class GoogleServices {
           const receiver = extractEmail(getHeader(headers, "to"));
 
           const parts = message.data.payload?.parts || [];
+          let messageHasEligibleAttachments = false;
 
           for (const part of parts) {
             if (!part.filename || !part.body?.attachmentId) {
@@ -454,6 +455,7 @@ export class GoogleServices {
                 provider: "gmail" as const,
               });
               metadata.storedAttachments++;
+              messageHasEligibleAttachments = true;
             } catch (partError: any) {
               metadata.failures++;
               metadata.errors.push({
@@ -486,6 +488,37 @@ export class GoogleServices {
                   metadata,
                 };
               }
+            }
+          }
+
+          // Mark email as read if it had eligible attachments that were processed
+          if (messageHasEligibleAttachments) {
+            try {
+              const markReadResult = await this.markEmailAsRead(
+                tokens,
+                msg.id!,
+                integrationId
+              );
+              if (!markReadResult.success) {
+                metadata.errors.push({
+                  stage: "markAsRead",
+                  messageId: msg.id || undefined,
+                  error: markReadResult.message || "Failed to mark email as read",
+                });
+              }
+            } catch (markReadError: any) {
+              metadata.errors.push({
+                stage: "markAsRead",
+                messageId: msg.id || undefined,
+                error: this.extractErrorMessage(
+                  markReadError,
+                  "Failed to mark email as read"
+                ),
+                stack:
+                  process.env.NODE_ENV === "development"
+                    ? markReadError?.stack
+                    : undefined,
+              });
             }
           }
         } catch (messageError: any) {
@@ -528,17 +561,17 @@ export class GoogleServices {
         const currentIntegration: any = await integrationsService.getIntegrations(userId);
         const integration = (currentIntegration.data || []).find((i: any) => i.id === integrationId);
         const currentMetadata = (integration?.metadata as any) || {};
-        
+
         const updatedMetadata: any = {
           ...currentMetadata,
           lastReadAt: new Date().toISOString(),
         };
-        
+
         // Update lastProcessedAt if any attachments were successfully sent to queue
         if (metadata.storedAttachments > 0) {
           updatedMetadata.lastProcessedAt = new Date().toISOString();
         }
-        
+
         await integrationsService.updateIntegration(integrationId, {
           metadata: updatedMetadata,
         });
@@ -652,6 +685,33 @@ export class GoogleServices {
       return response;
     } catch (error: any) {
       throw new BadRequestError(error.message || "No attachment found");
+    }
+  };
+
+  // Mark email as read
+  markEmailAsRead = async (
+    tokens: any,
+    messageId: string,
+    integrationId: number
+  ): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const auth = this.getOAuthClient(tokens);
+      const gmail = google.gmail({ version: "v1", auth });
+
+      await gmail.users.messages.modify({
+        userId: "me",
+        id: messageId,
+        requestBody: {
+          removeLabelIds: ["UNREAD"],
+        },
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: this.extractErrorMessage(error, "Failed to mark email as read"),
+      };
     }
   };
 }
