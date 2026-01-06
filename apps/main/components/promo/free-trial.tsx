@@ -1,8 +1,16 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, Loader2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
+import { toast } from "sonner";
+import { signUpAction, SignUpFormState } from "@/app/(auth)/sign-up/actions";
+
+const initialState: SignUpFormState = {
+  message: "",
+  success: false,
+};
 
 const features = [
   "Unlimited AI invoice processing",
@@ -12,20 +20,100 @@ const features = [
   "No per-invoice fees. No usage caps.",
 ];
 
-export function FreeTrial() {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    businessName: "",
-    email: "",
-    password: "",
-  });
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="self-stretch px-4 py-3 bg-amber-400 hover:bg-amber-500 disabled:bg-amber-400/50 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors duration-200 cursor-pointer disabled:cursor-not-allowed"
+    >
+      {pending ? (
+        <div className="flex items-center justify-center gap-2">
+          <Loader2 className="animate-spin h-5 w-5 text-stone-800" />
+          <span className="text-stone-800 text-base font-bold font-['Inter'] uppercase leading-5">
+            Creating Account...
+          </span>
+        </div>
+      ) : (
+        <div className="justify-start text-stone-800 text-base font-bold font-['Inter'] uppercase leading-5">
+          Start free trial
+        </div>
+      )}
+    </button>
+  );
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Form submission logic will be handled by the sign-up page
-    window.location.href = "/sign-up";
-  };
+function PasswordInput({
+  id,
+  name,
+  errors,
+}: {
+  id: string;
+  name: string;
+  errors?: string[];
+}) {
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <div className="self-stretch flex flex-col justify-center items-start gap-1">
+      <div className="self-stretch flex flex-col justify-start items-start gap-1">
+        <label
+          htmlFor={id}
+          className="self-stretch justify-start text-white text-sm font-medium font-['Inter']"
+        >
+          Password
+        </label>
+        <div className="relative w-full">
+          <input
+            type={showPassword ? "text" : "password"}
+            id={id}
+            name={name}
+            minLength={6}
+            className="self-stretch w-full h-11 px-4 py-2 pr-10 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
+            required
+          />
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 cursor-pointer"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? (
+              <EyeOff className="h-5 w-5" />
+            ) : (
+              <Eye className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+        {errors && <p className="text-sm text-red-400 mt-1">{errors[0]}</p>}
+      </div>
+      <div className="justify-start text-white text-sm font-normal font-['Inter'] leading-5">
+        At least 6 characters
+      </div>
+    </div>
+  );
+}
+
+export function FreeTrial() {
+  const [state, formAction] = useActionState(signUpAction, initialState);
+
+  useEffect(() => {
+    if (state?.success && state?.redirectTo) {
+      toast.success("Account Created", {
+        description: "Welcome! Redirecting to onboarding...",
+      });
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      return;
+    }
+
+    if (state?.message && !state?.success) {
+      toast.error("Sign Up Failed", {
+        description: state.message,
+      });
+    }
+  }, [state]);
 
   return (
     <section className="w-full px-6 md:px-8 lg:px-12 pb-12 pt-[24px] md:pb-16">
@@ -96,7 +184,7 @@ export function FreeTrial() {
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="self-stretch flex flex-col justify-start items-start gap-4">
+              <form action={formAction} className="self-stretch flex flex-col justify-start items-start gap-4">
                 {/* First Name & Last Name */}
                 <div className="self-stretch flex flex-col sm:flex-row justify-start items-start gap-4">
                   <div className="w-full sm:flex-1 flex flex-col justify-start items-start gap-1 min-w-0">
@@ -109,13 +197,13 @@ export function FreeTrial() {
                     <input
                       type="text"
                       id="firstName"
-                      value={formData.firstName}
-                      onChange={(e) =>
-                        setFormData({ ...formData, firstName: e.target.value })
-                      }
-                      className="self-stretch h-11 p-4 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-lg font-normal font-['Inter'] leading-6 focus:outline-amber-400 transition-colors"
+                      name="firstName"
+                      className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
                       required
                     />
+                    {state.errors?.firstName && (
+                      <p className="text-sm text-red-400 mt-1">{state.errors.firstName[0]}</p>
+                    )}
                   </div>
                   <div className="w-full sm:flex-1 flex flex-col justify-start items-start gap-1 min-w-0">
                     <label
@@ -127,14 +215,34 @@ export function FreeTrial() {
                     <input
                       type="text"
                       id="lastName"
-                      value={formData.lastName}
-                      onChange={(e) =>
-                        setFormData({ ...formData, lastName: e.target.value })
-                      }
-                      className="self-stretch h-11 p-4 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-lg font-normal font-['Inter'] leading-6 focus:outline-amber-400 transition-colors"
+                      name="lastName"
+                      className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
                       required
                     />
+                    {state.errors?.lastName && (
+                      <p className="text-sm text-red-400 mt-1">{state.errors.lastName[0]}</p>
+                    )}
                   </div>
+                </div>
+
+                {/* Phone Number */}
+                <div className="self-stretch flex flex-col justify-start items-start gap-1">
+                  <label
+                    htmlFor="phone"
+                    className="self-stretch justify-start text-white text-sm font-medium font-['Inter']"
+                  >
+                    Phone number
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="+1234567890"
+                    className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
+                  />
+                  {state.errors?.phone && (
+                    <p className="text-sm text-red-400 mt-1">{state.errors.phone[0]}</p>
+                  )}
                 </div>
 
                 {/* Business Name */}
@@ -148,13 +256,13 @@ export function FreeTrial() {
                   <input
                     type="text"
                     id="businessName"
-                    value={formData.businessName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, businessName: e.target.value })
-                    }
-                    className="self-stretch h-11 p-4 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-lg font-normal font-['Inter'] leading-6 focus:outline-amber-400 transition-colors"
+                    name="businessName"
+                    className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
                     required
                   />
+                  {state.errors?.businessName && (
+                    <p className="text-sm text-red-400 mt-1">{state.errors.businessName[0]}</p>
+                  )}
                 </div>
 
                 {/* Email */}
@@ -168,49 +276,31 @@ export function FreeTrial() {
                   <input
                     type="email"
                     id="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    className="self-stretch h-11 p-4 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-lg font-normal font-['Inter'] leading-6 focus:outline-amber-400 transition-colors"
+                    name="email"
+                    className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
                     required
                   />
+                  {state.errors?.email && (
+                    <p className="text-sm text-red-400 mt-1">{state.errors.email[0]}</p>
+                  )}
                 </div>
 
                 {/* Password */}
-                <div className="self-stretch flex flex-col justify-center items-start gap-1">
-                  <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                    <label
-                      htmlFor="password"
-                      className="self-stretch justify-start text-white text-sm font-medium font-['Inter']"
-                    >
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      id="password"
-                      value={formData.password}
-                      onChange={(e) =>
-                        setFormData({ ...formData, password: e.target.value })
-                      }
-                      className="self-stretch h-11 p-4 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-lg font-normal font-['Inter'] leading-6 focus:outline-amber-400 transition-colors"
-                      required
-                    />
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  errors={state.errors?.password}
+                />
+
+                {/* Form Error */}
+                {state.errors?._form && (
+                  <div className="self-stretch p-3 bg-red-900/20 rounded border border-red-800">
+                    <p className="text-sm text-red-400 text-center">{state.errors._form[0]}</p>
                   </div>
-                  <div className="justify-start text-white text-sm font-normal font-['Inter'] leading-5">
-                    At least 6 characters
-                  </div>
-                </div>
+                )}
 
                 {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="self-stretch px-4 py-3 bg-amber-400 hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors duration-200"
-                >
-                  <div className="justify-start text-stone-800 text-base font-bold font-['Inter'] uppercase leading-5">
-                    Start free trial
-                  </div>
-                </button>
+                <SubmitButton />
 
                 {/* Footer Text */}
                 <div className="self-stretch inline-flex justify-center items-center gap-2">

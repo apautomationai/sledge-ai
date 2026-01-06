@@ -310,11 +310,15 @@ export function Header() {
             <div className="flex lg:hidden">
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-md p-2.5 text-white hover:text-yellow-400 z-50 relative"
-                onClick={() => setMobileMenuOpen(true)}
-                aria-label="Open menu"
+                className="inline-flex items-center justify-center rounded-md p-2.5 text-white hover:text-yellow-400 z-[10001] relative"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
               >
-                <Menu className="h-6 w-6" aria-hidden="true" />
+                {mobileMenuOpen ? (
+                  <X className="h-6 w-6" aria-hidden="true" />
+                ) : (
+                  <Menu className="h-6 w-6" aria-hidden="true" />
+                )}
               </button>
             </div>
           </div>
@@ -330,7 +334,7 @@ export function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 lg:hidden pointer-events-none"
+              className="fixed inset-0 z-[10000] lg:hidden pointer-events-none"
             >
               <div
                 className="fixed inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto"
@@ -344,7 +348,7 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-neutral-900 shadow-2xl shadow-yellow-500/20 border-l-4 border-yellow-600/30 lg:hidden pointer-events-auto"
+              className="fixed inset-y-0 right-0 z-[10000] w-full max-w-sm bg-neutral-900 shadow-2xl shadow-yellow-500/20 border-l-4 border-yellow-600/30 lg:hidden pointer-events-auto"
             >
               <div className="flex flex-col h-full">
                 {/* Header */}

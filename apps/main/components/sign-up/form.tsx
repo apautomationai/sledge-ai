@@ -71,7 +71,7 @@ function PasswordInput({
             placeholder={placeholder}
             required
             minLength={6}
-            className="self-stretch h-11 pr-10 text-sm font-medium font-['Work_Sans'] focus:ring-0 focus:outline-none px-4 py-2"
+            className="self-stretch h-11 pr-10 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
             style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
           />
           <Button
@@ -134,7 +134,7 @@ export default function SignUpForm() {
   return (
     <div className="w-full flex flex-col justify-center items-center gap-5">
       {/* Logo - Centered */}
-      <div className="w-48 h-16 relative">
+      <Link href="/" className="w-48 h-16 relative cursor-pointer">
         <img
           src="/images/logos/logosledge.png"
           alt="Logo"
@@ -143,7 +143,7 @@ export default function SignUpForm() {
         <div className="absolute left-[74.67px] top-[17.33px] justify-center text-white text-3xl font-bold font-['League_Spartan'] capitalize leading-8">
           SLEDGE
         </div>
-      </div>
+      </Link>
 
       {/* Header */}
       <div className="self-stretch text-center justify-start text-gray-200 text-xl font-bold font-['Inter'] leading-7">
@@ -195,7 +195,7 @@ export default function SignUpForm() {
                   name="firstName"
                   placeholder="John"
                   required
-                  className="self-stretch h-11 text-sm font-medium font-['Work_Sans'] focus:ring-0 focus:outline-none px-4 py-2"
+                  className="self-stretch h-11 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
                   style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
                 />
                 {state.errors?.firstName && (
@@ -212,7 +212,7 @@ export default function SignUpForm() {
                   name="lastName"
                   placeholder="Doe"
                   required
-                  className="self-stretch h-11 text-sm font-medium font-['Work_Sans'] focus:ring-0 focus:outline-none px-4 py-2"
+                  className="self-stretch h-11 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
                   style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
                 />
                 {state.errors?.lastName && (
@@ -229,7 +229,7 @@ export default function SignUpForm() {
                 id="phone"
                 name="phone"
                 placeholder="+1234567890"
-                className="self-stretch h-11 text-sm font-medium font-['Work_Sans'] focus:ring-0 focus:outline-none px-4 py-2"
+                className="self-stretch h-11 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
                 style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
               />
               {state.errors?.phone && (
@@ -246,7 +246,7 @@ export default function SignUpForm() {
                 name="businessName"
                 placeholder="Business Name"
                 required
-                className="self-stretch h-11 text-sm font-medium font-['Work_Sans'] focus:ring-0 focus:outline-none px-4 py-2"
+                className="self-stretch h-11 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
                 style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
               />
               {state.errors?.businessName && (
@@ -264,7 +264,7 @@ export default function SignUpForm() {
                 type="email"
                 required
                 placeholder="you@example.com"
-                className="self-stretch h-11 text-sm font-medium font-['Work_Sans'] focus:ring-0 focus:outline-none px-4 py-2"
+                className="self-stretch h-11 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
                 style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
               />
               {state.errors?.email && (

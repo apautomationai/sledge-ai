@@ -205,7 +205,7 @@ function SignInFormComponent() {
   return (
     <div className="w-full flex flex-col justify-center items-center gap-5">
         {/* Logo - Centered */}
-        <div className="w-48 h-16 relative">
+        <Link href="/" className="w-48 h-16 relative cursor-pointer">
           <img
             src="/images/logos/logosledge.png"
             alt="Logo"
@@ -214,7 +214,7 @@ function SignInFormComponent() {
           <div className="absolute left-[74.67px] top-[17.33px] justify-center text-white text-3xl font-bold font-['League_Spartan'] capitalize leading-8">
             SLEDGE
           </div>
-        </div>
+        </Link>
 
         {/* Header */}
         <div className="self-stretch text-center text-gray-200 text-xl font-bold font-['Inter'] leading-7">
@@ -265,7 +265,7 @@ function SignInFormComponent() {
                   name="email"
                   type="email"
                   placeholder=""
-                  className="self-stretch h-11 text-sm font-medium font-['Work_Sans'] focus:ring-0 focus:outline-none px-4 py-2"
+                  className="self-stretch h-11 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
                   style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
                   required
                 />
@@ -286,7 +286,7 @@ function SignInFormComponent() {
                     name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder=""
-                    className="self-stretch h-11 pr-10 text-sm font-medium font-['Work_Sans'] focus:ring-0 focus:outline-none px-4 py-2"
+                    className="self-stretch h-11 pr-10 text-sm font-medium focus:ring-0 focus:outline-none px-4 py-2"
                     style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#FAFAF9' }}
                     required
                     minLength={6}
