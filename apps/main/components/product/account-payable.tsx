@@ -2,12 +2,15 @@ import Link from "next/link";
 
 export function AiAccount() {
   return (
-    <section className="relative flex items-center justify-center py-12 md:py-16 px-6 md:px-8 lg:px-12">
+    <section className="relative flex items-center justify-center min-h-[412px] md:min-h-screen py-12 md:py-16 px-6 md:px-8 lg:px-12">
       <div className="relative mx-auto max-w-[1400px] w-full">
         <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold font-['League_Spartan'] tracking-tight text-white uppercase">
+          <p className="text-sm md:text-md lg:text-lg text-gray-300">
+            AI ACCOUNTS PAYABLE
+          </p>
+          <h1 className="mt-2 text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
             AI Accounts payable. done for you.
-          </h2>
+          </h1>
 
           <p className="mt-2 md:mt-2 text-lg lg:text-2xl text-white">
             Sledge uses autonomous AI to capture invoices from email, parse and
