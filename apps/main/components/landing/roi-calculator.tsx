@@ -18,7 +18,7 @@ export default function RoiCalculator() {
 
   // Hours in year = ((invoices per month x time per invoice) x 12) / number of workers
   const hoursPerYear = Math.round(
-    (numInvoices * numTime * 12) / 60 / numWorkers
+    (numInvoices * numTime * 12) / 60 / numWorkers,
   );
 
   // Money saved = number of workers * 8 * hourly rate * 5 * 4 * 12
@@ -56,7 +56,7 @@ export default function RoiCalculator() {
                     setInvoicesPerMonth(
                       e.target.value
                         .replace(/[^0-9]/g, "")
-                        .replace(/^0+/, "") || ""
+                        .replace(/^0+/, "") || "",
                     )
                   }
                   className="w-full h-full px-4 bg-transparent text-neutral-100 text-sm md:text-base font-medium font-sans outline-none"
@@ -75,7 +75,7 @@ export default function RoiCalculator() {
                     setTimePerInvoice(
                       e.target.value
                         .replace(/[^0-9]/g, "")
-                        .replace(/^0+/, "") || ""
+                        .replace(/^0+/, "") || "",
                     )
                   }
                   className="w-full h-full px-4 bg-transparent text-neutral-100 text-sm md:text-base font-medium font-sans outline-none"
@@ -94,7 +94,7 @@ export default function RoiCalculator() {
                     setNumberOfWorkers(
                       e.target.value
                         .replace(/[^0-9]/g, "")
-                        .replace(/^0+/, "") || ""
+                        .replace(/^0+/, "") || "",
                     )
                   }
                   className="w-full h-full px-4 bg-transparent text-neutral-100 text-sm md:text-base font-medium font-sans outline-none"
@@ -113,7 +113,7 @@ export default function RoiCalculator() {
                     setHourlyRate(
                       e.target.value
                         .replace(/[^0-9]/g, "")
-                        .replace(/^0+/, "") || ""
+                        .replace(/^0+/, "") || "",
                     )
                   }
                   className="w-full h-full px-4 bg-transparent text-neutral-100 text-sm md:text-base font-medium font-sans outline-none"
@@ -125,7 +125,7 @@ export default function RoiCalculator() {
           {/* Right Column - Results */}
           <div className="w-full md:max-w-80 lg:max-w-96 shrink-0">
             {/* Mobile Results Design */}
-            <div className="md:hidden  flex flex-col justify-center items-center gap-6">
+            <div className="md:hidden px-4 flex flex-col justify-center items-center gap-6">
               <div className="self-stretch text-center text-white text-sm  leading-6">
                 Estimated impact after automating payables with AI.
               </div>
@@ -138,13 +138,13 @@ export default function RoiCalculator() {
                 <div className="self-stretch inline-flex justify-center items-center gap-2">
                   <div className="w-12 h-12 min-[375px]:w-14 min-[375px]:h-14 relative overflow-hidden flex-shrink-0">
                     <Image
-                      src="/updated-images/hourglass-empty.svg"
+                      src="/images/Vector.png"
                       alt="Savings icon"
                       fill
                       className="object-contain"
                     />
                   </div>
-                  <div className="text-amber-400 text-[48px] font-bold font-['League_Spartan'] leading-none whitespace-nowrap">
+                  <div className="text-amber-400 text-3xl min-[375px]:text-4xl font-bold font-['League_Spartan']">
                     ${annualSavings.toLocaleString()}
                   </div>
                 </div>
@@ -164,7 +164,7 @@ export default function RoiCalculator() {
                       className="object-contain"
                     />
                   </div>
-                  <div className="text-amber-400 text-[48px] font-bold font-['League_Spartan'] leading-none whitespace-nowrap">
+                  <div className="text-amber-400 text-3xl min-[375px]:text-4xl font-bold font-['League_Spartan']">
                     {hoursPerYear.toLocaleString()} HOURS
                   </div>
                 </div>
@@ -178,17 +178,17 @@ export default function RoiCalculator() {
               {/* CTA Buttons */}
               <div className="self-stretch flex flex-col justify-center items-center gap-4">
                 <Link
-                  href="/sign-up"
-                  className="w-full px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors"
+                  href="/product/ai-account-payable"
+                  className="self-stretch px-2 min-[375px]:px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors"
                 >
-                  <span className="text-center text-stone-800 text-xs  font-semibold font-sans uppercase leading-5 whitespace-nowrap">
-                    WATCH A DEMO
+                  <span className="text-center text-stone-800 text-[10px] min-[375px]:text-xs font-semibold font-sans uppercase leading-5 whitespace-nowrap">
+                    SEE HOW SLEDGE AUTOMATES PAYABLES
                   </span>
                 </Link>
 
                 <Link
-                  href="#demo"
-                  className="cursor-pointer w-full px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors"
+                  href="/sign-up"
+                  className="cursor-pointer self-stretch px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors"
                 >
                   <span className="text-center text-zinc-100 text-xs font-bold font-sans uppercase leading-5">
                     START A FREE TRIAL
@@ -217,7 +217,7 @@ export default function RoiCalculator() {
                       className="object-contain"
                     />
                   </div>
-                  <div className="text-[#e3b02f] text-[48px] font-bold font-league-spartan leading-none whitespace-nowrap">
+                  <div className="text-[#e3b02f] text-3xl lg:text-5xl font-bold font-league-spartan">
                     ${annualSavings.toLocaleString()}
                   </div>
                 </div>
@@ -237,7 +237,7 @@ export default function RoiCalculator() {
                       className="object-contain"
                     />
                   </div>
-                  <div className="text-[#e3b02f] text-[48px] font-bold font-league-spartan leading-none whitespace-nowrap">
+                  <div className="text-[#e3b02f] text-3xl lg:text-5xl font-bold font-league-spartan">
                     {hoursPerYear.toLocaleString()} HOURS
                   </div>
                 </div>
@@ -251,8 +251,8 @@ export default function RoiCalculator() {
               {/* CTA Buttons */}
               <div className="w-full flex flex-col justify-center items-center gap-4">
                 <Link
-                  href="/sign-up"
-                  className="w-full px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors"
+                  href="/product/ai-accounts-payable"
+                  className="self-stretch px-4 py-3 bg-[#e3b02f] hover:bg-amber-500 rounded inline-flex justify-center items-center gap-2 overflow-hidden transition-colors"
                 >
                   <span className="text-center text-stone-800 text-xs lg:text-base font-semibold uppercase leading-tight">
                     SEE HOW SLEDGE AUTOMATES PAYABLES
@@ -260,8 +260,8 @@ export default function RoiCalculator() {
                 </Link>
 
                 <Link
-                  href="#demo"
-                  className="cursor-pointer w-full px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors"
+                  href="/sign-up"
+                  className="cursor-pointer self-stretch px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded flex justify-center items-center gap-2 overflow-hidden transition-colors"
                 >
                   <span className="text-center text-zinc-100 text-xs lg:text-base font-bold font-sans uppercase leading-tight">
                     START A FREE TRIAL

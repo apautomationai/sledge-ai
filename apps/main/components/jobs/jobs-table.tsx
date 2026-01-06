@@ -446,7 +446,7 @@ export function JobsTable({
                 jobs.map((job) => (
                   <React.Fragment key={job.id}>
                     <TableRow
-                      className={`hover:bg-muted/50 ${job.invoiceCount > 0 && job.jobStatus !== "pending" && job.jobStatus !== "processing" ? "cursor-pointer" : "cursor-default"} ${job.invoiceCount > 1 && (job.duplicateInvoices ?? 0) > 0 ? "outline outline-1 outline-yellow-500 -outline-offset-1" : ""}`}
+                      className={`hover:bg-muted/50 ${job.invoiceCount > 0 && job.jobStatus !== "pending" && job.jobStatus !== "processing" ? "cursor-pointer" : "cursor-default"} ${job.duplicateInvoices && job.duplicateInvoices > 0 ? "border-l-2 border-l-yellow-500" : ""}`}
                       onClick={() => handleRowClick(job.id, job)}
                     >
                       <TableCell className="font-medium w-[120px] max-w-[120px]">

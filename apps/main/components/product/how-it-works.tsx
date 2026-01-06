@@ -116,8 +116,8 @@ export function HowItWorks() {
   };
 
   return (
-    <section className="w-full px-6 sm:px-6 md:px-8 lg:px-12 py-12 md:py-16 ">
-      <div className="w-full max-w-[1900px] mx-auto">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="max-w-[1400px] mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
