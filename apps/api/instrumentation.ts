@@ -12,7 +12,7 @@ Sentry.init({
   environment: process.env.NODE_ENV || "development",
 
   // Required for HTTP & Express tracing
-  tracesSampleRate: 1.0,
+  tracesSampleRate: 0.1,
 
   // Optional but recommended
   profilesSampleRate: 1.0,
