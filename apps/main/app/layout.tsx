@@ -19,9 +19,9 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/images/logos/icon.png",
-        width: 512,
-        height: 512,
+        url: "/images/icon.svg",
+        width: 48,
+        height: 48,
         alt: "Sledge: The Builder's AI Office",
       },
     ],
