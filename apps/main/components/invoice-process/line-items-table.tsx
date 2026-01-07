@@ -258,11 +258,23 @@ export function LineItemsTable({
         });
     };
 
-    const handleItemNameChange = (lineItemId: number, value: string) => {
+    const handleItemNameChange = async (lineItemId: number, value: string) => {
         updateLineItemState(lineItemId, { item_name: value });
 
         if (onChange) {
             onChange(lineItemId, { item_name: value });
+        }
+
+        // Save both item_name and description to database (this will trigger QuickBooks sync)
+        try {
+            const updateData = {
+                item_name: value,
+                description: value // Sync description with item_name for QuickBooks integration
+            };
+            await client.patch(`/api/v1/invoice/line-items/${lineItemId}`, updateData);
+        } catch (error) {
+            console.error('Error saving description:', error);
+            toast.error("Failed to save description");
         }
     };
 
