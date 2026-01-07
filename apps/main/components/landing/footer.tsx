@@ -40,7 +40,7 @@ export function Footer() {
                 <div className="relative">
                   <div className="w-full h-full rounded-lg flex items-center justify-center shadow-lg">
                     <Image
-                      src={"/images/logos/logosledge.png"}
+                      src={"/images/logos/logo-sledge-symbol-custom.svg"}
                       alt="logo"
                       width={40}
                       height={40}

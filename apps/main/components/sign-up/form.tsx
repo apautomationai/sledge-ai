@@ -70,7 +70,7 @@ export default function SignUpForm() {
       {/* Logo - Centered */}
       <Link href="/" className="w-48 h-16 relative cursor-pointer">
         <img
-          src="/images/logos/logosledge.png"
+          src="/images/logos/logo-sledge-symbol-custom.svg"
           alt="Logo"
           className="w-16 h-16 absolute left-0 top-0 rounded-2xl"
         />

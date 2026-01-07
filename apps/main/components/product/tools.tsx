@@ -5,7 +5,7 @@ const tools = [
   {
     name: "Outlook",
     description: "AI-powered invoice intake from email",
-    logo: "/images/product/1024px-Microsoft_Outlook_logo_(2024–2025).svg 1.png",
+    logo: "/images/1024px-Microsoft_Outlook_logo_(2024–2025).svg 1.svg",
     logoWidth: 64,
     logoHeight: 64,
     href: "/integration/outlook",
@@ -13,7 +13,7 @@ const tools = [
   {
     name: "Gmail",
     description: "Automatic invoice capture from inbox",
-    logo: "/images/product/128px-Gmail_icon_(2020).svg 1.png",
+    logo: "/images/128px-Gmail_icon_(2020).svg 1.svg",
     logoWidth: 64,
     logoHeight: 64,
     href: "/integration/gmail",
@@ -21,7 +21,7 @@ const tools = [
   {
     name: "QuickBooks",
     description: "AI-driven accounting sync",
-    logo: "/images/product/quickbooks-brand-preferred-logo-50-50-white-external 1.png",
+    logo: "/images/quickbooks-brand-preferred-logo-50-50-white-external 1.svg",
     logoWidth: 140,
     logoHeight: 50,
     href: "/integration/quickbooks",

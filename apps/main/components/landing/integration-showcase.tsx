@@ -15,22 +15,22 @@ export default function IntegrationShowcase() {
         <div className="mt-6 flex flex-wrap justify-center items-center gap-3 md:gap-16">
           <img
             className="w-16 h-6 md:w-36 md:h-12 object-contain"
-            src="/images/Stripe wordmark - White 1.png"
+            src="/images/Stripe wordmark - White 1.svg"
             alt="Stripe"
           />
           <img
             className="w-8 h-6 md:w-16 md:h-12 object-contain"
-            src="/images/128px-Gmail_icon_(2020).svg 1.png"
+            src="/images/128px-Gmail_icon_(2020).svg 1.svg"
             alt="Gmail"
           />
           <img
             className="w-8 h-6 md:w-16 md:h-12 object-contain"
-            src="/images/1024px-Microsoft_Outlook_logo_(2024–2025).svg 1.png"
+            src="/images/1024px-Microsoft_Outlook_logo_(2024–2025).svg 1.svg"
             alt="Microsoft Outlook"
           />
           <img
             className="w-20 h-6 md:w-48 md:h-12 object-contain"
-            src="/images/quickbooks-brand-preferred-logo-50-50-white-external 1.png"
+            src="/images/quickbooks-brand-preferred-logo-50-50-white-external 1.svg"
             alt="QuickBooks"
           />
         </div>
