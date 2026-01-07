@@ -1,16 +1,31 @@
 import { Request, Response, NextFunction } from 'express';
+import * as Sentry from '@sentry/node';
 
 import { logger } from '@/helpers/logger';
 import { config } from '@/lib/config';
 
 import { BaseError } from './errors';
 
-export function errorHandler(
+export async function errorHandler(
   err: Error,
   req: Request,
   res: Response,
   _next: NextFunction // Prefix with _ to indicate it's intentionally unused
 ) {
+  // Capture error in Sentry and wait for it to be sent
+  Sentry.captureException(err, {
+    contexts: {
+      request: {
+        url: req.originalUrl,
+        method: req.method,
+        headers: req.headers,
+      },
+    },
+  });
+
+  // Flush Sentry events (wait max 2 seconds)
+  await Sentry.flush(2000);
+
   // Log the error for debugging
   const errorLog = {
     message: err.message,
@@ -21,7 +36,7 @@ export function errorHandler(
     ip: req.ip,
     timestamp: new Date().toISOString()
   };
-  
+
   logger.error(`[${err.name}]: ${err.message}`);
   logger.error(errorLog);
 

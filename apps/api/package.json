@@ -31,6 +31,7 @@
     "@aws-sdk/s3-request-presigner": "^3.901.0",
     "@azure/msal-node": "^3.8.2",
     "@microsoft/microsoft-graph-client": "^3.0.7",
+    "@sentry/node": "^10.32.1",
     "@thednp/dommatrix": "^2.0.12",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",

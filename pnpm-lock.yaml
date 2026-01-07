@@ -48,6 +48,9 @@ importers:
       '@microsoft/microsoft-graph-client':
         specifier: ^3.0.7
         version: 3.0.7
+      '@sentry/node':
+        specifier: ^10.32.1
+        version: 10.32.1
       '@thednp/dommatrix':
         specifier: ^2.0.12
         version: 2.0.12
@@ -11071,7 +11074,7 @@ snapshots:
 
   '@types/minimatch@6.0.0':
     dependencies:
-      minimatch: 9.0.5
+      minimatch: 10.1.1
 
   '@types/ms@2.1.0': {}
 
