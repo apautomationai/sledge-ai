@@ -1,6 +1,6 @@
 {
-  "id": "9b8ecf6a-f9af-477e-a9c6-a2b02ac0ab60",
-  "prevId": "dc2a0199-0053-4f0a-acb3-4104e7148dd8",
+  "id": "2dc61b08-6dfa-4598-992c-8a462a84fe21",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -109,6 +109,19 @@
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
+        },
+        "processed_at": {
+          "name": "processed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "processed_time": {
+          "name": "processed_time",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -249,27 +262,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "vendor_address": {
-          "name": "vendor_address",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vendor_phone": {
-          "name": "vendor_phone",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vendor_email": {
-          "name": "vendor_email",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "customer_name": {
-          "name": "customer_name",
-          "type": "varchar(255)",
+        "customer_id": {
+          "name": "customer_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
@@ -287,6 +282,12 @@
         },
         "total_amount": {
           "name": "total_amount",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_quantity": {
+          "name": "total_quantity",
           "type": "numeric",
           "primaryKey": false,
           "notNull": false
@@ -340,6 +341,25 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'pending'"
+        },
+        "rejection_email_sender": {
+          "name": "rejection_email_sender",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rejection_reason": {
+          "name": "rejection_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_duplicate": {
+          "name": "is_duplicate",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "is_deleted": {
           "name": "is_deleted",
@@ -442,6 +462,14 @@
           "primaryKey": false,
           "notNull": false
         },
+        "view_type": {
+          "name": "view_type",
+          "type": "line_item_view_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'expanded'"
+        },
         "is_deleted": {
           "name": "is_deleted",
           "type": "boolean",
@@ -454,10 +482,135 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
       "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.project_vendors": {
+      "name": "project_vendors",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vendor_id": {
+          "name": "vendor_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_invoiced": {
+          "name": "total_invoiced",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "invoice_count": {
+          "name": "invoice_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "first_invoice_date": {
+          "name": "first_invoice_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_invoice_date": {
+          "name": "last_invoice_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_deleted": {
+          "name": "is_deleted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "project_vendors_project_id_projects_id_fk": {
+          "name": "project_vendors_project_id_projects_id_fk",
+          "tableFrom": "project_vendors",
+          "tableTo": "projects",
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "project_vendors_vendor_id_quickbooks_vendors_id_fk": {
+          "name": "project_vendors_vendor_id_quickbooks_vendors_id_fk",
+          "tableFrom": "project_vendors",
+          "tableTo": "quickbooks_vendors",
+          "columnsFrom": [
+            "vendor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -522,26 +675,42 @@
           "primaryKey": false,
           "notNull": false
         },
-        "billing_cycle": {
-          "name": "billing_cycle",
-          "type": "integer",
+        "latitude": {
+          "name": "latitude",
+          "type": "numeric(10, 8)",
           "primaryKey": false,
-          "notNull": true,
-          "default": 30
+          "notNull": false
         },
-        "total_billing_cycles": {
-          "name": "total_billing_cycles",
-          "type": "integer",
+        "longitude": {
+          "name": "longitude",
+          "type": "numeric(11, 8)",
           "primaryKey": false,
-          "notNull": true,
-          "default": 1
+          "notNull": false
         },
-        "current_billing_cycle": {
-          "name": "current_billing_cycle",
-          "type": "integer",
+        "billing_cycle_start_date": {
+          "name": "billing_cycle_start_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "billing_cycle_end_date": {
+          "name": "billing_cycle_end_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true,
-          "default": 1
+          "default": "'pending'"
+        },
+        "project_start_date": {
+          "name": "project_start_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         },
         "is_deleted": {
           "name": "is_deleted",
@@ -760,6 +929,184 @@
         "quickbooks_accounts_user_id_users_id_fk": {
           "name": "quickbooks_accounts_user_id_users_id_fk",
           "tableFrom": "quickbooks_accounts",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quickbooks_customers": {
+      "name": "quickbooks_customers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quickbooks_id": {
+          "name": "quickbooks_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "company_name": {
+          "name": "company_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "given_name": {
+          "name": "given_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "family_name": {
+          "name": "family_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "primary_email": {
+          "name": "primary_email",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "primary_phone": {
+          "name": "primary_phone",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_addr_line1": {
+          "name": "bill_addr_line1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_addr_city": {
+          "name": "bill_addr_city",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_addr_state": {
+          "name": "bill_addr_state",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_addr_postal_code": {
+          "name": "bill_addr_postal_code",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_addr_country": {
+          "name": "bill_addr_country",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "balance": {
+          "name": "balance",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sync_token": {
+          "name": "sync_token",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meta_data_create_time": {
+          "name": "meta_data_create_time",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meta_data_last_updated_time": {
+          "name": "meta_data_last_updated_time",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "embedding": {
+          "name": "embedding",
+          "type": "vector(1536)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "quickbooks_customers_embedding_idx": {
+          "name": "quickbooks_customers_embedding_idx",
+          "columns": [
+            {
+              "expression": "embedding",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "vector_cosine_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "hnsw",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "quickbooks_customers_user_id_users_id_fk": {
+          "name": "quickbooks_customers_user_id_users_id_fk",
+          "tableFrom": "quickbooks_customers",
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
@@ -1736,6 +2083,14 @@
       "values": [
         "account",
         "product"
+      ]
+    },
+    "public.line_item_view_type": {
+      "name": "line_item_view_type",
+      "schema": "public",
+      "values": [
+        "single",
+        "expanded"
       ]
     }
   },
