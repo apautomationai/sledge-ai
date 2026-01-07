@@ -9,7 +9,7 @@ import { quickbooksCustomersModel } from "@/models/quickbooks-customers.model";
 import { BadRequestError, InternalServerError } from "@/helpers/errors";
 import { integrationsService } from "./integrations.service";
 import { embeddingsService } from "./embeddings.service";
-import FormData from 'form-data';
+const FormData = require('form-data');
 import { Readable } from 'stream';
 
 // QuickBooks integration type based on generic integrations model
@@ -1427,49 +1427,31 @@ export class QuickBooksService {
     }
   }
 
-  // Update an existing item/product in QuickBooks
-  async updateItem(integration: QuickBooksIntegration, itemId: string, itemData: {
-    name?: string;
-    description?: string;
-    syncToken: string; // Required for updates
-  }) {
+  // Update lastSyncedAt timestamp in integration metadata
+  async updateLastSyncedAt(userId: number): Promise<void> {
     try {
-      // Build QuickBooks Item update payload
-      const payload: any = {
-        Id: itemId,
-        SyncToken: itemData.syncToken
+      const integration = await this.getUserIntegration(userId);
+      if (!integration) {
+        console.error("No QuickBooks integration found for user:", userId);
+        return;
+      }
+
+      const currentMetadata = integration.metadata || {};
+      const updatedMetadata = {
+        ...currentMetadata,
+        lastSyncedAt: new Date().toISOString()
       };
 
-      // Add name if provided
-      if (itemData.name) {
-        const sanitizedName = itemData.name
-          .replace(/[<>&"']/g, '')
-          .replace(/,\s*Inc\./gi, ' Inc')
-          .replace(/,\s*LLC/gi, ' LLC')
-          .replace(/,\s*Corp\./gi, ' Corp')
-          .replace(/\s+/g, ' ')
-          .trim()
-          .substring(0, 100);
+      await db
+        .update(integrationsModel)
+        .set({
+          metadata: updatedMetadata,
+          updatedAt: new Date()
+        })
+        .where(eq(integrationsModel.id, integration.id));
 
-        if (sanitizedName) {
-          payload.Name = sanitizedName;
-        }
-      }
-
-      // Add description if provided
-      if (itemData.description !== undefined) {
-        // QuickBooks allows empty descriptions, so we don't need to validate
-        payload.Description = itemData.description || '';
-      }
-
-      console.log("QuickBooks item update payload:", JSON.stringify(payload, null, 2));
-      const result = await this.makeApiCall(integration, "item", "POST", payload);
-      console.log("QuickBooks item update raw response:", JSON.stringify(result, null, 2));
-
-      return result;
-    } catch (error) {
-      console.error("Error updating QuickBooks item:", error);
-      throw error;
+    } catch (error: any) {
+      console.error("Error updating lastSyncedAt:", error);
     }
   }
 
@@ -1812,6 +1794,9 @@ export class QuickBooksService {
       }
     }
 
+    // Update lastSyncedAt timestamp after successful products sync
+    await this.updateLastSyncedAt(userId);
+
     return { inserted, updated, skipped };
   }
 
@@ -1930,6 +1915,9 @@ export class QuickBooksService {
         // Continue with next account
       }
     }
+
+    // Update lastSyncedAt timestamp after successful accounts sync
+    await this.updateLastSyncedAt(userId);
 
     return { inserted, updated, skipped };
   }
@@ -2081,6 +2069,9 @@ export class QuickBooksService {
       }
     }
 
+    // Update lastSyncedAt timestamp after successful vendors sync
+    await this.updateLastSyncedAt(userId);
+
     return { inserted, updated, skipped };
   }
 
@@ -2189,6 +2180,9 @@ export class QuickBooksService {
         // Continue with next customer
       }
     }
+
+    // Update lastSyncedAt timestamp after successful customers sync
+    await this.updateLastSyncedAt(userId);
 
     return { inserted, updated, skipped };
   }
