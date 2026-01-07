@@ -143,8 +143,8 @@ export function AnimatedShield() {
       />
       <defs>
         <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#10B981" />
-          <stop offset="100%" stopColor="#059669" />
+          <stop offset="0%" stopColor="#E3B02F" />
+          <stop offset="100%" stopColor="#D97706" />
         </linearGradient>
       </defs>
     </motion.svg>
@@ -166,7 +166,7 @@ export function AnimatedUsers() {
         cx="35"
         cy="35"
         r="12"
-        fill="#3B82F6"
+        fill="#E3B02F"
         animate={{ scale: [1, 1.1, 1] }}
         transition={{ duration: 2, repeat: Infinity, delay: 0 }}
       />
@@ -174,19 +174,19 @@ export function AnimatedUsers() {
         cx="65"
         cy="35"
         r="12"
-        fill="#10B981"
+        fill="#D97706"
         animate={{ scale: [1, 1.1, 1] }}
         transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
       />
       <motion.path
         d="M20 70C20 60 27 55 35 55C43 55 50 60 50 70V75H20V70Z"
-        fill="#3B82F6"
+        fill="#E3B02F"
         animate={{ opacity: [0.8, 1, 0.8] }}
         transition={{ duration: 1.5, repeat: Infinity }}
       />
       <motion.path
         d="M50 70C50 60 57 55 65 55C73 55 80 60 80 70V75H50V70Z"
-        fill="#10B981"
+        fill="#D97706"
         animate={{ opacity: [0.8, 1, 0.8] }}
         transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
       />
@@ -753,28 +753,28 @@ export function AnimatedPayment() {
   return (
     <motion.div className="relative w-16 h-16">
       <motion.div
-        animate={{ 
+        animate={{
           y: [0, -2, 0],
           rotateY: [0, 10, 0]
         }}
-        transition={{ 
-          duration: 2.5, 
-          repeat: Infinity, 
-          ease: "easeInOut" 
+        transition={{
+          duration: 2.5,
+          repeat: Infinity,
+          ease: "easeInOut"
         }}
       >
-        <CreditCard className="w-full h-full text-green-500" />
+        <CreditCard className="w-full h-full text-[#E3B02F]" />
       </motion.div>
       <motion.div
-        className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full flex items-center justify-center"
-        animate={{ 
+        className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center"
+        animate={{
           scale: [0, 1, 0],
           rotate: [0, 180, 360]
         }}
-        transition={{ 
-          duration: 3, 
-          repeat: Infinity, 
-          ease: "easeInOut" 
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut"
         }}
       >
         <div className="w-2 h-2 bg-white rounded-full" />

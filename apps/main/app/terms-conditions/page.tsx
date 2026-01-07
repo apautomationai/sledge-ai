@@ -1,1020 +1,643 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { useState, useEffect, useRef, useCallback } from "react";
 import {
-  FileText,
   Scale,
+  FileText,
   UserCheck,
   Shield,
   AlertTriangle,
-  CheckCircle2,
-  ArrowRight,
-  Calendar,
   Users,
   Globe,
   Lock,
   Database,
   Mail,
+  ArrowRight,
+  CreditCard,
+  RefreshCw,
+  Bot,
+  Link2,
   Clock,
-  BookOpen,
+  Server,
+  Zap,
+  Lightbulb,
+  MessageSquare,
+  Eye,
+  Download,
+  Gavel,
+  Ban,
+  FileCheck,
+  Settings,
 } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import {
-  FloatingElements,
-  GeometricPattern,
-} from "@/components/landing/animated-icons";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 
+const sections = [
+  { id: "introduction", title: "Introduction", icon: FileText },
+  { id: "acceptance", title: "Acceptance of Terms", icon: FileCheck },
+  { id: "eligibility", title: "Eligibility & Authority", icon: UserCheck },
+  { id: "account", title: "Account Registration", icon: Lock },
+  { id: "use", title: "Use of Services", icon: Settings },
+  { id: "customer-data", title: "Customer Data", icon: Database },
+  { id: "ai-processing", title: "AI Processing", icon: Bot },
+  { id: "third-party", title: "Third-Party Services", icon: Link2 },
+  { id: "free-trials", title: "Free Trials", icon: Zap },
+  { id: "fees", title: "Fees & Billing", icon: CreditCard },
+  { id: "refunds", title: "Refund Policy", icon: RefreshCw },
+  { id: "data-backup", title: "Data Backup", icon: Download },
+  { id: "security", title: "Security", icon: Shield },
+  { id: "availability", title: "Availability", icon: Server },
+  { id: "beta", title: "Beta Features", icon: Lightbulb },
+  { id: "ip", title: "Intellectual Property", icon: FileText },
+  { id: "feedback", title: "Feedback", icon: MessageSquare },
+  { id: "confidentiality", title: "Confidentiality", icon: Eye },
+  { id: "privacy", title: "Privacy", icon: Lock },
+  { id: "export", title: "Export Controls", icon: Globe },
+  { id: "government", title: "Government Users", icon: Users },
+  { id: "termination", title: "Termination", icon: Ban },
+  { id: "disclaimers", title: "Disclaimers", icon: AlertTriangle },
+  { id: "liability", title: "Limitation of Liability", icon: Scale },
+  { id: "indemnification", title: "Indemnification", icon: Shield },
+  { id: "disputes", title: "Dispute Resolution", icon: Gavel },
+  { id: "governing-law", title: "Governing Law", icon: Globe },
+  { id: "general", title: "General Provisions", icon: FileText },
+  { id: "contact", title: "Contact Us", icon: Mail },
+];
+
 export default function TermsOfService() {
-  const [activeSection, setActiveSection] = useState("eligibility");
-  const [isScrolling, setIsScrolling] = useState(false);
-  const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const sections = [
-    { id: "eligibility", title: "Eligibility & Registration", icon: UserCheck },
-    { id: "license", title: "License to Use", icon: CheckCircle2 },
-    { id: "subscriptions", title: "Subscriptions & Payments", icon: Scale },
-    { id: "user-content", title: "User Content & Data", icon: FileText },
-    { id: "data-security", title: "Data Security & Privacy", icon: Shield },
-    { id: "acceptable-use", title: "Acceptable Use", icon: AlertTriangle },
-    { id: "third-party", title: "Third-Party Services", icon: Users },
-    { id: "warranties", title: "Warranties & Liability", icon: Shield },
-    { id: "governing-law", title: "Governing Law", icon: Globe },
-  ];
-
-  // Auto-scroll navigation setup
-  useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: "-20% 0px -65% 0px",
-      threshold: 0,
-    };
-
-    observerRef.current = new IntersectionObserver((entries) => {
-      if (isScrolling) return;
-
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
-        }
-      });
-    }, observerOptions);
-
-    sections.forEach((section) => {
-      const element = sectionRefs.current[section.id];
-      if (element) {
-        observerRef.current?.observe(element);
-      }
-    });
-
-    return () => {
-      observerRef.current?.disconnect();
-    };
-  }, [isScrolling]);
-
-  const scrollToSection = useCallback((sectionId: string) => {
-    setIsScrolling(true);
-    setActiveSection(sectionId);
-
-    const element = sectionRefs.current[sectionId];
-    if (element) {
-      const offset = 100;
-      const elementPosition =
-        element.getBoundingClientRect().top + window.pageYOffset;
-      const offsetPosition = elementPosition - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
-
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-      scrollTimeoutRef.current = setTimeout(() => {
-        setIsScrolling(false);
-      }, 1000);
-    }
-  }, []);
-
-  const setSectionRef = useCallback(
-    (element: HTMLElement | null, sectionId: string) => {
-      sectionRefs.current[sectionId] = element;
-    },
-    []
-  );
-
-  // Fallback scroll detection
-  useEffect(() => {
-    const handleScroll = () => {
-      if (isScrolling) return;
-
-      const scrollPosition = window.scrollY + 150;
-
-      for (const section of sections) {
-        const element = sectionRefs.current[section.id];
-        if (element) {
-          const { offsetTop, offsetHeight } = element;
-          if (
-            scrollPosition >= offsetTop &&
-            scrollPosition < offsetTop + offsetHeight
-          ) {
-            setActiveSection(section.id);
-            break;
-          }
-        }
-      }
-    };
-
-    let ticking = false;
-    const throttledScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          handleScroll();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener("scroll", throttledScroll, { passive: true });
-    return () => window.removeEventListener("scroll", throttledScroll);
-  }, [isScrolling]);
-
-  const fadeInUp = {
-    initial: { opacity: 0, y: 30 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 },
-  };
-
-  const staggerChildren = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-gray-800 relative overflow-hidden">
-        {/* Diamond plate texture - ROUGHER */}
-        <div className="absolute inset-0 opacity-[0.1]" style={{
-          backgroundImage: `repeating-linear-gradient(45deg, #FDB022 0, #FDB022 2px, transparent 0, transparent 40px),
-                           repeating-linear-gradient(-45deg, #FDB022 0, #FDB022 2px, transparent 0, transparent 40px)`,
-          backgroundSize: '40px 40px'
-        }} />
-        
-        {/* Grunge overlay */}
-        <div className="absolute inset-0 opacity-[0.06]" style={{
-          backgroundImage: `radial-gradient(ellipse at 30% 40%, transparent 30%, rgba(253, 176, 34, 0.15) 31%, transparent 32%)`,
-          backgroundSize: '300px 300px'
-        }} />
-        
-        {/* Background Elements */}
-        <GeometricPattern />
-        <FloatingElements />
+      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Fixed background image */}
+        <div
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+          style={{
+            backgroundImage: "url('/images/gpt4.png')",
+            zIndex: -1,
+          }}
+        />
+        {/* Black overlay with opacity */}
+        <div
+          className="fixed inset-0 bg-black pointer-events-none"
+          style={{
+            opacity: 0.7,
+            zIndex: -1,
+          }}
+        />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 my-10">
+        <div className="relative max-w-7xl mx-auto my-16">
           {/* Header Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex justify-center mb-6"
-            >
-              <div className="relative">
-                <div className="w-20 h-20 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-none flex items-center justify-center shadow-[0_0_30px_rgba(253,176,34,0.5),inset_0_0_20px_rgba(0,0,0,0.5)] border-4 border-yellow-600/60">
-                  <Scale className="w-10 h-10 text-gray-900" />
-                </div>
-                {/* Corner screws */}
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                <div className="absolute -top-1 -left-1 w-3 h-3 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                <motion.div
-                  className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg border-2 border-yellow-600"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 10, -10, 0],
-                  }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                >
-                  <FileText className="w-4 h-4 text-gray-900" />
-                </motion.div>
+          <div className="text-center mb-12">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 rounded-full bg-amber-400">
+                <Scale className="w-10 h-10 text-zinc-900" />
               </div>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent mb-4 uppercase"
-            >
-              Terms and Conditions
-            </motion.h1>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 uppercase font-['League_Spartan']">
+              Terms of Service
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="text-xl text-gray-300 max-w-3xl mx-auto mb-8"
-            >
-              Please read these terms carefully before using DMR's products,
-              software, and services.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center text-sm text-gray-400"
-            >
-              <div className="flex items-center">
-                <Calendar className="w-4 h-4 mr-2 text-yellow-500" />
-                Effective: [Month Day, Year]
-              </div>
-              <div className="flex items-center">
-                <FileText className="w-4 h-4 mr-2 text-orange-500" />
-                Last Updated: [Month Day, Year]
-              </div>
-              <div className="flex items-center">
-                <Users className="w-4 h-4 mr-2 text-yellow-500" />
-                Age 18+ Only
-              </div>
-            </motion.div>
-          </motion.div>
+            <p className="text-lg md:text-xl text-white max-w-3xl mx-auto">
+              Please read these terms carefully before using Sledge's platform and services.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Sidebar Navigation */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="lg:col-span-1"
-            >
-              <div className="bg-gradient-to-br from-gray-900 to-black rounded-none shadow-[0_0_30px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(0,0,0,0.5)] border-8 border-gray-600 p-6 sticky top-8 w-2xs relative">
-                {/* Corner screws/rivets */}
-                <div className="absolute -top-3 -left-3 w-6 h-6 bg-gray-800 rounded-full border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.9),0_3px_6px_rgba(0,0,0,1)] z-20">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-gray-400 rounded-full"></div>
-                </div>
-                <div className="absolute -top-3 -right-3 w-6 h-6 bg-gray-800 rounded-full border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.9),0_3px_6px_rgba(0,0,0,1)] z-20">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-gray-400 rounded-full"></div>
-                </div>
-                <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-gray-800 rounded-full border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.9),0_3px_6px_rgba(0,0,0,1)] z-20">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-gray-400 rounded-full"></div>
-                </div>
-                <div className="absolute -bottom-3 -right-3 w-6 h-6 bg-gray-800 rounded-full border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.9),0_3px_6px_rgba(0,0,0,1)] z-20">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-gray-400 rounded-full"></div>
-                </div>
-                
-                {/* Weld marks */}
-                <div className="absolute top-4 left-1/4 w-16 h-1 bg-yellow-600/40 blur-[2px]"></div>
-                
-                <h3 className="font-semibold text-white mb-4 flex items-center uppercase">
-                  <ArrowRight className="w-4 h-4 mr-2 text-yellow-500" />
-                  Terms Sections
+            <div className="lg:col-span-1">
+              <div className="bg-zinc-900 rounded-lg p-6 sticky top-8 shadow-[0px_0px_4px_1px_rgba(227,176,47,1.00)] outline outline-1 outline-offset-[-1px] outline-neutral-700 max-h-[80vh] overflow-y-auto">
+                <h3 className="font-semibold text-white mb-4 flex items-center uppercase font-['League_Spartan']">
+                  <ArrowRight className="w-4 h-4 mr-2 text-amber-400" />
+                  Sections
                 </h3>
-                <nav className="space-y-2">
+                <nav className="space-y-1">
                   {sections.map((section) => {
                     const IconComponent = section.icon;
                     return (
-                      <motion.button
+                      <a
                         key={section.id}
-                        onClick={() => scrollToSection(section.id)}
-                        className={`w-full text-left px-4 py-3 rounded-none transition-all duration-300 flex items-center group border-4 ${
-                          activeSection === section.id
-                            ? "bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400 border-yellow-600/70 shadow-[0_0_20px_rgba(253,176,34,0.3)]"
-                            : "text-gray-400 hover:bg-gray-800 hover:text-yellow-400 border-gray-600 hover:border-yellow-600/50"
-                        }`}
-                        whileHover={{ x: 4 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 400,
-                          damping: 10,
-                        }}
+                        href={`#${section.id}`}
+                        className="w-full text-left px-3 py-2 rounded-lg transition-all duration-300 flex items-center group text-zinc-400 hover:bg-zinc-800 hover:text-amber-400 border border-transparent hover:translate-x-1"
                       >
-                        <IconComponent
-                          className={`w-4 h-4 mr-3 ${
-                            activeSection === section.id
-                              ? "text-yellow-500"
-                              : "text-gray-500 group-hover:text-yellow-400"
-                          }`}
-                        />
-                        {section.title}
-                      </motion.button>
+                        <IconComponent className="w-4 h-4 mr-2 flex-shrink-0 text-zinc-500 group-hover:text-amber-400" />
+                        <span className="text-xs font-medium font-['Inter'] truncate">
+                          {section.title}
+                        </span>
+                      </a>
                     );
                   })}
                 </nav>
-
-                {/* Quick Actions */}
-                <div className="mt-8 pt-6 border-t-4 border-yellow-600/30">
-                  <h4 className="font-semibold text-white mb-3 uppercase">
-                    Quick Actions
-                  </h4>
-                  <div className="space-y-3">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start border-4 border-yellow-600/50 hover:bg-yellow-500/20 hover:border-yellow-600 text-gray-300 hover:text-yellow-400 rounded-none font-medium uppercase"
-                      onClick={() =>
-                        (window.location.href = "mailto:support@sledge.dev")
-                      }
-                    >
-                      <Mail className="w-4 h-4 mr-2 text-yellow-500" />
-                      Contact Support
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start border-4 border-orange-600/50 hover:bg-orange-500/20 hover:border-orange-600 text-gray-300 hover:text-orange-400 rounded-none font-medium uppercase"
-                      onClick={() => window.print()}
-                    >
-                      <FileText className="w-4 h-4 mr-2 text-orange-500" />
-                      Print Terms
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Progress Indicator */}
-                <div className="mt-6 pt-4 border-t-4 border-yellow-600/30">
-                  <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
-                    <span className="uppercase">Progress</span>
-                    <span className="font-medium text-yellow-400">
-                      {Math.round(
-                        ((sections.findIndex((s) => s.id === activeSection) +
-                          1) /
-                          sections.length) *
-                          100
-                      )}
-                      %
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-800 rounded-none h-3 border-2 border-gray-600">
-                    <motion.div
-                      className="bg-gradient-to-r from-yellow-500 to-orange-500 h-full rounded-none shadow-[0_0_10px_rgba(253,176,34,0.5)]"
-                      initial={{ width: 0 }}
-                      animate={{
-                        width: `${((sections.findIndex((s) => s.id === activeSection) + 1) / sections.length) * 100}%`,
-                      }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </div>
-                </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Main Content */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.7 }}
-              className="lg:col-span-3"
-            >
-              <div className="bg-gradient-to-br from-gray-900 to-black rounded-none shadow-[0_0_30px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(0,0,0,0.5)] border-8 border-gray-600 p-8 relative">
-                {/* Corner screws/rivets */}
-                <div className="absolute -top-3 -left-3 w-6 h-6 bg-gray-800 rounded-full border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.9),0_3px_6px_rgba(0,0,0,1)] z-20">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-gray-400 rounded-full"></div>
-                </div>
-                <div className="absolute -top-3 -right-3 w-6 h-6 bg-gray-800 rounded-full border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.9),0_3px_6px_rgba(0,0,0,1)] z-20">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-gray-400 rounded-full"></div>
-                </div>
-                <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-gray-800 rounded-full border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.9),0_3px_6px_rgba(0,0,0,1)] z-20">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-gray-400 rounded-full"></div>
-                </div>
-                <div className="absolute -bottom-3 -right-3 w-6 h-6 bg-gray-800 rounded-full border-4 border-gray-500 shadow-[inset_0_0_5px_rgba(0,0,0,0.9),0_3px_6px_rgba(0,0,0,1)] z-20">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-gray-400 rounded-full"></div>
-                </div>
-                
-                {/* Weld marks */}
-                <div className="absolute top-6 left-1/4 w-20 h-1 bg-yellow-600/40 blur-[2px]"></div>
-                <div className="absolute bottom-6 right-1/4 w-16 h-1 bg-yellow-600/40 blur-[2px]"></div>
-                {/* Introduction */}
-                <motion.section
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                  className="mb-12"
-                >
-                  <div className="prose prose-slate max-w-none">
-                    <p className="text-lg text-gray-300 mb-4">
-                      These Terms and Conditions ("Terms") govern the use of all
-                      products, software, mobile applications, and web services
-                      (collectively, the "Service") provided by DMR, a Nevada
-                      corporation (doing business as SLEDGE) ("DMR," "we," "us,"
-                      or "our").
-                    </p>
-                    <p className="text-lg text-gray-300 mb-6">
-                      By accessing or using the Service, you agree to these
-                      Terms. If you do not agree, you may not use the Service.
-                    </p>
+            <div className="lg:col-span-3">
+              <div className="bg-zinc-900 rounded-lg p-8 md:p-12 shadow-[0px_0px_4px_1px_rgba(227,176,47,1.00)] outline outline-1 outline-offset-[-1px] outline-neutral-700">
+                <div className="prose prose-invert max-w-none">
+                  {/* Effective Date */}
+                  <p className="text-amber-400 font-['Inter'] text-sm font-medium mb-8">
+                    Effective Date: January 6, 2026
+                  </p>
 
-                    <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-none p-6 border-4 border-yellow-600/40 relative">
-                      {/* Corner screws */}
-                      <div className="absolute -top-2 -left-2 w-4 h-4 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                      <div className="absolute -top-2 -right-2 w-4 h-4 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                      <h4 className="font-semibold text-white mb-3 flex items-center uppercase">
-                        <AlertTriangle className="w-5 h-5 mr-2 text-yellow-500" />
+                  {/* Introduction */}
+                  <section id="introduction" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Introduction
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
+                      These Terms of Service ("Terms") govern your access to and use of the Sledge software-as-a-service platform, websites, applications, integrations, APIs, and related services (collectively, the "Services").
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
+                      The Services are operated by DMR Corp, a Nevada corporation, doing business as Sledge ("Sledge," "we," "us," or "our").
+                    </p>
+                    <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30">
+                      <h4 className="font-semibold text-white mb-3 flex items-center font-['League_Spartan']">
+                        <AlertTriangle className="w-5 h-5 mr-2 text-amber-400" />
                         Important Notice
                       </h4>
-                      <p className="text-gray-300">
-                        These terms constitute a legally binding agreement. If
-                        you disagree with any part, you may not access our
-                        services.
+                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                        By accessing or using the Services, creating an account, or clicking "I agree," you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do not agree, you must not access or use the Services.
                       </p>
                     </div>
-                  </div>
-                </motion.section>
+                  </section>
 
-                {/* Eligibility and Account Registration */}
-                <motion.section
-                  ref={(el) => setSectionRef(el, "eligibility")}
-                  id="eligibility"
-                  {...fadeInUp}
-                  className="mb-12 scroll-mt-24"
-                >
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-yellow-500/20 rounded-none border-4 border-yellow-600/40 flex items-center justify-center mr-4">
-                      <UserCheck className="w-6 h-6 text-yellow-500" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-white uppercase">
-                        Eligibility and Account Registration
-                      </h2>
-                      <p className="text-yellow-400 font-medium uppercase">
-                        Requirements for Service Use
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="prose prose-slate max-w-none">
-                    <p className="text-lg text-gray-300 mb-4">
-                      To use the Service, you must:
+                  {/* Acceptance of Terms */}
+                  <section id="acceptance" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Acceptance of the Terms
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      These Terms constitute a legally binding agreement between you and Sledge.
                     </p>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                      <div className="bg-gradient-to-br from-gray-800 to-black rounded-none p-4 border-4 border-gray-600 relative">
-                        {/* Corner screws */}
-                        <div className="absolute -top-1 -left-1 w-3 h-3 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                        <h5 className="font-semibold text-white mb-2 flex items-center uppercase">
-                          <CheckCircle2 className="w-4 h-4 mr-2 text-yellow-500" />
-                          Age Requirement
-                        </h5>
-                        <p className="text-gray-300 text-sm">
-                          Be at least 18 years old and legally capable of
-                          entering into a binding contract.
-                        </p>
-                      </div>
-                      <div className="bg-gradient-to-br from-gray-800 to-black rounded-none p-4 border-4 border-gray-600 relative">
-                        {/* Corner screws */}
-                        <div className="absolute -top-1 -left-1 w-3 h-3 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                        <h5 className="font-semibold text-white mb-2 flex items-center uppercase">
-                          <UserCheck className="w-4 h-4 mr-2 text-orange-500" />
-                          Account Information
-                        </h5>
-                        <p className="text-gray-300 text-sm">
-                          Provide accurate, current, and complete registration
-                          information.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="bg-yellow-500/10 rounded-none p-6 border-4 border-yellow-600/40 relative">
-                      {/* Corner screws */}
-                      <div className="absolute -top-2 -left-2 w-4 h-4 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                      <div className="absolute -top-2 -right-2 w-4 h-4 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                      <h4 className="font-semibold text-white mb-3 flex items-center uppercase">
-                        <Shield className="w-5 h-5 mr-2 text-yellow-500" />
-                        Account Security
-                      </h4>
-                      <ul className="text-gray-300 space-y-2">
-                        <li className="flex items-start">
-                          <CheckCircle2 className="w-4 h-4 text-yellow-500 mr-2 mt-1 flex-shrink-0" />
-                          Maintain the confidentiality of your login credentials
-                          and all activity under your account
-                        </li>
-                        <li className="flex items-start">
-                          <CheckCircle2 className="w-4 h-4 text-yellow-500 mr-2 mt-1 flex-shrink-0" />
-                          You are responsible for all actions taken under your
-                          account, whether authorized or not
-                        </li>
-                        <li className="flex items-start">
-                          <CheckCircle2 className="w-4 h-4 text-yellow-500 mr-2 mt-1 flex-shrink-0" />
-                          Notify us immediately at [Support Email TBD] if you
-                          suspect unauthorized access
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </motion.section>
-
-                {/* License to Use the Service */}
-                <motion.section
-                  ref={(el) => setSectionRef(el, "license")}
-                  id="license"
-                  {...fadeInUp}
-                  className="mb-12 scroll-mt-24"
-                >
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-orange-500/20 rounded-none border-4 border-orange-600/40 flex items-center justify-center mr-4">
-                      <CheckCircle2 className="w-6 h-6 text-orange-500" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-white uppercase">
-                        License to Use the Service
-                      </h2>
-                      <p className="text-orange-400 font-medium uppercase">
-                        Limited Usage Rights
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-none p-6 mb-6 border-4 border-yellow-600/40 relative">
-                    {/* Corner screws */}
-                    <div className="absolute -top-2 -left-2 w-4 h-4 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                    <div className="absolute -top-2 -right-2 w-4 h-4 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                    <h4 className="font-semibold text-white mb-4 uppercase">
-                      License Grant:
-                    </h4>
-                    <p className="text-gray-300 mb-4">
-                      DMR grants you a limited, non-exclusive, non-transferable,
-                      revocable license to access and use the Service for your
-                      internal business or personal purposes, in accordance with
-                      these Terms.
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      If you access or use the Services on behalf of an organization, you represent and warrant that you have the authority to bind that organization, and all references to "you" refer to that organization.
                     </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Your continued use of the Services constitutes acceptance of any updated Terms.
+                    </p>
+                  </section>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {[
-                        {
-                          feature: "Prohibited: Copy/Modify",
-                          desc: "Do not copy, modify, decompile, or reverse engineer the Service",
-                        },
-                        {
-                          feature: "Prohibited: Resell",
-                          desc: "Do not rent, lease, resell, sublicense, or distribute the Service",
-                        },
-                        {
-                          feature: "Prohibited: Circumvent Security",
-                          desc: "Do not circumvent or disable security features",
-                        },
-                        {
-                          feature: "IP Rights",
-                          desc: "DMR retains all rights to the Service and related IP",
-                        },
-                      ].map((item, index) => (
-                        <motion.div
-                          key={item.feature}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, delay: index * 0.1 }}
-                          className="bg-gradient-to-br from-gray-800 to-black rounded-none p-4 border-4 border-orange-600/40 shadow-sm relative"
-                        >
-                          {/* Corner screws */}
-                          <div className="absolute -top-1 -left-1 w-3 h-3 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                          <div className="flex items-center mb-2">
-                            <AlertTriangle className="w-4 h-4 text-orange-500 mr-2" />
-                            <span className="font-medium text-white uppercase">
-                              {item.feature}
-                            </span>
-                          </div>
-                          <p className="text-gray-300 text-sm">{item.desc}</p>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.section>
-
-                {/* Subscriptions, Payments, and Billing */}
-                <motion.section
-                  ref={(el) => setSectionRef(el, "subscriptions")}
-                  id="subscriptions"
-                  {...fadeInUp}
-                  className="mb-12 scroll-mt-24"
-                >
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-yellow-500/20 rounded-none border-4 border-yellow-600/40 flex items-center justify-center mr-4">
-                      <Scale className="w-6 h-6 text-yellow-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-white uppercase">
-                      Subscriptions, Payments, and Billing
+                  {/* Eligibility and Authority */}
+                  <section id="eligibility" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Eligibility and Authority
                     </h2>
-                  </div>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      You must be at least 18 years old to use the Services.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      The Services are intended for business and commercial use, not personal consumer use.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      You represent that:
+                    </p>
+                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
+                      <li>You are legally permitted to enter into this agreement</li>
+                      <li>Your use complies with applicable laws and regulations</li>
+                      <li>You are not prohibited from using the Services under export control or sanctions laws</li>
+                    </ul>
+                  </section>
 
-                  <div className="space-y-6">
-                    <div className="bg-yellow-500/10 rounded-none p-6 border-4 border-yellow-600/40 relative">
-                      {/* Corner screws */}
-                      <div className="absolute -top-2 -left-2 w-4 h-4 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                      <div className="absolute -top-2 -right-2 w-4 h-4 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                      <h4 className="font-semibold text-white mb-3 flex items-center uppercase">
-                        <FileText className="w-5 h-5 mr-2 text-yellow-500" />
-                        Free and Paid Plans
-                      </h4>
-                      <p className="text-gray-300">
-                        DMR offers both free and paid plans. The features,
-                        limits, and billing details for each plan are described
-                        on our pricing page or in your account portal.
-                      </p>
-                    </div>
-
-                    <div className="bg-orange-500/10 rounded-none p-6 border-4 border-orange-600/40 relative">
-                      {/* Corner screws */}
-                      <div className="absolute -top-2 -left-2 w-4 h-4 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                      <div className="absolute -top-2 -right-2 w-4 h-4 bg-gray-800 rounded-full border-2 border-gray-600"></div>
-                      <h4 className="font-semibold text-white mb-3 flex items-center uppercase">
-                        <Scale className="w-5 h-5 mr-2 text-orange-500" />
-                        Payments & Billing
-                      </h4>
-                      <ul className="text-gray-300 space-y-2">
-                        <li className="flex items-start">
-                          <CheckCircle2 className="w-4 h-4 text-orange-500 mr-2 mt-1 flex-shrink-0" />
-                          All paid subscriptions require a valid payment method
-                        </li>
-                        <li className="flex items-start">
-                          <CheckCircle2 className="w-4 h-4 text-orange-500 mr-2 mt-1 flex-shrink-0" />
-                          You authorize us to charge your payment method on a
-                          recurring basis
-                        </li>
-                        <li className="flex items-start">
-                          <CheckCircle2 className="w-4 h-4 text-orange-500 mr-2 mt-1 flex-shrink-0" />
-                          Fees are quoted in U.S. dollars, exclusive of taxes,
-                          and non-refundable
-                        </li>
-                        <li className="flex items-start">
-                          <CheckCircle2 className="w-4 h-4 text-orange-500 mr-2 mt-1 flex-shrink-0" />
-                          Subscriptions automatically renew unless canceled
-                          before renewal
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </motion.section>
-
-                {/* User Content and Data Ownership */}
-                <motion.section
-                  ref={(el) => setSectionRef(el, "user-content")}
-                  id="user-content"
-                  {...fadeInUp}
-                  className="mb-12 scroll-mt-24"
-                >
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-orange-500/20 rounded-none border-4 border-orange-600/40 flex items-center justify-center mr-4">
-                      <FileText className="w-6 h-6 text-orange-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-white">
-                      User Content and Data Ownership
+                  {/* Account Registration and Security */}
+                  <section id="account" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Account Registration and Security
                     </h2>
-                  </div>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      To access certain features, you must register an account and provide accurate, complete, and current information.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      You are responsible for:
+                    </p>
+                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
+                      <li>Maintaining the confidentiality of login credentials</li>
+                      <li>Restricting access to your account</li>
+                      <li>All activity occurring under your account</li>
+                    </ul>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Sledge is not responsible for unauthorized access resulting from your failure to protect credentials. You agree to notify Sledge promptly of any suspected security breach.
+                    </p>
+                  </section>
 
-                  <div className="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-none p-8 text-white">
-                    <h4 className="font-semibold text-xl mb-6 text-center">
-                      Content Rights & Responsibilities
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {[
-                        {
-                          icon: FileText,
-                          title: "Ownership",
-                          desc: "You retain all ownership rights to your data and content",
-                        },
-                        {
-                          icon: Database,
-                          title: "License to DMR",
-                          desc: "You grant DMR a license to process your content for service delivery",
-                        },
-                        {
-                          icon: UserCheck,
-                          title: "Responsibility",
-                          desc: "You are responsible for your content and its compliance with laws",
-                        },
-                      ].map((item, index) => (
-                        <motion.div
-                          key={item.title}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, delay: index * 0.2 }}
-                          className="bg-gradient-to-br from-gray-800 to-black/20 rounded-none p-6 backdrop-blur-sm border border-white/30 text-center"
-                        >
-                          <div className="w-12 h-12 bg-gradient-to-br from-gray-800 to-black/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <item.icon className="w-6 h-6" />
-                          </div>
-                          <h5 className="font-semibold mb-2">{item.title}</h5>
-                          <p className="text-white/80 text-sm">{item.desc}</p>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.section>
-
-                {/* Data Security, Privacy, and Compliance */}
-                <motion.section
-                  ref={(el) => setSectionRef(el, "data-security")}
-                  id="data-security"
-                  {...fadeInUp}
-                  className="mb-12 scroll-mt-24"
-                >
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-yellow-500/20 rounded-none border-4 border-yellow-600/40 flex items-center justify-center mr-4">
-                      <Shield className="w-6 h-6 text-yellow-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-white">
-                      Data Security, Privacy, and Compliance
+                  {/* Use of the Services */}
+                  <section id="use" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Use of the Services
                     </h2>
-                  </div>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
+                      Subject to these Terms, Sledge grants you a limited, revocable, non-exclusive, non-transferable right to access and use the Services solely for your internal business purposes.
+                    </p>
+                    <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
+                      Prohibited Activities
+                    </h3>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      You may not:
+                    </p>
+                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed list-disc list-inside space-y-2">
+                      <li>Reverse engineer, decompile, or attempt to derive source code</li>
+                      <li>Circumvent security, usage limits, or access controls</li>
+                      <li>Interfere with the operation or integrity of the Services</li>
+                      <li>Use the Services to develop competing products</li>
+                      <li>Use the Services for unlawful, deceptive, or harmful purposes</li>
+                    </ul>
+                  </section>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-yellow-500/10 rounded-none p-6 border-4 border-yellow-600/40">
-                      <h4 className="font-semibold text-white mb-3 flex items-center">
-                        <Shield className="w-5 h-5 mr-2 text-yellow-500" />
-                        Security Measures
-                      </h4>
-                      <p className="text-gray-300 text-sm">
-                        DMR implements reasonable administrative, physical, and
-                        technical safeguards to protect data integrity and
-                        confidentiality.
-                      </p>
-                      <p className="text-gray-300 text-sm mt-2">
-                        However, no system is perfectly secure, and DMR cannot
-                        guarantee absolute protection from unauthorized access
-                        or loss.
-                      </p>
-                    </div>
-                    <div className="bg-orange-500/10 rounded-none p-6 border-4 border-orange-600/40">
-                      <h4 className="font-semibold text-white mb-3 flex items-center">
-                        <Globe className="w-5 h-5 mr-2 text-orange-500" />
-                        Privacy & Compliance
-                      </h4>
-                      <p className="text-gray-300 text-sm">
-                        Your use is governed by our Privacy Policy. You agree
-                        that DMR may process and store data in the United States
-                        or other jurisdictions where we operate.
-                      </p>
-                    </div>
-                  </div>
-                </motion.section>
-
-                {/* Acceptable Use Policy */}
-                <motion.section
-                  ref={(el) => setSectionRef(el, "acceptable-use")}
-                  id="acceptable-use"
-                  {...fadeInUp}
-                  className="mb-12 scroll-mt-24"
-                >
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-orange-500/20 rounded-none border-4 border-orange-600/40 flex items-center justify-center mr-4">
-                      <AlertTriangle className="w-6 h-6 text-orange-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-white">
-                      Acceptable Use Policy
+                  {/* Customer Data and Content */}
+                  <section id="customer-data" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Customer Data and Content
                     </h2>
-                  </div>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      You retain ownership of all data, documents, files, and materials submitted, uploaded, or processed through the Services ("Customer Content").
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      You grant Sledge a limited license to host, store, process, analyze, transmit, and display Customer Content solely to:
+                    </p>
+                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
+                      <li>Provide the Services</li>
+                      <li>Enable authorized integrations</li>
+                      <li>Improve system performance and reliability</li>
+                      <li>Comply with legal obligations</li>
+                    </ul>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      You are solely responsible for the legality, accuracy, and compliance of Customer Content.
+                    </p>
+                  </section>
 
-                  <div className="bg-gradient-to-br from-gray-800 to-black rounded-none border-4 border-gray-600 p-6">
-                    <p className="text-gray-300 mb-6">You agree not to:</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-semibold text-white mb-3 flex items-center">
-                          <AlertTriangle className="w-5 h-5 mr-2 text-yellow-500" />
-                          Prohibited Activities
-                        </h4>
-                        <ul className="text-gray-300 space-y-2">
-                          <li className="flex items-center">
-                            <div className="w-2 h-2 bg-yellow-500/100 rounded-full mr-3"></div>
-                            Violate any applicable law or third-party right
-                          </li>
-                          <li className="flex items-center">
-                            <div className="w-2 h-2 bg-yellow-500/100 rounded-full mr-3"></div>
-                            Upload or transmit malware or harmful code
-                          </li>
-                          <li className="flex items-center">
-                            <div className="w-2 h-2 bg-yellow-500/100 rounded-full mr-3"></div>
-                            Attempt unauthorized access to infrastructure
-                          </li>
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-white mb-3 flex items-center">
-                          <AlertTriangle className="w-5 h-5 mr-2 text-orange-500" />
-                          Additional Restrictions
-                        </h4>
-                        <ul className="text-gray-300 space-y-2">
-                          <li className="flex items-center">
-                            <div className="w-2 h-2 bg-orange-500/100 rounded-full mr-3"></div>
-                            Use to harass, spam, defraud, or mislead
-                          </li>
-                          <li className="flex items-center">
-                            <div className="w-2 h-2 bg-orange-500/100 rounded-full mr-3"></div>
-                            Exceed rate limits or data usage caps
-                          </li>
-                          <li className="flex items-center">
-                            <div className="w-2 h-2 bg-orange-500/100 rounded-full mr-3"></div>
-                            We may suspend accounts for violations
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </motion.section>
+                  {/* AI-Assisted and Automated Processing */}
+                  <section id="ai-processing" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      AI-Assisted and Automated Processing
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      The Services rely on automated systems, machine learning, and AI-assisted processing to extract, classify, and transform data.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      You acknowledge and agree that:
+                    </p>
+                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
+                      <li>Outputs may be inaccurate, incomplete, or outdated</li>
+                      <li>Outputs are not professional advice of any kind</li>
+                      <li>You must independently review and validate outputs</li>
+                    </ul>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Sledge does not guarantee the accuracy, completeness, or suitability of automated results.
+                    </p>
+                  </section>
 
-                {/* Third-Party Services and Integrations */}
-                <motion.section
-                  ref={(el) => setSectionRef(el, "third-party")}
-                  id="third-party"
-                  {...fadeInUp}
-                  className="mb-12 scroll-mt-24"
-                >
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-yellow-500/20 rounded-none border-4 border-yellow-600/40 flex items-center justify-center mr-4">
-                      <Users className="w-6 h-6 text-yellow-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-white">
+                  {/* Third-Party Services and Integrations */}
+                  <section id="third-party" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
                       Third-Party Services and Integrations
                     </h2>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-none p-6 border-4 border-yellow-600/40">
-                    <h4 className="font-semibold text-white mb-3">
-                      External Services
-                    </h4>
-                    <p className="text-gray-300 mb-4">
-                      The Service may integrate with third-party platforms
-                      (e.g., Google, Microsoft, payment gateways, analytics
-                      providers).
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      The Services may integrate with third-party platforms (including email, accounting, payment, and AI services).
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-gradient-to-br from-gray-800 to-black rounded-lg p-4 border border-blue-100">
-                        <h5 className="font-medium text-white mb-1">
-                          No Responsibility
-                        </h5>
-                        <p className="text-gray-300 text-sm">
-                          DMR is not responsible for functionality, accuracy, or
-                          availability of third-party services.
-                        </p>
-                      </div>
-                      <div className="bg-gradient-to-br from-gray-800 to-black rounded-lg p-4 border border-purple-100">
-                        <h5 className="font-medium text-white mb-1">
-                          Third-Party Terms
-                        </h5>
-                        <p className="text-gray-300 text-sm">
-                          Use of third-party integrations is governed by the
-                          third party's own terms and privacy policies.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.section>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      You authorize Sledge to access and process third-party data solely to provide the integrations you enable. Third-party services are governed by their own terms and policies.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Sledge does not control and is not responsible for third-party services, including their availability, data handling, or changes.
+                    </p>
+                  </section>
 
-                {/* Warranties & Liability */}
-                <motion.section
-                  ref={(el) => setSectionRef(el, "warranties")}
-                  id="warranties"
-                  {...fadeInUp}
-                  className="mb-12 scroll-mt-24"
-                >
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-orange-500/20 rounded-none border-4 border-orange-600/40 flex items-center justify-center mr-4">
-                      <Shield className="w-6 h-6 text-orange-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-white">
-                      Warranties & Liability
+                  {/* Free Trials */}
+                  <section id="free-trials" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Free Trials
                     </h2>
-                  </div>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      Sledge may offer free trials at its discretion.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      Free trials:
+                    </p>
+                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
+                      <li>Are provided as-is</li>
+                      <li>May be modified or terminated at any time</li>
+                      <li>May convert to paid subscriptions automatically unless canceled</li>
+                    </ul>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      No guarantees are provided during trial periods.
+                    </p>
+                  </section>
 
-                  <div className="space-y-6">
-                    <div className="bg-orange-500/10 rounded-none p-6 border-4 border-orange-600/40">
-                      <h4 className="font-semibold text-white mb-3">
-                        Disclaimer of Warranties
-                      </h4>
-                      <p className="text-gray-300 mb-4">
-                        The Service is provided "as is" and "as available"
-                        without warranties of any kind, express or implied. DMR
-                        disclaims all implied warranties of merchantability,
-                        fitness for a particular purpose, and non-infringement.
-                      </p>
-                      <p className="text-gray-300">
-                        We make no guarantees regarding uptime, accuracy, or
-                        reliability.
+                  {/* Fees, Billing, and Payments */}
+                  <section id="fees" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Fees, Billing, and Payments
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      You agree to pay all applicable fees in accordance with your selected plan.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      Fees are billed in advance unless otherwise stated. All fees are non-refundable except where required by law. Taxes are your responsibility.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Failure to pay may result in suspension or termination.
+                    </p>
+                  </section>
+
+                  {/* Refund Policy */}
+                  <section id="refunds" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Refund Policy
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      All payments are final.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Sledge does not offer refunds, credits, or prorated charges for unused time, downgrades, or terminated accounts, except where required by law.
+                    </p>
+                  </section>
+
+                  {/* Data Backup and Customer Responsibilities */}
+                  <section id="data-backup" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Data Backup and Customer Responsibilities
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      The Services are not intended to function as your sole system of record.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      You are responsible for:
+                    </p>
+                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
+                      <li>Maintaining independent backups</li>
+                      <li>Retaining original source documents</li>
+                      <li>Verifying processed data</li>
+                    </ul>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Sledge is not liable for data loss except where caused by willful misconduct.
+                    </p>
+                  </section>
+
+                  {/* Security Measures */}
+                  <section id="security" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Security Measures
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      Sledge implements reasonable administrative, technical, and organizational safeguards designed to protect data.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      However, no system is completely secure, and Sledge cannot guarantee absolute security.
+                    </p>
+                  </section>
+
+                  {/* Availability and No SLA */}
+                  <section id="availability" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Availability and No SLA
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      The Services are provided as available.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Sledge does not guarantee uptime, uninterrupted service, or error-free operation unless expressly agreed in writing.
+                    </p>
+                  </section>
+
+                  {/* Beta and Experimental Features */}
+                  <section id="beta" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Beta and Experimental Features
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      Certain features may be labeled beta, preview, or experimental.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      These features:
+                    </p>
+                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed list-disc list-inside space-y-2">
+                      <li>May change or be discontinued</li>
+                      <li>Are excluded from warranties</li>
+                      <li>Are used at your own risk</li>
+                    </ul>
+                  </section>
+
+                  {/* Intellectual Property */}
+                  <section id="ip" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Intellectual Property
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      The Services, including software, designs, workflows, models, and branding, are owned by Sledge and protected by intellectual property laws.
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      No rights are granted except as expressly stated.
+                    </p>
+                  </section>
+
+                  {/* Feedback */}
+                  <section id="feedback" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Feedback
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      You grant Sledge a perpetual, irrevocable, royalty-free right to use any feedback you provide without obligation or compensation.
+                    </p>
+                  </section>
+
+                  {/* Confidentiality */}
+                  <section id="confidentiality" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Confidentiality
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Each party agrees to protect the other's confidential information and to use it solely for purposes related to the Services.
+                    </p>
+                  </section>
+
+                  {/* Privacy */}
+                  <section id="privacy" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Privacy
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Use of the Services is governed by the <a href="/privacy-policy" className="text-amber-400 hover:text-amber-300 transition-colors">Sledge Privacy Notice</a>, incorporated by reference.
+                    </p>
+                  </section>
+
+                  {/* Export Controls and Sanctions */}
+                  <section id="export" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Export Controls and Sanctions
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      You may not use the Services in violation of U.S. export control or sanctions laws.
+                    </p>
+                  </section>
+
+                  {/* Government Users */}
+                  <section id="government" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Government Users
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      The Services are commercial computer software provided with restricted rights.
+                    </p>
+                  </section>
+
+                  {/* Suspension and Termination */}
+                  <section id="termination" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Suspension and Termination
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      Sledge may suspend or terminate access immediately if:
+                    </p>
+                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
+                      <li>You violate these Terms</li>
+                      <li>Your use poses risk to the Services or others</li>
+                      <li>Required by law</li>
+                    </ul>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
+                      You may terminate at any time, subject to payment obligations.
+                    </p>
+
+                    <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
+                      Effect of Termination
+                    </h3>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      Upon termination:
+                    </p>
+                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed list-disc list-inside space-y-2">
+                      <li>Access ends immediately</li>
+                      <li>Outstanding fees remain due</li>
+                      <li>Certain provisions survive termination</li>
+                    </ul>
+                  </section>
+
+                  {/* Disclaimers */}
+                  <section id="disclaimers" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Disclaimers
+                    </h2>
+                    <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30">
+                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed uppercase">
+                        THE SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTIES OF ANY KIND.
                       </p>
                     </div>
+                  </section>
 
-                    <div className="bg-yellow-500/10 rounded-none p-6 border-4 border-yellow-600/40">
-                      <h4 className="font-semibold text-white mb-3">
-                        Limitation of Liability
-                      </h4>
-                      <p className="text-gray-300 mb-2">
-                        To the maximum extent permitted by law:
+                  {/* Limitation of Liability */}
+                  <section id="liability" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Limitation of Liability
+                    </h2>
+                    <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30 space-y-4">
+                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed uppercase">
+                        TO THE MAXIMUM EXTENT PERMITTED BY LAW, SLEDGE SHALL NOT BE LIABLE FOR INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES.
                       </p>
-                      <ul className="text-gray-300 space-y-2">
-                        <li className="flex items-start">
-                          <AlertTriangle className="w-4 h-4 text-yellow-500 mr-2 mt-1 flex-shrink-0" />
-                          DMR will not be liable for any indirect, incidental,
-                          special, consequential, or punitive damages
-                        </li>
-                        <li className="flex items-start">
-                          <AlertTriangle className="w-4 h-4 text-yellow-500 mr-2 mt-1 flex-shrink-0" />
-                          DMR's total aggregate liability shall not exceed the
-                          amount paid by you during the 12 months preceding the
-                          claim
-                        </li>
-                      </ul>
+                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed uppercase">
+                        TOTAL LIABILITY SHALL NOT EXCEED FEES PAID IN THE TWELVE MONTHS PRECEDING THE CLAIM.
+                      </p>
                     </div>
-                  </div>
-                </motion.section>
+                  </section>
 
-                {/* Governing Law */}
-                <motion.section
-                  ref={(el) => setSectionRef(el, "governing-law")}
-                  id="governing-law"
-                  {...fadeInUp}
-                  className="scroll-mt-24"
-                >
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-yellow-500/20 rounded-none border-4 border-yellow-600/40 flex items-center justify-center mr-4">
-                      <Globe className="w-6 h-6 text-yellow-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-white">
+                  {/* Indemnification */}
+                  <section id="indemnification" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Indemnification
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      You agree to indemnify and hold harmless Sledge from claims arising from your use, data, or violations.
+                    </p>
+                  </section>
+
+                  {/* Dispute Resolution and Arbitration */}
+                  <section id="disputes" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Dispute Resolution and Arbitration
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
+                      Disputes shall be resolved through binding arbitration, except for small claims or injunctive relief related to IP.
+                    </p>
+
+                    <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
+                      Class Action Waiver
+                    </h3>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Disputes must be brought individually. Class actions are waived.
+                    </p>
+                  </section>
+
+                  {/* Governing Law */}
+                  <section id="governing-law" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
                       Governing Law
                     </h2>
-                  </div>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Nevada law governs these Terms, without regard to conflict-of-law principles.
+                    </p>
+                  </section>
 
-                  <div className="bg-gradient-to-br from-gray-800 to-black rounded-none border-4 border-gray-600 p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div>
-                        <h4 className="font-semibold text-white mb-3 flex items-center">
-                          <Scale className="w-5 h-5 mr-2 text-yellow-500" />
-                          Jurisdiction
-                        </h4>
-                        <p className="text-gray-300">
-                          These Terms are governed by the laws of the State of
-                          Nevada, without regard to conflict of law principles.
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-white mb-3 flex items-center">
-                          <Users className="w-5 h-5 mr-2 text-orange-500" />
-                          Dispute Resolution
-                        </h4>
-                        <p className="text-gray-300">
-                          Any dispute shall be resolved exclusively in the state
-                          or federal courts located in Clark County, Nevada, and
-                          you consent to their jurisdiction.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.section>
+                  {/* General Provisions */}
+                  <section id="general" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      General Provisions
+                    </h2>
 
-                {/* Contact & Agreement */}
-                <motion.section
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.9 }}
-                  className="mt-16 pt-8 border-t-4 border-yellow-600/30"
-                >
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold text-white mb-4">
-                      Questions About These Terms?
+                    <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
+                      Changes to Terms
                     </h3>
-                    <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-                      Contact us with any questions or concerns regarding these
-                      Terms and Conditions.
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
+                      Sledge may modify these Terms at any time. Continued use constitutes acceptance.
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Button
-                        className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-gray-900 font-bold uppercase border-2 border-yellow-600 shadow-lg shadow-yellow-500/50 rounded-none"
-                        onClick={() =>
-                          (window.location.href = "mailto: support@sledge.dev")
-                        }
-                      >
-                        <Mail className="w-4 h-4 mr-2" />
-                        Contact Support
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="border-blue-200 hover:bg-yellow-500/10"
-                        onClick={() => scrollToSection("eligibility")}
-                      >
-                        Back to Top
-                      </Button>
-                    </div>
-                    <p className="text-slate-500 text-sm mt-4">
-                      DMR • Las Vegas, Nevada • Email: support@sledge.dev
+
+                    <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
+                      Assignment
+                    </h3>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
+                      You may not assign these Terms without consent. Sledge may assign freely.
+                    </p>
+
+                    <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
+                      Entire Agreement
+                    </h3>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
+                      These Terms constitute the entire agreement regarding the Services.
+                    </p>
+
+                    <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
+                      Severability and Waiver
+                    </h3>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Invalid provisions do not affect enforceability of the remainder. Failure to enforce is not a waiver.
+                    </p>
+                  </section>
+
+                  {/* Contact Information */}
+                  <section id="contact" className="scroll-mt-24 mb-10">
+                    <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
+                      Contact Information
+                    </h2>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
+                      If you have questions or concerns about these Terms, please contact:
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-2">
+                      <span className="text-white font-semibold">Sledge</span>
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-2">
+                      DMR Corp, d/b/a Sledge
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-2">
+                      Las Vegas, Nevada, USA
+                    </p>
+                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
+                      Email: <a href="mailto:support@getsledge.com" className="text-amber-400 hover:text-amber-300 transition-colors">support@getsledge.com</a>
+                    </p>
+                  </section>
+
+                  {/* Disclaimer */}
+                  <div className="border-t border-zinc-700 pt-8 mt-8">
+                    <p className="text-zinc-500 font-['Inter'] text-sm italic">
+                      This Terms of Service document is provided for informational purposes and does not constitute legal advice.
                     </p>
                   </div>
-                </motion.section>
+                </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
