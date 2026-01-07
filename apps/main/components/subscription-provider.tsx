@@ -79,6 +79,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     "/integration/gmail",
     "/integration/outlook",
     "/test-sentry",
+    "/promo",
   ];
   const isPublicRoute = publicRoutes.some(
     (route) => pathname === route || pathname.startsWith("/auth/")

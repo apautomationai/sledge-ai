@@ -22,7 +22,8 @@ export function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [industriesDropdownOpen, setIndustriesDropdownOpen] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
-  const [mobileIndustriesDropdownOpen, setMobileIndustriesDropdownOpen] = useState(false);
+  const [mobileIndustriesDropdownOpen, setMobileIndustriesDropdownOpen] =
+    useState(false);
   const bodyRef = useRef<HTMLElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const industriesDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -140,7 +141,7 @@ export function Header() {
 
   return (
     <>
-      <header className="w-full bg-[#141414] backdrop-blur-none shadow-[0_4px_20px_rgba(0,0,0,0.9),0_0_30px_rgba(253,176,34,0.2)] border-yellow-600/50 relative z-[9999]">
+      <header className="w-full bg-[#141414] backdrop-blur-none border-yellow-600/50 relative z-[9999]">
         <nav className="w-full px-4 md:px-12" aria-label="Global">
           <div className="relative flex items-center justify-between py-3 md:py-[13px]">
             <Link href="/" className="flex items-center gap-3 z-10">
@@ -299,7 +300,7 @@ export function Header() {
                   >
                     {item.name}
                   </Link>
-                )
+                ),
               )}
             </div>
 
@@ -310,11 +311,15 @@ export function Header() {
             <div className="flex lg:hidden">
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-md p-2.5 text-white hover:text-yellow-400 z-50 relative"
-                onClick={() => setMobileMenuOpen(true)}
-                aria-label="Open menu"
+                className="inline-flex items-center justify-center rounded-md p-2.5 text-white hover:text-yellow-400 z-[10001] relative"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
               >
-                <Menu className="h-6 w-6" aria-hidden="true" />
+                {mobileMenuOpen ? (
+                  <X className="h-6 w-6" aria-hidden="true" />
+                ) : (
+                  <Menu className="h-6 w-6" aria-hidden="true" />
+                )}
               </button>
             </div>
           </div>
@@ -330,7 +335,7 @@ export function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 lg:hidden pointer-events-none"
+              className="fixed inset-0 z-[10000] lg:hidden pointer-events-none"
             >
               <div
                 className="fixed inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto"
@@ -344,7 +349,7 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-neutral-900 shadow-2xl shadow-yellow-500/20 border-l-4 border-yellow-600/30 lg:hidden pointer-events-auto"
+              className="fixed inset-y-0 right-0 z-[10000] w-full max-w-sm bg-neutral-900 shadow-2xl shadow-yellow-500/20 border-l-4 border-yellow-600/30 lg:hidden pointer-events-auto"
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
@@ -376,7 +381,9 @@ export function Header() {
                       item.name === "Products" ? (
                         <div key={item.name}>
                           <button
-                            onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+                            onClick={() =>
+                              setMobileDropdownOpen(!mobileDropdownOpen)
+                            }
                             className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
                           >
                             {item.name}
@@ -455,7 +462,9 @@ export function Header() {
                         <div key={item.name}>
                           <button
                             onClick={() =>
-                              setMobileIndustriesDropdownOpen(!mobileIndustriesDropdownOpen)
+                              setMobileIndustriesDropdownOpen(
+                                !mobileIndustriesDropdownOpen,
+                              )
                             }
                             className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
                           >
@@ -505,7 +514,7 @@ export function Header() {
                         >
                           {item.name}
                         </Link>
-                      )
+                      ),
                     )}
                   </div>
                 </div>

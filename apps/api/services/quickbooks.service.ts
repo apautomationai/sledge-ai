@@ -320,7 +320,35 @@ export class QuickBooksService {
 
   // Get company information
   async getCompanyInfo(integration: QuickBooksIntegration) {
-    return this.makeApiCall(integration, "companyinfo/1");
+    try {
+      const response = await this.makeApiCall(integration, "companyinfo/1");
+
+      // Extract company info from QuickBooks API response
+      // The response structure is directly CompanyInfo, not nested under QueryResponse
+      const companyData = response?.CompanyInfo;
+      if (!companyData) {
+        return null;
+      }
+
+      // Extract email - try multiple fields as QuickBooks has different email fields
+      const email =
+        companyData.Email?.Address ||
+        companyData.CustomerCommunicationEmailAddr?.Address ||
+        null;
+
+      return {
+        name: companyData.CompanyName || companyData.LegalName || "Unknown Company",
+        email: email,
+        address: companyData.CompanyAddr || companyData.LegalAddr || null,
+        phone: companyData.PrimaryPhone?.FreeFormNumber || null,
+        website: companyData.WebAddr?.URI || null,
+        country: companyData.Country || null,
+        fiscalYearStart: companyData.FiscalYearStartMonth || null,
+        rawData: companyData, // Keep raw data for debugging
+      };
+    } catch (error: any) {
+      return null;
+    }
   }
 
   // Get customers
