@@ -8,6 +8,13 @@
       "when": 1767773616917,
       "tag": "0000_initial_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1767794676955,
+      "tag": "0001_foamy_rogue",
+      "breakpoints": true
     }
   ]
 }

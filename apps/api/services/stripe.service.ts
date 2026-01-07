@@ -172,17 +172,23 @@ export class StripeService {
             }
 
             // Calculate trial period days
-            const trialPeriodDays = subscription.tier === SUBSCRIPTION_CONFIG.TIERS.PROMOTIONAL
+            let trialPeriodDays = subscription.tier === SUBSCRIPTION_CONFIG.TIERS.PROMOTIONAL
                 ? SUBSCRIPTION_CONFIG.TRIALS.PROMOTIONAL_DAYS
                 : SUBSCRIPTION_CONFIG.TRIALS.STANDARD_DAYS;
+
+            // Add extra 30 days trial if promo code is used
+            if (subscription.promoCode) {
+                trialPeriodDays += 30;
+                console.log(`Extended trial to ${trialPeriodDays} days for promo code: ${subscription.promoCode}`);
+            }
 
             // Default URLs
             const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
             const successUrl = options?.successUrl || `${baseUrl}/dashboard?payment_success=true`;
             const cancelUrl = options?.cancelUrl || `${baseUrl}/profile?tab=subscription&canceled=true`;
 
-            // Create checkout session
-            const session = await stripe.checkout.sessions.create({
+            // Build checkout session config
+            const sessionConfig: Stripe.Checkout.SessionCreateParams = {
                 customer: customerId,
                 payment_method_types: ['card'],
                 line_items: [
@@ -201,13 +207,44 @@ export class StripeService {
                 },
                 success_url: successUrl,
                 cancel_url: cancelUrl,
-                allow_promotion_codes: true,
                 billing_address_collection: 'required',
                 metadata: {
                     userId: userId.toString(),
                     tier: subscription.tier,
                 },
-            });
+            };
+
+            // Apply promo code if stored in subscription
+            if (subscription.promoCode) {
+                try {
+                    // Look up the promotion code in Stripe
+                    const promoCodes = await stripe.promotionCodes.list({
+                        code: subscription.promoCode,
+                        active: true,
+                        limit: 1,
+                    });
+
+                    if (promoCodes.data.length > 0) {
+                        sessionConfig.discounts = [{
+                            promotion_code: promoCodes.data[0].id,
+                        }];
+                        console.log(`Applied promo code ${subscription.promoCode} to checkout session`);
+                    } else {
+                        console.warn(`Promo code ${subscription.promoCode} not found or inactive in Stripe, allowing manual entry`);
+                        sessionConfig.allow_promotion_codes = true;
+                    }
+                } catch (promoError) {
+                    console.error(`Error looking up promo code ${subscription.promoCode}:`, promoError);
+                    // Fall back to allowing manual promo code entry
+                    sessionConfig.allow_promotion_codes = true;
+                }
+            } else {
+                // No promo code stored, allow manual entry
+                sessionConfig.allow_promotion_codes = true;
+            }
+
+            // Create checkout session
+            const session = await stripe.checkout.sessions.create(sessionConfig);
 
             if (!session.id || !session.url) {
                 throw new Error('Failed to create checkout session');

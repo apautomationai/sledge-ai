@@ -20,6 +20,7 @@ export class UserController {
         email,
         phone,
         password,
+        promoCode,
       } = req.body;
 
       const result = await userServices.registerUser({
@@ -30,6 +31,7 @@ export class UserController {
         email,
         phone,
         password,
+        promoCode,
       });
 
       // Generate JWT token for automatic login

@@ -25,6 +25,7 @@ export class UserServices {
     email,
     phone,
     password,
+    promoCode,
   }: {
     firstName: string;
     lastName: string;
@@ -33,6 +34,7 @@ export class UserServices {
     email: string;
     phone: string;
     password: string;
+    promoCode?: string;
   }) => {
     try {
       if (!firstName || !email || !password) {
@@ -73,7 +75,7 @@ export class UserServices {
 
       // Assign subscription to user (with error handling to not break registration)
       try {
-        await RegistrationService.assignSubscriptionToUser(createdUser.id);
+        await RegistrationService.assignSubscriptionToUser(createdUser.id, undefined, promoCode);
       } catch (subscriptionError: any) {
         // Silently handle subscription assignment errors to not break registration
         // Note: In production, you might want to add this to a retry queue
