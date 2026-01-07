@@ -22,7 +22,7 @@ const aiFoundationSteps: Step[] = [
     icon: "/images/icon-capture 1.svg",
     title: "1. Invoices Are Captured and Read by AI",
     description:
-      "AI automatically captures emails, documents, and attachments as they arrive.",
+      "AI captures emails, documents, and attachments as they arrive.",
   },
   {
     icon: "/images/icon-understand 1.svg",
@@ -31,7 +31,7 @@ const aiFoundationSteps: Step[] = [
       "Invoices are matched to existing QuickBooks records. New ones are created only when required.",
   },
   {
-    icon: "/images/icon-complete 10.svg",
+    icon: "/images/icon-complete 1.svg",
     title: "3. Humans Approve Before Syncing to QuickBooks",
     description:
       "Approved invoices sync to QuickBooks. Rejected ones are stopped and sent back.",
@@ -59,10 +59,10 @@ const whatsIncludedFeatures2 = [
   "Approval status",
 ];
 
-const builtToRunTitle = "Built to run your back office.";
-const builtToRunSubtitle = "Not just invoices.";
+const builtToRunTitle = "Built to Automate Construction Accounting";
+const builtToRunSubtitle = "— Not Just Invoices";
 const builtToRunDescription =
-  "Designed for construction teams and how you work. No contracts.";
+  "Eliminate manual invoice entry and keep QuickBooks clean with AI-powered construction accounting automation.";
 
 const heroLogo = {
   src: "/images/quickbooks-brand-preferred-logo-50-50-white-external 1.svg",
@@ -207,6 +207,8 @@ export default function Integrations() {
             title={builtToRunTitle}
             subtitle={builtToRunSubtitle}
             description={builtToRunDescription}
+            secondaryButtonText="SCHEDULE A DEMO"
+            secondaryButtonHref="#demo"
           />
         </div>
         <FAQ faqs={faqs} />

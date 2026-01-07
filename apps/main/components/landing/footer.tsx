@@ -5,7 +5,7 @@ import Image from "next/image";
 const navigation = {
   product: [
     { name: "Overview", href: "/product" },
-    { name: "Ai Accounts Payable", href: "/product/ai-accounts-payable" },
+    { name: "AI Accounts Payable", href: "/product/ai-accounts-payable" },
     { name: "Integrations", href: "/integration" },
   ],
   industries: [

@@ -9,7 +9,6 @@ import { FAQ, FAQItem } from "@/components/product/faq";
 import { PricingCore } from "@/components/pricing/core";
 import { PricingTools } from "@/components/pricing/tools";
 import { WhatsIncluded } from "@/components/pricing/whats-included";
-import { MoreComing } from "@/components/pricing/more";
 import WhatIsIt from "@/components/landing/what-is-it";
 
 const whatsIncludedTitle = "What's Included";
@@ -22,6 +21,42 @@ const whatsIncludedFeatures = [
   "Unlimited invoice projects",
   "No per-invoice fee",
   "No usage caps",
+];
+
+const moreComingTitle = "More Coming, At No Extra Cost.";
+const moreComingText =
+  "Sledge is starting with invoicing and payments, but we're building toward a complete construction back office.";
+const moreComingFeatures = [
+  {
+    title: "Cash flow and reporting",
+    description:
+      "See what's been invoiced, what's been paid, and what's outstanding, so you can spot issues before they turn into cash flow problems.",
+  },
+  {
+    title: "Lien waiver workflows",
+    description:
+      "Generate, track, and exchange conditional and unconditional lien waivers without chasing paperwork or risking compliance mistakes.",
+  },
+  {
+    title: "AIA G702 / G703 support",
+    description:
+      "Create and manage AIA payment applications with accurate schedules of values, stored and tied to each project.",
+  },
+  {
+    title: "Accounting and ERP integrations",
+    description:
+      "Generate, track, and exchange conditional and unconditional lien waivers without chasing paperwork or risking compliance mistakes.",
+  },
+  {
+    title: "Pay Package Support",
+    description:
+      "Create clean, complete pay packages that speed up approvals and reduce payment delays.",
+  },
+  {
+    title: "Accounts Receivable",
+    description:
+      "See who owes you what, track payment status in one place, and reduce time spent chasing invoices.",
+  },
 ];
 
 const builtToRunTitle = "Built to run your back office.";
@@ -160,7 +195,11 @@ export default function Integrations() {
             text={whatsIncludedText}
             features={whatsIncludedFeatures}
           />
-          <MoreComing />
+          <WhatsIncluded
+            title={moreComingTitle}
+            text={moreComingText}
+            features={moreComingFeatures}
+          />
           <BuiltToRun
             title={builtToRunTitle}
             subtitle={builtToRunSubtitle}

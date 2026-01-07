@@ -24,13 +24,13 @@ const aiFoundationSteps: Step[] = [
     description: "AI scans Gmail to detect invoice emails and attachments.",
   },
   {
-    icon: "/images/icon-understand 2.svg",
+    icon: "/images/icon-understand 2 (1).svg",
     title: "3. AI Reads and Extracts Invoice Data",
     description:
       "AI invoice processing extracts key invoice data automatically.",
   },
   {
-    icon: "/images/icon-complete 10.svg",
+    icon: "/images/icon-complete 1.svg",
     title: "4. Invoices Are Ready for Human Review",
     description: "Invoices are reviewed and approved before moving forward.",
   },
@@ -62,7 +62,7 @@ const heroLogoLabel = "Gmail";
 const heroTitle =
   "Gmail Integration for Construction Invoice Capture & Automation";
 const heroDescription =
-  "Automatically find, extract, and prepare construction invoices directly from your Gmail inbox using AI.No forwarding rules. No manual downloads. Just clean invoices ready for approval.";
+  "Automatically find, extract, and prepare construction invoices directly from your Gmail inbox using AI. No forwarding rules. No manual downloads. Just clean invoices ready for approval.";
 
 const faqs: FAQItem[] = [
   {
@@ -76,8 +76,8 @@ const faqs: FAQItem[] = [
           <li>Google Workspace accounts</li>
         </ul>
         <p className="mt-2">
-          This allows Sledge to centralize invoice intake across teams, jobs,
-          or entities.
+          This allows Sledge to centralize invoice intake across teams, jobs, or
+          entities.
         </p>
       </>
     ),
@@ -147,7 +147,8 @@ const faqs: FAQItem[] = [
       "Yes. Sledge uses secure authentication and modern security best practices when connecting to Gmail and Google Workspace. Data access is limited to what's required for invoice automation only.",
   },
   {
-    question: "How quickly can I start using the Gmail integration with Sledge?",
+    question:
+      "How quickly can I start using the Gmail integration with Sledge?",
     answer:
       "Most teams connect Gmail to Sledge in just a few minutes. No IT involvement, complex setup, or long onboarding required.",
   },
@@ -191,11 +192,14 @@ export default function Integrations() {
             text={whatsIncludedText}
             subtitle={whatsIncludedSubtitle}
             features={whatsIncludedFeatures}
+            columns={3}
           />
 
           <BuiltToRun
             title={builtToRunTitle}
             description={builtToRunDescription}
+            secondaryButtonText="SCHEDULE A DEMO"
+            secondaryButtonHref="#demo"
           />
         </div>
         <FAQ faqs={faqs} />

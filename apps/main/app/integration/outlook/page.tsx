@@ -17,25 +17,24 @@ const aiFoundationSteps: Step[] = [
     icon: "/images/icon-capture 1.svg",
     title: "1. Securely Connects to Your Outlook Inbox",
     description:
-      "Sledge securely connects to your Outlook inbox using Microsoft authentication. You control which inboxes Sledge can access — including shared AP, accounting, or Office 365 mailboxes",
-  },
-  {
-    icon: "/images/icon-understand 1.svg",
-    title: "2. AI Scans Outlook Emails to Detect Invoices",
-    description:
-      "Sledge AI scans incoming Outlook emails to identify invoice emails and attachments — even when vendors use inconsistent formats, subject lines, or naming conventions.",
+      "Connect Outlook or Office 365 inboxes, including shared AP mailboxes.",
   },
   {
     icon: "/images/icon-understand 2.svg",
-    title: "3. AI Reads and Extracts Invoice Data",
-    description:
-      "Once an invoice is detected, Sledge ingests the attachment and uses AI to extract invoice data including vendor, dates, totals, line items, and supporting documents.",
+    title: "2. AI Scans Outlook Emails to Detect Invoices",
+    description: "AI scans Outlook emails to find invoices and attachments.",
   },
   {
-    icon: "/images/icon-complete 10.svg",
+    icon: "/images/icon-understand 2 (1).svg",
+    title: "3. AI Reads and Extracts Invoice Data",
+    description:
+      "Invoice data like vendor, dates, and totals are captured automatically.",
+  },
+  {
+    icon: "/images/icon-complete 1.svg",
     title: "4. Invoices Are Ready for Human Review",
     description:
-      "Parsed invoice data is presented in Sledge for review. Users can approve or reject invoices before they move forward in the workflow.Human-in-the-loop stays consistent across integrations.",
+      "Review, approve, or reject invoices before they move forward.",
   },
 ];
 
@@ -51,10 +50,10 @@ const whatsIncludedFeatures = [
   "Supporting documentation",
 ];
 
-const builtToRunTitle = "Built to run your back office.";
-const builtToRunSubtitle = "not just invoices.";
+const builtToRunTitle = "Automate Construction Invoice Intake from Outlook";
+const builtToRunSubtitle = "";
 const builtToRunDescription =
-  "Designed for construction teams and how you work. No contracts. ";
+  "Stop sorting emails and downloading attachments. Let AI handle invoice intake for you.";
 
 const heroLogo = {
   src: "/images/1024px-Microsoft_Outlook_logo_(2024–2025).svg 1.svg",
@@ -66,7 +65,7 @@ const heroLogoLabel = "Outlook";
 const heroTitle =
   "Outlook Integration for Construction Invoice Capture & Automation";
 const heroDescription =
-  "Automatically find, read, and prepare construction invoices directly from your Outlook inbox using AI.No forwarding rules. No manual downloads. Just invoices ready for review.";
+  "Automatically find, read, and prepare construction invoices directly from your Outlook inbox using AI. No forwarding rules. No manual downloads. Just invoices ready for review.";
 
 const faqs: FAQItem[] = [
   {
@@ -115,7 +114,8 @@ const faqs: FAQItem[] = [
     ),
   },
   {
-    question: "Do I need to set up forwarding rules or folders in Outlook for Sledge?",
+    question:
+      "Do I need to set up forwarding rules or folders in Outlook for Sledge?",
     answer: (
       <>
         <p>No.</p>
@@ -123,8 +123,8 @@ const faqs: FAQItem[] = [
           Sledge connects directly to Outlook and scans inboxes automatically.
         </p>
         <p className="mt-2">
-          You do not need to create forwarding rules, folders, or filters
-          unless you choose to.
+          You do not need to create forwarding rules, folders, or filters unless
+          you choose to.
         </p>
       </>
     ),
@@ -195,12 +195,14 @@ export default function Integrations() {
             text={whatsIncludedText}
             subtitle={whatsIncludedSubtitle}
             features={whatsIncludedFeatures}
+            columns={3}
           />
 
           <BuiltToRun
             title={builtToRunTitle}
-            subtitle={builtToRunSubtitle}
             description={builtToRunDescription}
+            secondaryButtonText="SCHEDULE A DEMO"
+            secondaryButtonHref="#demo"
           />
         </div>
         <FAQ faqs={faqs} />

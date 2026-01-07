@@ -4,12 +4,18 @@ import { Mail, Building2, Clock, Link2, LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import ContactForm from '@/components/landing/contact-form';
 
+interface ContactCardLink {
+  label: string;
+  href: string;
+}
+
 interface ContactCardData {
   icon: LucideIcon;
   title: string;
   subtitle: string;
-  detail: string;
+  detail?: string;
   href?: string;
+  links?: ContactCardLink[];
 }
 
 const contactCards: ContactCardData[] = [
@@ -36,14 +42,16 @@ const contactCards: ContactCardData[] = [
     icon: Link2,
     title: 'Links',
     subtitle: 'Legal information',
-    detail: 'Privacy Policy & Terms',
-    href: '/privacy-policy',
+    links: [
+      { label: 'Privacy Policy', href: '/privacy-policy' },
+      { label: 'Terms & Conditions', href: '/terms-conditions' },
+    ],
   },
 ];
 
 function ContactCard({ card }: { card: ContactCardData }) {
   const content = (
-    <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-700 cursor-pointer transition-all duration-300 hover:border-zinc-600 flex-1">
+    <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-700 transition-all duration-300 hover:border-zinc-600 flex-1">
       <div className="flex items-start gap-4">
         <div className="p-3 rounded-lg bg-zinc-800">
           <card.icon className="w-6 h-6 text-zinc-400" />
@@ -55,9 +63,24 @@ function ContactCard({ card }: { card: ContactCardData }) {
           <p className="text-zinc-400 text-sm font-normal font-['Inter'] mb-2">
             {card.subtitle}
           </p>
-          <p className="text-white text-sm font-medium font-['Inter']">
-            {card.detail}
-          </p>
+          {card.detail && (
+            <p className="text-white text-sm font-medium font-['Inter']">
+              {card.detail}
+            </p>
+          )}
+          {card.links && (
+            <div className="flex flex-col gap-1">
+              {card.links.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-zinc-400 text-sm font-medium font-['Inter'] hover:text-white transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -65,7 +88,7 @@ function ContactCard({ card }: { card: ContactCardData }) {
 
   if (card.href) {
     return (
-      <Link href={card.href} className="block flex-1">
+      <Link href={card.href} className="block flex-1 cursor-pointer">
         {content}
       </Link>
     );

@@ -19,7 +19,7 @@ const whatsIncludedFeatures = [
 const builtToRunTitle = "Built to run your back office.";
 const builtToRunSubtitle = "Not just invoices.";
 const builtToRunDescription =
-  "Designed for construction teams and how you work. No contracts.";
+  "Connect Sledge to your existing tools and let AI handle the work.";
 
 const faqs: FAQItem[] = [
   {
