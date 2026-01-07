@@ -56,7 +56,7 @@ export class UserController {
       });
 
       // Send welcome email (non-blocking)
-      const ctaLink = `${process.env.FRONTEND_URL || "https://app.getsledge.com"}/onboarding`;
+      const ctaLink = `${process.env.FRONTEND_URL || "https://getsledge.com"}/onboarding`;
       emailService.sendWelcomeEmail({
         to: result.user.email,
         firstName: result.user.firstName,
