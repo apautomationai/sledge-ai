@@ -31,7 +31,7 @@ export default function SeeTheDifference() {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = Math.max(
       0,
-      Math.min(e.touches[0].clientX - rect.left, rect.width)
+      Math.min(e.touches[0].clientX - rect.left, rect.width),
     );
     const percent = Math.max(0, Math.min((x / rect.width) * 100, 100));
 
@@ -61,18 +61,18 @@ export default function SeeTheDifference() {
           onTouchStart={handleMouseDown}
           onTouchEnd={handleMouseUp}
         >
-          {/* After 10 Image (Background - Right side) */}
+          {/* After Image (Background - Right side) */}
           <div className="absolute inset-0">
             <Image
-              src="/updated-images/sledge-difference-after.png"
-              alt="AI workflow automation"
+              src="/images/sledge-difference-after.svg"
+              alt="AI-powered construction back office automation with Sledge"
               fill
               className="object-cover"
               priority
             />
           </div>
 
-          {/* After 9 Image (Foreground with clip - Left side) */}
+          {/* Before Image (Foreground with clip - Left side) */}
           <div
             className="absolute inset-0"
             style={{
@@ -80,8 +80,8 @@ export default function SeeTheDifference() {
             }}
           >
             <Image
-              src="/updated-images/sledge-difference-before.png"
-              alt="construction back office automation"
+              src="/images/sledge-difference-before.svg"
+              alt="Manual construction back office"
               fill
               className="object-cover"
               priority

@@ -138,7 +138,7 @@ export function Cards() {
                 whileTap="hover"
               >
                 <Image
-                  src="/images/bg-steelplate.png"
+                  src="/images/bg-steelplate.svg"
                   alt={card.title}
                   width={318}
                   height={346}
