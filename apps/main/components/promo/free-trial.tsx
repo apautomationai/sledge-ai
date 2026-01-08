@@ -1,7 +1,11 @@
 import { Features } from "./features";
 import { PromoForm } from "./promo-form";
 
-export function FreeTrial() {
+type FreeTrialProps = {
+  code?: string;
+};
+
+export function FreeTrial({ code }: {code?: string}) {
   return (
     <section className="w-full px-6 md:px-8 lg:px-12 pb-12  md:pb-16">
       <div className="mx-auto max-w-[1400px]">
@@ -10,7 +14,7 @@ export function FreeTrial() {
           <Features />
 
           {/* Right Column - Sign Up Form */}
-          <PromoForm />
+          <PromoForm code={code} />
         </div>
       </div>
     </section>

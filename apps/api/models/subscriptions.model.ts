@@ -21,6 +21,7 @@ export const subscriptionsModel = pgTable("subscriptions", {
     stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
     stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
     stripePriceId: varchar("stripe_price_id", { length: 255 }),
+    promoCode: varchar("promo_code", { length: 50 }),
     currentPeriodStart: timestamp("current_period_start"),
     currentPeriodEnd: timestamp("current_period_end"),
     cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),

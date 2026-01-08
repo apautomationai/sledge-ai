@@ -2,7 +2,12 @@ import { FreeTrial } from "@/components/promo/free-trial";
 import { PromoHeader } from "@/components/promo/header";
 import { PromoHero } from "@/components/promo/hero";
 
-export default function AiAccountPayable() {
+type PageProps = {
+  searchParams: Promise<{ code?: string }>;
+};
+
+export default async function AiAccountPayable({ searchParams }: PageProps) {
+  const { code } = await searchParams;
   return (
     <div className="min-h-screen w-full overflow-x-hidden">
       <PromoHeader />
@@ -24,7 +29,7 @@ export default function AiAccountPayable() {
         />
         <div className="relative">
           <PromoHero />
-          <FreeTrial />
+          <FreeTrial code={code} />
         </div>
       </main>
     </div>

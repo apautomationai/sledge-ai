@@ -12,7 +12,13 @@ const initialState: SignUpFormState = {
   success: false,
 };
 
-export function PromoForm() {
+type PromoFormProps = {
+  code?: string;
+};
+
+export function PromoForm({ code }: PromoFormProps) {
+  const promoCode = code || "";
+
   const [state, formAction] = useActionState(signUpAction, initialState);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -80,6 +86,9 @@ export function PromoForm() {
 
         {/* Form */}
         <form action={formAction} className="self-stretch flex flex-col justify-start items-start gap-4">
+          {/* Hidden promo code field */}
+          <input type="hidden" name="promoCode" value={promoCode} />
+
           {/* First Name & Last Name */}
           <div className="self-stretch flex flex-col sm:flex-row justify-start items-start gap-4">
             <div className="w-full sm:flex-1 flex flex-col justify-start items-start gap-1 min-w-0">
