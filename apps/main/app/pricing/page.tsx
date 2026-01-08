@@ -1,5 +1,4 @@
-"use client";
-
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 
 import { Footer } from "@/components/landing/footer";
@@ -67,6 +66,32 @@ const builtToRunDescription =
 const whatIsItTitle = "Simple Pricing for Construction Teams";
 const whatIsItDescription =
   "Construction software pricing is often complicated, unpredictable, and filled with hidden fees. Sledge offers one transparent plan so teams can automate their back office without worrying about per-invoice charges, user limits, or usage caps.";
+
+export const metadata: Metadata = {
+  title: "Construction Accounts Payable Software Pricing | Sledge",
+  description:
+    "Simple pricing for Sledge's AI-powered accounts payable software built for construction teams, with new workflows added over time.",
+  openGraph: {
+    title: "Construction Accounts Payable Software Pricing | Sledge",
+    description:
+      "Simple pricing for Sledge's AI-powered accounts payable software built for construction teams, with new workflows added over time.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Construction Accounts Payable Software Pricing | Sledge",
+    description:
+      "Simple pricing for Sledge's AI-powered accounts payable software built for construction teams, with new workflows added over time.",
+    images: ["/images/hero-visual.png"],
+  },
+};
 
 const faqs: FAQItem[] = [
   {

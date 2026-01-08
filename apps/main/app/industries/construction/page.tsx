@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 
@@ -9,6 +10,32 @@ import {
   AIFoundationWorking,
   Step,
 } from "@/components/product/ai-foundation-working";
+
+export const metadata: Metadata = {
+  title: "Accounts Payable Software for Construction Companies | Sledge",
+  description:
+    "Sledge helps construction companies automate accounts payable, invoicing, and back-office workflows using AI.",
+  openGraph: {
+    title: "Accounts Payable Software for Construction Companies | Sledge",
+    description:
+      "Sledge helps construction companies automate accounts payable, invoicing, and back-office workflows using AI.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Accounts Payable Software for Construction Companies | Sledge",
+    description:
+      "Sledge helps construction companies automate accounts payable, invoicing, and back-office workflows using AI.",
+    images: ["/images/hero-visual.png"],
+  },
+};
 
 const aiFoundationTitle = "Construction Back Office Workflows, Automated";
 const aiFoundationSteps: Step[] = [
@@ -68,7 +95,8 @@ const faqs: FAQItem[] = [
       "No. Sledge focuses on construction back-office workflows, not field scheduling or project execution. It automates invoicing, approvals, vendor management, lien waivers, and financial workflows so construction teams can stay focused on the jobsite.",
   },
   {
-    question: "How does Sledge fit alongside tools like Procore or Buildertrend?",
+    question:
+      "How does Sledge fit alongside tools like Procore or Buildertrend?",
     answer:
       "Sledge complements field management platforms. While tools like Procore and Buildertrend manage jobs, schedules, and documents, Sledge automates the financial and administrative work that happens behind the scenes.",
   },
@@ -118,7 +146,8 @@ const faqs: FAQItem[] = [
       "Most construction teams can start using Sledge the same day. There's no heavy implementation or complex onboarding.",
   },
   {
-    question: "What makes Sledge different from traditional construction software?",
+    question:
+      "What makes Sledge different from traditional construction software?",
     answer:
       "Sledge is built AI-first and focused entirely on back-office automation. Instead of forcing teams into rigid workflows, it adapts to how construction teams already work.",
   },

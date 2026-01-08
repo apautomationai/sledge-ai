@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 
@@ -9,6 +10,32 @@ import {
   Step,
 } from "@/components/product/ai-foundation-working";
 import { WhatsIncluded } from "@/components/pricing/whats-included";
+
+export const metadata: Metadata = {
+  title: "Accounts Payable Software for Concrete Contractors | Sledge",
+  description:
+    "Automate accounts payable, invoicing, and vendor payments for concrete contractors with AI-powered construction back-office software.",
+  openGraph: {
+    title: "Accounts Payable Software for Concrete Contractors | Sledge",
+    description:
+      "Automate accounts payable, invoicing, and vendor payments for concrete contractors with AI-powered construction back-office software.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Accounts Payable Software for Concrete Contractors | Sledge",
+    description:
+      "Automate accounts payable, invoicing, and vendor payments for concrete contractors with AI-powered construction back-office software.",
+    images: ["/images/hero-visual.png"],
+  },
+};
 
 const whatsIncludedTitle = "Why Concrete Contractors Choose Sledge";
 const whatsIncludedText =

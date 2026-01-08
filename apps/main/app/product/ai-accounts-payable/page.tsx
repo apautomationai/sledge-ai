@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 
@@ -10,6 +11,32 @@ import { HowItWorks } from "@/components/product/how-it-works";
 import WhatSledgeAutomate from "@/components/product/what-sledge-automate";
 import Benefits from "@/components/product/benefits";
 import WhatIsIt from "@/components/landing/what-is-it";
+
+export const metadata: Metadata = {
+  title: "AI Accounts Payable Software for Construction | Invoice Automation",
+  description:
+    "Automate construction invoice processing with AI accounts payable software that captures, validates, routes, and syncs bills automatically.",
+  openGraph: {
+    title: "AI Accounts Payable Software for Construction | Invoice Automation",
+    description:
+      "Automate construction invoice processing with AI accounts payable software that captures, validates, routes, and syncs bills automatically.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Accounts Payable Software for Construction | Invoice Automation",
+    description:
+      "Automate construction invoice processing with AI accounts payable software that captures, validates, routes, and syncs bills automatically.",
+    images: ["/images/hero-visual.png"],
+  },
+};
 
 const whatIsItTitle = "Autonomous AI Accounts Payable for Construction";
 const whatIsItDescription =

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 
@@ -14,6 +15,32 @@ import { SledgeFor } from "@/components/product/sledge-for";
 import { Testimonial } from "@/components/landing/testimonial";
 import { BuiltToRun } from "@/components/product/built-to-run";
 import { FAQ, FAQItem } from "@/components/product/faq";
+
+export const metadata: Metadata = {
+  title: "AI Construction Back-Office Software | Accounts Payable & More",
+  description:
+    "Sledge is an AI-first construction back-office platform automating how work is captured, understood, and executed — starting with accounts payable.",
+  openGraph: {
+    title: "AI Construction Back-Office Software | Accounts Payable & More",
+    description:
+      "Sledge is an AI-first construction back-office platform automating how work is captured, understood, and executed — starting with accounts payable.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Construction Back-Office Software | Accounts Payable & More",
+    description:
+      "Sledge is an AI-first construction back-office platform automating how work is captured, understood, and executed — starting with accounts payable.",
+    images: ["/images/hero-visual.png"],
+  },
+};
 
 const aiFoundationTitle = "How the AI Foundation Works";
 const aiFoundationText =

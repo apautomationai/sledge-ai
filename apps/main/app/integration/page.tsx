@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 
@@ -5,6 +6,32 @@ import { BuiltToRun } from "@/components/product/built-to-run";
 import { FAQ, FAQItem } from "@/components/product/faq";
 import { Tools } from "@/components/product/tools";
 import { WhatsIncluded } from "@/components/pricing/whats-included";
+
+export const metadata: Metadata = {
+  title: "Construction Accounting Software Integrations | Sledge",
+  description:
+    "Connect Sledge with the accounting, email, and finance tools construction teams already use to automate accounts payable workflows.",
+  openGraph: {
+    title: "Construction Accounting Software Integrations | Sledge",
+    description:
+      "Connect Sledge with the accounting, email, and finance tools construction teams already use to automate accounts payable workflows.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Construction Accounting Software Integrations | Sledge",
+    description:
+      "Connect Sledge with the accounting, email, and finance tools construction teams already use to automate accounts payable workflows.",
+    images: ["/images/hero-visual.png"],
+  },
+};
 
 const whatsIncludedTitle = "How Sledge Integrations Work";
 const whatsIncludedText =

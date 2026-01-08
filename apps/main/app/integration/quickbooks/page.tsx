@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { IntegrationHero } from "@/components/integration/hero";
@@ -10,6 +11,32 @@ import {
   Step,
 } from "@/components/product/ai-foundation-working";
 import WhatIsIt from "@/components/landing/what-is-it";
+
+export const metadata: Metadata = {
+  title: "QuickBooks Accounts Payable Integration for Construction | Sledge",
+  description:
+    "Automate construction invoice entry, approvals, and syncing into QuickBooks with AI-powered accounts payable software.",
+  openGraph: {
+    title: "QuickBooks Accounts Payable Integration for Construction | Sledge",
+    description:
+      "Automate construction invoice entry, approvals, and syncing into QuickBooks with AI-powered accounts payable software.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "QuickBooks Accounts Payable Integration for Construction | Sledge",
+    description:
+      "Automate construction invoice entry, approvals, and syncing into QuickBooks with AI-powered accounts payable software.",
+    images: ["/images/hero-visual.png"],
+  },
+};
 
 const whatIsItTitle = "AI-Powered Invoice Automation with Human Control";
 const whatIsItDescription =
