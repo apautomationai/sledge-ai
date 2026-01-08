@@ -1,0 +1,23 @@
+# Development Dockerfile for API with hot reload
+FROM node:22-alpine
+
+# Enable pnpm
+RUN corepack enable pnpm
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json ./
+
+# Install all dependencies (including dev dependencies for tsx)
+RUN pnpm install
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 5000
+
+# Start development server with hot reload
+CMD ["pnpm", "dev"]
+
