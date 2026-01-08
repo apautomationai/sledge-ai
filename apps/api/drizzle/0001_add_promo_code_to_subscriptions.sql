@@ -1,0 +1,1 @@
+ALTER TABLE "subscriptions" ADD COLUMN "promo_code" varchar(50);

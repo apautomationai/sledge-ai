@@ -41,28 +41,27 @@ const aiFoundationTitle = "how sledge works with Outlook";
 const aiFoundationText = "";
 const aiFoundationSteps: Step[] = [
   {
-    icon: "/images/product/icon-display-email-capture.png",
+    icon: "/images/icon-capture 1.svg",
     title: "1. Securely Connects to Your Outlook Inbox",
     description:
-      "Sledge securely connects to your Outlook inbox using Microsoft authentication. You control which inboxes Sledge can access — including shared AP, accounting, or Office 365 mailboxes",
+      "Connect Outlook or Office 365 inboxes, including shared AP mailboxes.",
   },
   {
-    icon: "/images/product/icon-understand 1.png",
+    icon: "/images/icon-understand 2.svg",
     title: "2. AI Scans Outlook Emails to Detect Invoices",
-    description:
-      "Sledge AI scans incoming Outlook emails to identify invoice emails and attachments — even when vendors use inconsistent formats, subject lines, or naming conventions.",
+    description: "AI scans Outlook emails to find invoices and attachments.",
   },
   {
-    icon: "/images/product/icon-understand 2.png",
+    icon: "/images/icon-understand 2 (1).svg",
     title: "3. AI Reads and Extracts Invoice Data",
     description:
-      "Once an invoice is detected, Sledge ingests the attachment and uses AI to extract invoice data including vendor, dates, totals, line items, and supporting documents.",
+      "Invoice data like vendor, dates, and totals are captured automatically.",
   },
   {
-    icon: "/images/product/icon-display-checklist.png",
+    icon: "/images/icon-complete 1.svg",
     title: "4. Invoices Are Ready for Human Review",
     description:
-      "Parsed invoice data is presented in Sledge for review. Users can approve or reject invoices before they move forward in the workflow.Human-in-the-loop stays consistent across integrations.",
+      "Review, approve, or reject invoices before they move forward.",
   },
 ];
 
@@ -78,13 +77,13 @@ const whatsIncludedFeatures = [
   "Supporting documentation",
 ];
 
-const builtToRunTitle = "Built to run your back office.";
-const builtToRunSubtitle = "not just invoices.";
+const builtToRunTitle = "Automate Construction Invoice Intake from Outlook";
+const builtToRunSubtitle = "";
 const builtToRunDescription =
-  "Designed for construction teams and how you work. No contracts. ";
+  "Stop sorting emails and downloading attachments. Let AI handle invoice intake for you.";
 
 const heroLogo = {
-  src: "/images/1024px-Microsoft_Outlook_logo_(2024–2025).svg 1.png",
+  src: "/images/1024px-Microsoft_Outlook_logo_(2024–2025).svg 1.svg",
   alt: "Outlook",
   width: 85,
   height: 64,
@@ -93,87 +92,95 @@ const heroLogoLabel = "Outlook";
 const heroTitle =
   "Outlook Integration for Construction Invoice Capture & Automation";
 const heroDescription =
-  "Automatically find, read, and prepare construction invoices directly from your Outlook inbox using AI.No forwarding rules. No manual downloads. Just invoices ready for review.";
+  "Automatically find, read, and prepare construction invoices directly from your Outlook inbox using AI. No forwarding rules. No manual downloads. Just invoices ready for review.";
 
 const faqs: FAQItem[] = [
   {
     question: "Which Outlook inboxes can Sledge connect to?",
-    answer:
-      "Sledge can connect to Microsoft Outlook and Office 365 inboxes, including shared AP mailboxes, distribution inboxes, and individual user accounts.",
-  },
-  {
-    question: "Does Sledge read all of my Outlook emails?",
-    answer:
-      "No. Sledge only scans emails and attachments relevant to invoices and financial documents. Personal or unrelated emails are not processed.",
-  },
-  {
-    question: "How does Sledge identify invoice emails in Outlook?",
-    answer:
-      "Sledge uses AI trained on construction invoices to detect invoice emails and attachments based on structure, context, and content — not simple keyword rules.",
-  },
-  {
-    question: "Do I need to set up forwarding rules or folders?",
-    answer:
-      "No. Sledge connects directly to Outlook using secure authentication. No forwarding rules, no manual sorting, and no folder setup are required.",
-  },
-  {
-    question: "What types of invoice attachments can Sledge read from Outlook?",
     answer: (
       <>
-        Sledge supports common attachment types including:
+        Sledge can connect to:
         <ul className="list-disc pl-5 mt-2 space-y-1">
-          <li>PDF invoices</li>
-          <li>Scanned documents</li>
-          <li>Images and photos</li>
-          <li>Multi-page invoice files</li>
+          <li>Individual Outlook inboxes</li>
+          <li>Shared AP inboxes (e.g. ap@company.com)</li>
+          <li>Microsoft 365 mailboxes</li>
         </ul>
+        <p className="mt-2">
+          This allows Sledge to centralize invoice intake across teams and
+          accounts.
+        </p>
       </>
     ),
   },
   {
-    question: "What happens after an invoice email is found?",
-    answer:
-      "Sledge extracts invoice data, prepares it for approval, and presents it in the Sledge platform. Invoices only move forward after human approval.",
+    question: "Does Sledge read all of my Outlook emails?",
+    answer: (
+      <>
+        <p>No.</p>
+        <p className="mt-2">Sledge does not read all emails.</p>
+        <p className="mt-2">
+          Sledge uses AI to identify and process invoice-related emails only,
+          ignoring personal or non-invoice messages. Access is limited strictly
+          to invoice automation.
+        </p>
+      </>
+    ),
   },
   {
-    question: "Can invoices be rejected if something is wrong?",
-    answer:
-      "Yes. Invoices can be rejected before approval. Rejected invoices are stopped and can trigger a response requesting correction.",
+    question: "How does Sledge identify invoice emails in Outlook?",
+    answer: (
+      <>
+        Sledge uses AI to scan incoming Outlook emails and:
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          <li>Detect invoice-related content</li>
+          <li>Identify attachments and invoice language</li>
+          <li>Extract invoices automatically</li>
+        </ul>
+        <p className="mt-2">No manual rules or folder setup required.</p>
+      </>
+    ),
   },
   {
-    question: "Can Sledge handle shared AP inboxes?",
-    answer:
-      "Yes. Sledge is designed to work with shared Outlook inboxes commonly used by construction accounting teams.",
+    question:
+      "Do I need to set up forwarding rules or folders in Outlook for Sledge?",
+    answer: (
+      <>
+        <p>No.</p>
+        <p className="mt-2">
+          Sledge connects directly to Outlook and scans inboxes automatically.
+        </p>
+        <p className="mt-2">
+          You do not need to create forwarding rules, folders, or filters unless
+          you choose to.
+        </p>
+      </>
+    ),
   },
   {
-    question: "Is my Outlook data secure?",
-    answer:
-      "Yes. Sledge uses secure OAuth authentication, encrypted data handling, and maintains audit trails for all invoice processing activities.",
+    question: "What happens after Sledge finds an invoice in Outlook?",
+    answer: (
+      <>
+        Once an invoice is detected:
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          <li>Sledge extracts line items, totals, vendors, and dates</li>
+          <li>The invoice enters approval or rejection workflows</li>
+          <li>Nothing syncs to accounting until approved</li>
+        </ul>
+        <p className="mt-2">
+          This keeps you in full control while eliminating manual entry.
+        </p>
+      </>
+    ),
   },
   {
-    question: "Does Sledge work with Microsoft 365?",
+    question: "Is my Outlook and Microsoft 365 data secure with Sledge?",
     answer:
-      "Yes. Sledge integrates with Microsoft 365 / Office 365 Outlook environments using secure, native connections.",
-  },
-  {
-    question: "Can Sledge extract line items and totals from Outlook invoices?",
-    answer:
-      "Yes. Sledge reads and extracts line items, totals, dates, vendor details, and supporting documentation using AI.",
-  },
-  {
-    question: "Is this built specifically for construction invoices?",
-    answer:
-      "Yes. Sledge is trained on construction-specific invoice formats, including material suppliers, equipment rentals, subcontractors, and service providers.",
-  },
-  {
-    question: "Will Sledge replace my accounting software?",
-    answer:
-      "No. Sledge prepares invoice data from Outlook and syncs approved invoices into your accounting system — it does not replace accounting software.",
+      "Yes. Sledge uses secure authentication and modern security best practices when connecting to Outlook and Microsoft 365. Data access is limited to what's required for invoice automation only.",
   },
   {
     question: "How long does it take to connect Outlook to Sledge?",
     answer:
-      "Most teams can connect Outlook and begin capturing invoices within minutes.",
+      "Most teams connect Outlook to Sledge in just a few minutes. No IT help, complex setup, or long onboarding required.",
   },
 ];
 
@@ -215,12 +222,14 @@ export default function Integrations() {
             text={whatsIncludedText}
             subtitle={whatsIncludedSubtitle}
             features={whatsIncludedFeatures}
+            columns={3}
           />
 
           <BuiltToRun
             title={builtToRunTitle}
-            subtitle={builtToRunSubtitle}
             description={builtToRunDescription}
+            secondaryButtonText="SCHEDULE A DEMO"
+            secondaryButtonHref="#demo"
           />
         </div>
         <FAQ faqs={faqs} />

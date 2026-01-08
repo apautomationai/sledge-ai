@@ -47,19 +47,19 @@ const aiFoundationText =
   "These core AI capabilities power the platform today and serve as the base layer for the full Builder's AI Office.";
 const aiFoundationSteps: Step[] = [
   {
-    icon: "/updated-images/icon-display-email-capture.png",
+    icon: "/images/icon-capture 1.svg",
     title: "1. Capture → AI Driven Intake",
     description:
       "AI automatically captures emails, documents, and attachments as they arrive.",
   },
   {
-    icon: "/updated-images/icon-display-ai-understand.png",
+    icon: "/images/icon-understand 1.svg",
     title: "2. Understand → AI-Based Interpretation",
     description:
       "AI interprets unstructured data and maps it into structured business context.",
   },
   {
-    icon: "/updated-images/icon-display-checklist.png",
+    icon: "/images/icon-complete 1.svg",
     title: "3. Execute → AI-Executed Workflows",
     description:
       "AI prepares work for completion and pauses for approval when required.",
@@ -75,145 +75,98 @@ const faqs: FAQItem[] = [
   {
     question: "What is Sledge?",
     answer:
-      "Sledge is an AI-first construction back-office platform built to automate how work is captured, understood, and executed. It replaces manual invoice entry, inbox sorting, and disconnected accounting workflows with AI-powered automation — starting with accounts payable.",
+      "Sledge is The Builder's AI Office — modern construction management software designed to automate the construction back office. Today, Sledge focuses on AI-powered accounts payable, with a broader vision to manage the entire construction office using AI at its core.",
   },
   {
-    question: "Who is Sledge built for?",
-    answer: (
-      <>
-        Sledge is built for construction teams that manage invoices, approvals,
-        and accounting workflows, including:
-        <ul className="list-disc pl-5 mt-2 space-y-1">
-          <li>General contractors</li>
-          <li>Subcontractors</li>
-          <li>Office managers</li>
-          <li>Accountants and bookkeepers</li>
-        </ul>
-        <p className="mt-2">
-          If your team deals with vendor invoices, email attachments, approvals,
-          or accounting systems, Sledge is built for you.
-        </p>
-      </>
-    ),
+    question: "Who is Sledge for?",
+    answer: "Sledge is built for:",
+    listItems: [
+      "General Contractors",
+      "Trade Contractors / Service Contractors",
+      "Office Managers",
+      "Accountants & Bookkeepers",
+    ],
+    afterList:
+      "If you manage invoices, approvals, payments, or accounting for a construction business, Sledge is built for you.",
   },
   {
-    question: "What problems does Sledge solve?",
-    answer: (
-      <>
-        Sledge eliminates the most time-consuming and error-prone parts of
-        construction back-office work, including:
-        <ul className="list-disc pl-5 mt-2 space-y-1">
-          <li>Manual invoice entry</li>
-          <li>Sorting invoice emails and attachments</li>
-          <li>Duplicate vendors and cost codes</li>
-          <li>Approval bottlenecks</li>
-          <li>Disconnected systems</li>
-        </ul>
-        <p className="mt-2">
-          Sledge automates these steps while keeping humans in control.
-        </p>
-      </>
-    ),
-  },
-  {
-    question: "Is Sledge construction-specific or general accounting software?",
+    question: "What does Sledge actually do today?",
     answer:
-      "Sledge is built specifically for construction workflows. Unlike generic accounting or project management software, Sledge understands construction invoices, approval processes, and back-office complexity — and is designed to work alongside tools construction teams already use.",
+      "Today, Sledge is an AI-powered accounts payable platform for construction. Sledge:",
+    listItems: [
+      "Eliminates manual invoice processing and manual data entry",
+      "Automatically ingests construction invoices",
+      "Uses AI to read, parse, and extract invoice data",
+      "Detects duplicates and costly errors",
+      "Routes invoices for approval",
+      "Syncs approved bills directly into accounting software",
+    ],
+    afterList:
+      "This reduces overhead, saves hours every week, and removes admin work from the construction office.",
+  },
+  {
+    question: "What industries is Sledge built for?",
+    answer:
+      "Sledge is built specifically for construction and concrete-focused businesses, including:",
+    listItems: [
+      "General construction",
+      "Concrete contractors",
+      "Specialty trade contractors",
+      "Builder-led teams running active jobs",
+    ],
+    afterList:
+      "Sledge is purpose-built for real construction workflows — not generic business software repackaged for the industry.",
+  },
+  {
+    question: "How much does Sledge cost?",
+    answer: "Sledge costs $299 per month with unlimited usage.",
+    listItems: [
+      "No setup fees",
+      "No onboarding fees",
+      "No per-project fees",
+      "No percentage of your revenue",
+    ],
+    afterList:
+      "While many construction management platforms charge thousands of dollars upfront and continue increasing costs as you grow, Sledge offers transparent, flat pricing so you keep your profits.",
+  },
+  {
+    question: "Is Sledge free?",
+    answer:
+      "Sledge offers a 1-month free trial and a 100% money-back guarantee if you're not satisfied. You can run real invoices through the system and see results before committing.",
+  },
+  {
+    question: "Is there a contract or long-term commitment with Sledge?",
+    answer:
+      "No long-term contracts. No lock-ins. Sledge is month-to-month, so you can subscribe or cancel anytime without complicated enterprise agreements or legal hoops.",
+  },
+  {
+    question: "What does Sledge integrate with?",
+    answer: "Sledge integrates with:",
+    listItems: [
+      "Gmail and Outlook inboxes for automatic invoice capture",
+      "QuickBooks and other accounting software used in construction",
+    ],
+    afterList:
+      "Invoices flow directly from inbox to approval to accounting — without manual handling.",
   },
   {
     question: "Does Sledge replace my accounting software?",
     answer:
-      "No. Sledge works with your existing accounting system. It prepares, validates, and routes data so your accounting system stays clean and accurate without manual entry.",
+      "No. Sledge complements your accounting software by automating invoice intake, approvals, and data entry — then syncing clean, accurate data into your books.",
   },
   {
-    question: "How does Sledge use AI?",
-    answer: (
-      <>
-        Sledge uses AI to:
-        <ul className="list-disc pl-5 mt-2 space-y-1">
-          <li>Detect invoices from email and uploads</li>
-          <li>Read and extract invoice data</li>
-          <li>Match vendors, cost codes, and accounts</li>
-          <li>Prepare structured data for approvals</li>
-        </ul>
-        <p className="mt-2">
-          AI handles the repetitive work. Humans approve the results.
-        </p>
-      </>
-    ),
-  },
-  {
-    question: "Are humans still involved, or is everything automated?",
+    question: "How is Sledge different from other construction management software?",
     answer:
-      "Humans are always in control. Sledge uses AI to prepare work, but invoices must be approved before moving forward. Nothing is blindly automated into accounting systems without human review.",
-  },
-  {
-    question: "How accurate is the AI?",
-    answer:
-      "Sledge combines AI automation with human-in-the-loop approvals to ensure accuracy. AI prepares the data, and users review and approve it before execution. This ensures speed without sacrificing control or trust.",
-  },
-  {
-    question: "How does Sledge capture invoices?",
-    answer: (
-      <>
-        Sledge captures invoices from the places construction teams already
-        receive them, including:
-        <ul className="list-disc pl-5 mt-2 space-y-1">
-          <li>Email inboxes (Gmail, Outlook, shared AP inboxes)</li>
-          <li>Manual uploads</li>
-        </ul>
-        <p className="mt-2">
-          AI identifies real invoices and ignores non-invoice documents
-          automatically.
-        </p>
-      </>
-    ),
-  },
-  {
-    question: "What happens if an invoice is incorrect?",
-    answer:
-      "If an invoice is incorrect, users can reject it during review. Rejected invoices are flagged and can be sent back for correction before approval.",
-  },
-  {
-    question: "How does Sledge prevent duplicate vendors or records?",
-    answer:
-      "Sledge intelligently searches existing records to find close matches before creating anything new. This prevents duplicate vendors, customers, or cost codes and keeps systems clean over time.",
-  },
-  {
-    question: "Is Sledge secure?",
-    answer:
-      "Yes. Sledge uses industry-standard security practices, secure authentication, and permission-based access controls. Users control which systems and inboxes Sledge can access at all times.",
-  },
-  {
-    question: "How long does it take to get started?",
-    answer:
-      "Most teams can connect their inboxes and systems and start processing invoices the same day. There is no complex setup or long onboarding required.",
-  },
-  {
-    question: "Can Sledge scale as my business grows?",
-    answer:
-      "Yes. Sledge is designed to scale with your invoice volume, team size, and operational complexity — without requiring more manual work or additional back-office staff.",
-  },
-  {
-    question:
-      "How is Sledge different from construction management software like Procore or Buildertrend?",
-    answer:
-      "Sledge focuses on automating the construction back office — not project schedules or field management. It eliminates manual administrative work using AI while integrating with the tools construction teams already rely on.",
-  },
-  {
-    question: 'What is "The Builder\'s AI Office"?',
-    answer:
-      "The Builder's AI Office is Sledge's long-term vision: an AI-powered platform that automates construction back-office workflows end-to-end. Accounts payable is the starting point, with additional workflows expanding over time.",
-  },
-  {
-    question: "Is there a contract or long-term commitment?",
-    answer:
-      "No. Sledge is designed to be easy to start and easy to scale — without long-term contracts.",
-  },
-  {
-    question: "How do I get started?",
-    answer:
-      "You can start a free trial or schedule a demo to see how Sledge works for your construction workflows.",
+      "Most construction management software is bloated, expensive, and difficult to use — packed with complex interfaces, long onboarding cycles, and features teams never fully adopt. Sledge is different:",
+    listItems: [
+      "Built to reduce overhead and save hours of time",
+      "Designed for simplicity and clarity, not complexity",
+      "Streamlines construction paperwork end-to-end",
+      "Easy for beginners, powerful for experienced builders",
+      "Eliminates admin work instead of adding more steps",
+    ],
+    afterList:
+      "Sledge delivers immediate value without weeks of training or costly setup.",
   },
 ];
 

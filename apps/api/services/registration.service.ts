@@ -61,21 +61,22 @@ export class RegistrationService {
      * Assign subscription to user during registration
      * Requirements: 1.1
      */
-    static async assignSubscriptionToUser(userId: number, useExistingOrder?: number): Promise<void> {
+    static async assignSubscriptionToUser(userId: number, useExistingOrder?: number, promoCode?: string): Promise<void> {
         try {
             // Get next registration order (or use provided one for recovery)
             const registrationOrder = useExistingOrder ?? await this.getNextRegistrationOrder();
 
-            console.log(`📝 Assigning subscription to user ${userId} with registration order ${registrationOrder}`);
+            console.log(`📝 Assigning subscription to user ${userId} with registration order ${registrationOrder}${promoCode ? ` and promo code ${promoCode}` : ''}`);
 
             // Create subscription with tier assignment
-            const subscription = await SubscriptionService.createSubscription(userId, registrationOrder);
+            const subscription = await SubscriptionService.createSubscription(userId, registrationOrder, promoCode);
 
             console.log(`✅ Successfully created subscription for user ${userId}:`, {
                 subscriptionId: subscription.id,
                 tier: subscription.tier,
                 status: subscription.status,
-                registrationOrder: subscription.registrationOrder
+                registrationOrder: subscription.registrationOrder,
+                promoCode: subscription.promoCode
             });
 
             return subscription;

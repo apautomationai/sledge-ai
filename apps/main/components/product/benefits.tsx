@@ -16,7 +16,7 @@ export default function Benefits() {
           {/* Left Image */}
           <div className="flex-1 flex justify-center">
             <Image
-              src="/updated-images/image-accuracy.png"
+              src="/images/Frame 103.svg"
               alt="Built for accuracy, control, and scale badge"
               width={588}
               height={588}

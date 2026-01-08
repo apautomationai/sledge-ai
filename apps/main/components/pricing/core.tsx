@@ -31,9 +31,7 @@ export function PricingCore() {
             Real Construction Back-Office Tools.
           </h2>
           <p className="mt-2 md:mt-2 text-lg lg:text-2xl text-white">
-            Start with automated invoicing and payments today.
-            <br />
-            As we release more back-office tools, you'll already be in.
+            One AI-powered construction back office plan — starting with Accounts Payable <br />automation and expanding as new workflows are released.
           </p>
         </div>
 

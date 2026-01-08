@@ -7,6 +7,8 @@ import { cn } from "@workspace/ui/lib/utils";
 export interface FAQItem {
   question: string;
   answer: string | React.ReactNode;
+  listItems?: string[];
+  afterList?: string;
 }
 
 interface FAQProps {
@@ -50,11 +52,21 @@ export function FAQ({ faqs }: FAQProps) {
               <div
                 className={cn(
                   "overflow-hidden transition-all duration-300 ease-in-out",
-                  openIndex === index ? "max-h-[600px] pb-4 sm:pb-5" : "max-h-0"
+                  openIndex === index ? "max-h-[800px] pb-4 sm:pb-5" : "max-h-0"
                 )}
               >
                 <div className="text-white text-xs sm:text-sm md:text-base leading-relaxed">
                   {faq.answer}
+                  {faq.listItems && faq.listItems.length > 0 && (
+                    <ul className="mt-3 space-y-2 list-disc list-inside pl-2">
+                      {faq.listItems.map((item, idx) => (
+                        <li key={idx}>{item}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {faq.afterList && (
+                    <p className="mt-3">{faq.afterList}</p>
+                  )}
                 </div>
               </div>
             </div>

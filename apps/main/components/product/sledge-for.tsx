@@ -2,22 +2,22 @@ import Image from "next/image";
 
 const personas = [
   {
-    icon: "/updated-images/image 34.png",
+    icon: "/images/image 34.svg",
     title: "General Contractors",
     description: "Supervises field construction",
   },
   {
-    icon: "/updated-images/image 35.png",
+    icon: "/images/image 35.svg",
     title: "Subcontractors",
     description: "Handles Specialized work",
   },
   {
-    icon: "/updated-images/image 36.png",
+    icon: "/images/image 36.svg",
     title: "Office Managers",
     description: "Keeps the office running",
   },
   {
-    icon: "/updated-images/image 37.png",
+    icon: "/images/image 37.svg",
     title: "Accountants &\nBookkeepers",
     description: "Takes care of the finances",
   },
