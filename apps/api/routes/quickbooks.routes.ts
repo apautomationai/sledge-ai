@@ -28,9 +28,10 @@ router.get("/search-accounts", authenticate, requireSubscriptionAccess, quickboo
 router.get("/search-vendors", authenticate, requireSubscriptionAccess, quickbooksController.searchVendors);
 router.get("/hierarchical-vendor-search", authenticate, requireSubscriptionAccess, quickbooksController.hierarchicalVendorSearch);
 router.get("/search-customers", authenticate, requireSubscriptionAccess, quickbooksController.searchCustomers);
-router.post("/create-item", authenticate, requireSubscriptionAccess, quickbooksController.createItem);
-router.post("/create-vendor", authenticate, requireSubscriptionAccess, quickbooksController.createVendor);
-router.post("/create-customer", authenticate, requireSubscriptionAccess, quickbooksController.createCustomer);
+router.post("/customers", authenticate, requireSubscriptionAccess, quickbooksController.createCustomer);
+router.post("/items", authenticate, requireSubscriptionAccess, quickbooksController.createItem);
+router.post("/accounts", authenticate, requireSubscriptionAccess, quickbooksController.createAccount);
+router.post("/vendors", authenticate, requireSubscriptionAccess, quickbooksController.createVendor);
 router.post("/create-bill", authenticate, requireSubscriptionAccess, quickbooksController.createBill);
 router.post("/sync-products", authenticate, requireSubscriptionAccess, quickbooksController.syncProducts);
 router.post("/sync-accounts", authenticate, requireSubscriptionAccess, quickbooksController.syncAccounts);

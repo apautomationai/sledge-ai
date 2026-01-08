@@ -27,6 +27,10 @@ import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select";
 import { LineItemAutocomplete } from "./line-item-autocomplete-simple";
+import { EnhancedLineItemAutocomplete } from "./enhanced-line-item-autocomplete";
+import { AddCustomerModal } from "./add-customer-modal";
+import { AddProductModal } from "./add-product-modal";
+import { AddAccountModal } from "./add-account-modal";
 import { fetchQuickBooksAccountsFromDB, fetchQuickBooksProductsFromDB } from "@/lib/services/quickbooks.service";
 import type { DBQuickBooksAccount, DBQuickBooksProduct, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
 import { useQuickBooksData } from "./quickbooks-data-provider";
@@ -192,6 +196,11 @@ export default function InvoiceDetailsForm({
   const [bulkAccounts, setBulkAccounts] = useState<any[]>([]);
   const [bulkItems, setBulkItems] = useState<any[]>([]);
   const [isLoadingBulkData, setIsLoadingBulkData] = useState(false);
+
+  // Modal states for bulk actions
+  const [addCustomerModalOpen, setAddCustomerModalOpen] = useState(false);
+  const [addProductModalOpen, setAddProductModalOpen] = useState(false);
+  const [addAccountModalOpen, setAddAccountModalOpen] = useState(false);
 
   const handleLineItemUpdate = (updatedLineItem: LineItem) => {
     setLineItems((prevItems) =>
@@ -360,6 +369,22 @@ export default function InvoiceDetailsForm({
   };
 
   // Customers are now loaded from context - no need for separate function
+
+  // Callback functions for when new items are created in bulk actions
+  const handleBulkCustomerCreated = (newCustomer: any) => {
+    // Refresh customers list from context
+    loadCustomers();
+  };
+
+  const handleBulkProductCreated = (newProduct: any) => {
+    // Refresh items list from database to ensure sync
+    loadBulkItems();
+  };
+
+  const handleBulkAccountCreated = (newAccount: any) => {
+    // Refresh accounts list from database to ensure sync
+    loadBulkAccounts();
+  };
 
   // Method to apply bulk item type change
   const handleApplyBulkChange = async () => {
@@ -1047,7 +1072,7 @@ export default function InvoiceDetailsForm({
               <div className="space-y-2">
                 <Label>{bulkItemType === 'account' ? 'Indirect' : 'Job Cost'}</Label>
                 {bulkItemType === 'account' ? (
-                  <LineItemAutocomplete
+                  <EnhancedLineItemAutocomplete
                     items={bulkAccounts}
                     value={bulkResourceId}
                     onSelect={(id, account) => {
@@ -1060,9 +1085,12 @@ export default function InvoiceDetailsForm({
                     getDisplayName={(account: any) =>
                       account.fullyQualifiedName || account.name || 'Unknown Account'
                     }
+                    showAddOption={true}
+                    addOptionLabel="Add Account"
+                    onAddClick={() => setAddAccountModalOpen(true)}
                   />
                 ) : (
-                  <LineItemAutocomplete
+                  <EnhancedLineItemAutocomplete
                     items={bulkItems}
                     value={bulkResourceId}
                     onSelect={(id, item) => {
@@ -1075,6 +1103,9 @@ export default function InvoiceDetailsForm({
                     getDisplayName={(item: any) =>
                       item.fullyQualifiedName || item.name || 'Unknown Product'
                     }
+                    showAddOption={true}
+                    addOptionLabel="Add Product"
+                    onAddClick={() => setAddProductModalOpen(true)}
                   />
                 )}
               </div>
@@ -1083,7 +1114,7 @@ export default function InvoiceDetailsForm({
             {/* Job Dropdown */}
             <div className="space-y-2">
               <Label>Job (Optional)</Label>
-              <LineItemAutocomplete
+              <EnhancedLineItemAutocomplete
                 items={bulkCustomers}
                 value={bulkCustomerId}
                 onSelect={(id, customer) => {
@@ -1097,6 +1128,9 @@ export default function InvoiceDetailsForm({
                   const name = customer.displayName || customer.companyName || `Customer ${customer.quickbooksId}`;
                   return name;
                 }}
+                showAddOption={true}
+                addOptionLabel="Add Customer"
+                onAddClick={() => setAddCustomerModalOpen(true)}
               />
               {bulkCustomers.length > 0 && (
                 <p className="text-xs text-muted-foreground">
@@ -1138,6 +1172,27 @@ export default function InvoiceDetailsForm({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Customer Modal for Bulk Actions */}
+      <AddCustomerModal
+        isOpen={addCustomerModalOpen}
+        onClose={() => setAddCustomerModalOpen(false)}
+        onCustomerCreated={handleBulkCustomerCreated}
+      />
+
+      {/* Add Product Modal for Bulk Actions */}
+      <AddProductModal
+        isOpen={addProductModalOpen}
+        onClose={() => setAddProductModalOpen(false)}
+        onProductCreated={handleBulkProductCreated}
+      />
+
+      {/* Add Account Modal for Bulk Actions */}
+      <AddAccountModal
+        isOpen={addAccountModalOpen}
+        onClose={() => setAddAccountModalOpen(false)}
+        onAccountCreated={handleBulkAccountCreated}
+      />
     </div >
   );
 }

@@ -970,7 +970,16 @@ export class QuickBooksService {
         ...(lineItemData?.rate && { UnitPrice: parseFloat(lineItemData.rate) }),
       };
 
-      return this.makeApiCall(integration, "item", "POST", payload);
+      const result = await this.makeApiCall(integration, "item", "POST", payload);
+
+      // Sync the new item to database
+      // For POST requests, QuickBooks returns the created item directly, not in QueryResponse
+      const newItem = result?.Item || result?.QueryResponse?.Item?.[0];
+      if (newItem) {
+        await this.syncProductsToDatabase(integration.userId, [newItem]);
+      }
+
+      return result;
     } catch (error) {
       console.error("Error creating QuickBooks item:", error);
       throw error;
@@ -1223,7 +1232,16 @@ export class QuickBooksService {
         DisplayName: sanitizedName
       };
 
-      return this.makeApiCall(integration, "customer", "POST", payload);
+      const result = await this.makeApiCall(integration, "customer", "POST", payload);
+
+      // Sync the new customer to database
+      // For POST requests, QuickBooks returns the created customer directly, not in QueryResponse
+      const newCustomer = result?.Customer || result?.QueryResponse?.Customer?.[0];
+      if (newCustomer) {
+        await this.syncCustomersToDatabase(integration.userId, [newCustomer]);
+      }
+
+      return result;
     } catch (error) {
       console.error("Error creating QuickBooks customer:", error);
       throw error;
@@ -1316,6 +1334,90 @@ export class QuickBooksService {
       }
     } catch (error) {
       console.error("Error creating QuickBooks vendor:", error);
+      throw error;
+    }
+  }
+
+  // Create a new account in QuickBooks
+  async createAccount(integration: QuickBooksIntegration, accountData: {
+    name: string;
+    accountType: string;
+    accountSubType: string;
+  }) {
+    try {
+      const sanitizedName = accountData.name
+        .replace(/[<>&"']/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .substring(0, 100);
+
+      if (!sanitizedName) {
+        throw new Error("Invalid account name after sanitization");
+      }
+
+      // First, check if an account with this name already exists in QuickBooks
+      try {
+        const existingAccountsResponse = await this.makeApiCall(
+          integration,
+          `query?query=SELECT * FROM Account WHERE Name = '${sanitizedName.replace(/'/g, "\\'")}'`
+        );
+
+        if (existingAccountsResponse?.QueryResponse?.Account?.length > 0) {
+          // Account already exists, return the existing account
+          console.log(`Account "${sanitizedName}" already exists in QuickBooks, returning existing account`);
+          return existingAccountsResponse;
+        }
+      } catch (searchError) {
+        console.warn("Error searching for existing account, proceeding with creation:", searchError);
+        // Continue with creation if search fails
+      }
+
+      // Build QuickBooks Account payload
+      const payload: any = {
+        Name: sanitizedName,
+        AccountType: accountData.accountType,
+        AccountSubType: accountData.accountSubType
+      };
+
+      try {
+        const result = await this.makeApiCall(integration, "account", "POST", payload);
+
+        // Sync the new account to database
+        // For POST requests, QuickBooks returns the created account directly, not in QueryResponse
+        const newAccount = result?.Account || result?.QueryResponse?.Account?.[0];
+        if (newAccount) {
+          await this.syncAccountsToDatabase(integration.userId, [newAccount]);
+        }
+
+        return result;
+      } catch (createError: any) {
+        // If we still get a "name already exists" error, try with a unique suffix
+        if (createError.message?.includes('The name supplied already exists')) {
+          console.log(`Account name "${sanitizedName}" conflicts, trying with unique suffix`);
+
+          // Add timestamp suffix to make it unique
+          const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+          const uniqueName = `${sanitizedName.substring(0, 90)} ${timestamp}`.trim(); // Leave room for suffix
+
+          payload.Name = uniqueName;
+
+          const result = await this.makeApiCall(integration, "account", "POST", payload);
+
+          // Sync the new account to database
+          // For POST requests, QuickBooks returns the created account directly, not in QueryResponse
+          const newAccount = result?.Account || result?.QueryResponse?.Account?.[0];
+          if (newAccount) {
+            await this.syncAccountsToDatabase(integration.userId, [newAccount]);
+          }
+
+          return result;
+        } else {
+          // Re-throw other errors
+          throw createError;
+        }
+      }
+    } catch (error) {
+      console.error("Error creating QuickBooks account:", error);
       throw error;
     }
   }
