@@ -27,6 +27,7 @@ import projectsRoutes from "@/routes/projects.routes";
 import reportRoutes from "@/routes/report.route"
 import emailIntegrationRoutes from "./routes/email-integration.routes";
 import vendorsRoutes from "./routes/vendors.routes";
+import contactRoutes from "@/routes/contact.routes";
 
 const app = express();
 
@@ -80,6 +81,7 @@ app.use("/api/v1/jobs", jobsRoutes);
 app.use("/api/v1/projects", projectsRoutes);
 app.use("/api/v1/vendors", vendorsRoutes);
 app.use("/api/v1/report", reportRoutes);
+app.use("/api/v1/contact", contactRoutes);
 
 // Error handlers
 app.use(notFoundHandler);

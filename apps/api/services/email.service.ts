@@ -568,6 +568,171 @@ This is an automated message. Replies are monitored by our support team.`;
         </html>
     `;
     };
+
+    // send contact form email to support
+    sendContactFormEmail = async (params: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        subject: string;
+        message: string;
+    }) => {
+        const { firstName, lastName, email, subject, message } = params;
+        const to = "support@getsledge.com";
+        const from = this.notificationFrom;
+
+        // Map subject codes to readable labels
+        const subjectLabels: Record<string, string> = {
+            general: "General Question",
+            technical: "Technical Support",
+            billing: "Billing & Account",
+            integrations: "Integrations (Email, QuickBooks, etc.)",
+            sales: "Sales & Pricing",
+            security: "Security, Privacy, or Legal",
+            feedback: "Feedback or Feature Request",
+            other: "Other"
+        };
+
+        const subjectLabel = subjectLabels[subject] || subject;
+        const emailSubject = `New Contact Form Submission: ${subjectLabel}`;
+
+        const htmlBody = this.generateContactFormEmailHTML({
+            firstName,
+            lastName,
+            email,
+            subject,
+            message,
+        });
+
+        const textBody = `New Contact Form Submission
+
+Name: ${firstName} ${lastName}
+Email: ${email}
+Subject: ${subjectLabel}
+
+Message:
+${message}
+
+---
+This message was submitted via the Sledge contact form.
+Reply directly to this email to respond to ${firstName}.`;
+
+        return this.sendEmail({
+            to,
+            subject: emailSubject,
+            htmlBody,
+            textBody,
+            from,
+        });
+    };
+
+    // Generate contact form email HTML
+    generateContactFormEmailHTML = (params: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        subject: string;
+        message: string;
+    }) => {
+        const { firstName, lastName, email, subject, message } = params;
+
+        // Map subject codes to readable labels
+        const subjectLabels: Record<string, string> = {
+            general: "General Question",
+            technical: "Technical Support",
+            billing: "Billing & Account",
+            integrations: "Integrations (Email, QuickBooks, etc.)",
+            sales: "Sales & Pricing",
+            security: "Security, Privacy, or Legal",
+            feedback: "Feedback or Feature Request",
+            other: "Other"
+        };
+
+        const subjectLabel = subjectLabels[subject] || subject;
+
+        return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 20px; font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333333; background-color: #f5f5f5;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 700px; margin: 0 auto;">
+            <tr>
+                <td>
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+
+                        <!-- Header -->
+                        <tr>
+                            <td style="background-color: #1a1a1a; padding: 24px 30px; text-align: center;">
+                                <h1 style="margin: 0; font-size: 24px; color: #fbbf24; font-weight: 700;">New Contact Form Submission</h1>
+                            </td>
+                        </tr>
+
+                        <!-- Body Content -->
+                        <tr>
+                            <td style="padding: 30px; background-color: #ffffff;">
+
+                                <!-- Contact Info Box -->
+                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 24px 0;">
+                                    <tr>
+                                        <td style="background-color: #f8f9fa; padding: 20px 24px; border-radius: 12px;">
+                                            <p style="margin: 0 0 12px 0; color: #333333; font-weight: 700; font-size: 16px;">Contact Information</p>
+
+                                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                <tr>
+                                                    <td style="padding: 4px 0; color: #555555; font-size: 14px;">
+                                                        <strong>Name:</strong> ${firstName} ${lastName}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 4px 0; color: #555555; font-size: 14px;">
+                                                        <strong>Email:</strong> <a href="mailto:${email}" style="color: #1a1a1a; text-decoration: none;">${email}</a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 4px 0; color: #555555; font-size: 14px;">
+                                                        <strong>Subject:</strong> ${subjectLabel}
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <!-- Message Content -->
+                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+                                    <tr>
+                                        <td style="background-color: #2d2d2d; padding: 20px 24px; border-radius: 12px;">
+                                            <p style="margin: 0 0 12px 0; color: #fbbf24; font-weight: 700; font-size: 16px;">Message</p>
+                                            <p style="margin: 0; color: #e5e7eb; font-size: 14px; line-height: 1.7; white-space: pre-wrap;">${message}</p>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <p style="margin: 24px 0 0 0; font-size: 13px; color: #6c757d; font-style: italic;">
+                                    Reply directly to this email to respond to ${firstName}.
+                                </p>
+                            </td>
+                        </tr>
+
+                        <!-- Footer -->
+                        <tr>
+                            <td style="background-color: #f8f9fa; padding: 20px 30px; border-top: 1px solid #e9ecef; text-align: center;">
+                                <p style="margin: 0; font-size: 12px; color: #6c757d;">
+                                    This message was submitted via the Sledge contact form at <strong style="color: #333333;">getsledge.com/contact-us</strong>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+  `;
+    };
 }
 
 export const emailService = new EmailService();
