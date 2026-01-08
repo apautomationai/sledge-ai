@@ -20,7 +20,7 @@
       "idx": 2,
       "version": "7",
       "when": 1767870730702,
-      "tag": "0002_brown_iron_fist",
+      "tag": "0002_create_contact_messages_table",
       "breakpoints": true
     }
   ]
