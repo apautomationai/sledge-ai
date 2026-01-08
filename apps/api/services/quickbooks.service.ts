@@ -977,6 +977,56 @@ export class QuickBooksService {
     }
   }
 
+  // Update an existing item/product in QuickBooks
+  async updateItem(integration: QuickBooksIntegration, itemId: string, itemData: {
+    name?: string;
+    description?: string;
+    syncToken: string; // Required for updates
+  }) {
+    try {
+      // Build QuickBooks Item update payload
+      const payload: any = {
+        Id: itemId,
+        SyncToken: itemData.syncToken
+      };
+
+      // Add name if provided
+      if (itemData.name) {
+        const sanitizedName = itemData.name
+          .replace(/[<>&"']/g, '')
+          .replace(/,\s*Inc\./gi, ' Inc')
+          .replace(/,\s*LLC/gi, ' LLC')
+          .replace(/,\s*Corp\./gi, ' Corp')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .substring(0, 100);
+
+        if (sanitizedName) {
+          payload.Name = sanitizedName;
+        }
+      }
+
+      // Add description if provided
+      if (itemData.description !== undefined) {
+        // QuickBooks allows empty descriptions, so we don't need to validate
+        payload.Description = itemData.description || '';
+      }
+
+      console.log("QuickBooks item update payload:", JSON.stringify(payload, null, 2));
+      const result = await this.makeApiCall(integration, "item", "POST", payload);
+      console.log("QuickBooks item update raw response:", JSON.stringify(result, null, 2));
+
+
+
+
+
+      return result;
+    } catch (error) {
+      console.error("Error updating QuickBooks item:", error);
+      throw error;
+    }
+  }
+
   // Strict vector search for items (95% match required, same as vendors)
   vectorSearchItems(searchTerm: string, items: any[]): any[] {
     if (!items || items.length === 0) return [];
