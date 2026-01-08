@@ -25,24 +25,24 @@ const aiFoundationTitle =
   "Built for high-volume,fast-moving concrete operations";
 const aiFoundationSteps: Step[] = [
   {
-    icon: "/images/industries/icon-capture 1.png",
+    icon: "/images/icon-capture 11.svg",
     title: "Invoice Management",
     description:
       "AI-powered invoice creation, tracking, and approvals across jobs.",
   },
   {
-    icon: "/images/industries/icon-capture 2.png",
+    icon: "/images/icon-capture 22.svg",
     title: "Lien Waivers",
     description:
       "Generate, track, and exchange lien waivers without paperwork risk.",
   },
   {
-    icon: "/images/industries/icon-capture 3.png",
+    icon: "/images/icon-capture 3.svg",
     title: "Vendor Management",
     description: "Centralize vendors, contracts, and documents in one system.",
   },
   {
-    icon: "/images/industries/icon-capture 4.png",
+    icon: "/images/icon-capture 4.svg",
     title: "Project Financials",
     description:
       "Real-time visibility into what's billed, paid, and outstanding.",
@@ -61,7 +61,7 @@ WE'LL HANDLE THE PAPERWORK.`;
 const heroDescription =
   "AI-powered construction management software built for real jobs. Automate invoicing, payments, and back-office workflows without changing how construction teams operate.";
 const heroImage = {
-  src: "/images/industries/image-industry-concrete.png",
+  src: "/images/concrete-after.svg",
   alt: "Construction Management Software",
 };
 

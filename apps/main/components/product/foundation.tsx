@@ -44,7 +44,7 @@ export function Foundation() {
           {/* Right Image */}
           <div className="flex-1 flex justify-end">
             <Image
-              src="/images/product/image-ai-back-office-tower.png"
+              src="images/Frame 104.svg"
               alt="AI Back Office Tower"
               width={500}
               height={500}

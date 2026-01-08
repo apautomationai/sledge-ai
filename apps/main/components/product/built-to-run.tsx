@@ -4,9 +4,21 @@ interface BuiltToRunProps {
   title?: string;
   subtitle?: string;
   description?: string;
+  primaryButtonText?: string;
+  primaryButtonHref?: string;
+  secondaryButtonText?: string;
+  secondaryButtonHref?: string;
 }
 
-export function BuiltToRun({ title, subtitle, description }: BuiltToRunProps) {
+export function BuiltToRun({
+  title,
+  subtitle,
+  description,
+  primaryButtonText = "start a free trial",
+  primaryButtonHref = "/sign-up",
+  secondaryButtonText = "WATCH HOW IT WORKS",
+  secondaryButtonHref = "#demo",
+}: BuiltToRunProps) {
   return (
     <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
       <div className="max-w-[1400px] mx-auto text-center">
@@ -26,17 +38,17 @@ export function BuiltToRun({ title, subtitle, description }: BuiltToRunProps) {
           </p>
         )}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/sign-up" className="w-full sm:w-auto">
+          <Link href={primaryButtonHref} className="w-full sm:w-auto">
             <div className="px-4 py-3 bg-[#e3b02f] rounded flex justify-center items-center gap-2 overflow-hidden hover:bg-amber-500 transition-colors duration-300">
               <div className="text-center text-stone-800 text-sm sm:text-base font-bold font-['Inter'] uppercase leading-6">
-                start a free trial
+                {primaryButtonText}
               </div>
             </div>
           </Link>
-          <Link href="#demo" className="w-full sm:w-auto">
+          <Link href={secondaryButtonHref} className="w-full sm:w-auto">
             <div className="px-4 py-3 bg-zinc-800 rounded flex justify-center items-center gap-2 overflow-hidden hover:bg-zinc-700 transition-colors duration-300">
               <div className="text-center text-zinc-100 text-sm sm:text-base font-bold font-['Inter'] uppercase leading-6">
-                WATCH HOW IT WORKS
+                {secondaryButtonText}
               </div>
             </div>
           </Link>
