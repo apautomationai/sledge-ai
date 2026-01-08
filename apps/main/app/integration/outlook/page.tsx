@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { IntegrationHero } from "@/components/integration/hero";
@@ -9,6 +10,32 @@ import {
   AIFoundationWorking,
   Step,
 } from "@/components/product/ai-foundation-working";
+
+export const metadata: Metadata = {
+  title: "Outlook Integration for Construction Accounts Payable | Sledge",
+  description:
+    "Automatically capture and prepare construction invoices from Outlook using AI. No forwarding rules, no manual downloads.",
+  openGraph: {
+    title: "Outlook Integration for Construction Accounts Payable | Sledge",
+    description:
+      "Automatically capture and prepare construction invoices from Outlook using AI. No forwarding rules, no manual downloads.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Outlook Integration for Construction Accounts Payable | Sledge",
+    description:
+      "Automatically capture and prepare construction invoices from Outlook using AI. No forwarding rules, no manual downloads.",
+    images: ["/images/hero-visual.png"],
+  },
+};
 
 const aiFoundationTitle = "how sledge works with Outlook";
 const aiFoundationText = "";

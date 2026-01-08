@@ -65,7 +65,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-2 text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white uppercase  font-['League_Spartan']"
+            className="mt-2 text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white uppercase font-league-spartan"
           >
             The Builder's ai office.
           </motion.h1>
@@ -73,7 +73,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-2  md:mt-2 text-lg lg:text-2xl  text-white "
+            className="mt-2  md:mt-2 text-lg lg:text-2xl  text-white"
           >
             One intelligent platform that runs your back office so you can run
             the jobsite.

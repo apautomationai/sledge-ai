@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 
@@ -14,6 +15,32 @@ import { SledgeFor } from "@/components/product/sledge-for";
 import { Testimonial } from "@/components/landing/testimonial";
 import { BuiltToRun } from "@/components/product/built-to-run";
 import { FAQ, FAQItem } from "@/components/product/faq";
+
+export const metadata: Metadata = {
+  title: "AI Construction Back-Office Software | Accounts Payable & More",
+  description:
+    "Sledge is an AI-first construction back-office platform automating how work is captured, understood, and executed — starting with accounts payable.",
+  openGraph: {
+    title: "AI Construction Back-Office Software | Accounts Payable & More",
+    description:
+      "Sledge is an AI-first construction back-office platform automating how work is captured, understood, and executed — starting with accounts payable.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Construction Back-Office Software | Accounts Payable & More",
+    description:
+      "Sledge is an AI-first construction back-office platform automating how work is captured, understood, and executed — starting with accounts payable.",
+    images: ["/images/hero-visual.png"],
+  },
+};
 
 const aiFoundationTitle = "How the AI Foundation Works";
 const aiFoundationText =
@@ -54,14 +81,18 @@ const faqs: FAQItem[] = [
     question: "Who is Sledge built for?",
     answer: (
       <>
-        Sledge is built for construction teams that manage invoices, approvals, and accounting workflows, including:
+        Sledge is built for construction teams that manage invoices, approvals,
+        and accounting workflows, including:
         <ul className="list-disc pl-5 mt-2 space-y-1">
           <li>General contractors</li>
           <li>Subcontractors</li>
           <li>Office managers</li>
           <li>Accountants and bookkeepers</li>
         </ul>
-        <p className="mt-2">If your team deals with vendor invoices, email attachments, approvals, or accounting systems, Sledge is built for you.</p>
+        <p className="mt-2">
+          If your team deals with vendor invoices, email attachments, approvals,
+          or accounting systems, Sledge is built for you.
+        </p>
       </>
     ),
   },
@@ -69,7 +100,8 @@ const faqs: FAQItem[] = [
     question: "What problems does Sledge solve?",
     answer: (
       <>
-        Sledge eliminates the most time-consuming and error-prone parts of construction back-office work, including:
+        Sledge eliminates the most time-consuming and error-prone parts of
+        construction back-office work, including:
         <ul className="list-disc pl-5 mt-2 space-y-1">
           <li>Manual invoice entry</li>
           <li>Sorting invoice emails and attachments</li>
@@ -77,7 +109,9 @@ const faqs: FAQItem[] = [
           <li>Approval bottlenecks</li>
           <li>Disconnected systems</li>
         </ul>
-        <p className="mt-2">Sledge automates these steps while keeping humans in control.</p>
+        <p className="mt-2">
+          Sledge automates these steps while keeping humans in control.
+        </p>
       </>
     ),
   },
@@ -102,7 +136,9 @@ const faqs: FAQItem[] = [
           <li>Match vendors, cost codes, and accounts</li>
           <li>Prepare structured data for approvals</li>
         </ul>
-        <p className="mt-2">AI handles the repetitive work. Humans approve the results.</p>
+        <p className="mt-2">
+          AI handles the repetitive work. Humans approve the results.
+        </p>
       </>
     ),
   },
@@ -120,12 +156,16 @@ const faqs: FAQItem[] = [
     question: "How does Sledge capture invoices?",
     answer: (
       <>
-        Sledge captures invoices from the places construction teams already receive them, including:
+        Sledge captures invoices from the places construction teams already
+        receive them, including:
         <ul className="list-disc pl-5 mt-2 space-y-1">
           <li>Email inboxes (Gmail, Outlook, shared AP inboxes)</li>
           <li>Manual uploads</li>
         </ul>
-        <p className="mt-2">AI identifies real invoices and ignores non-invoice documents automatically.</p>
+        <p className="mt-2">
+          AI identifies real invoices and ignores non-invoice documents
+          automatically.
+        </p>
       </>
     ),
   },
@@ -155,12 +195,13 @@ const faqs: FAQItem[] = [
       "Yes. Sledge is designed to scale with your invoice volume, team size, and operational complexity — without requiring more manual work or additional back-office staff.",
   },
   {
-    question: "How is Sledge different from construction management software like Procore or Buildertrend?",
+    question:
+      "How is Sledge different from construction management software like Procore or Buildertrend?",
     answer:
       "Sledge focuses on automating the construction back office — not project schedules or field management. It eliminates manual administrative work using AI while integrating with the tools construction teams already rely on.",
   },
   {
-    question: "What is \"The Builder's AI Office\"?",
+    question: 'What is "The Builder\'s AI Office"?',
     answer:
       "The Builder's AI Office is Sledge's long-term vision: an AI-powered platform that automates construction back-office workflows end-to-end. Accounts payable is the starting point, with additional workflows expanding over time.",
   },

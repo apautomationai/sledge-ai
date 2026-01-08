@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { IntegrationHero } from "@/components/integration/hero";
@@ -10,6 +11,32 @@ import {
   Step,
 } from "@/components/product/ai-foundation-working";
 import WhatIsIt from "@/components/landing/what-is-it";
+
+export const metadata: Metadata = {
+  title: "QuickBooks Accounts Payable Integration for Construction | Sledge",
+  description:
+    "Automate construction invoice entry, approvals, and syncing into QuickBooks with AI-powered accounts payable software.",
+  openGraph: {
+    title: "QuickBooks Accounts Payable Integration for Construction | Sledge",
+    description:
+      "Automate construction invoice entry, approvals, and syncing into QuickBooks with AI-powered accounts payable software.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "QuickBooks Accounts Payable Integration for Construction | Sledge",
+    description:
+      "Automate construction invoice entry, approvals, and syncing into QuickBooks with AI-powered accounts payable software.",
+    images: ["/images/hero-visual.png"],
+  },
+};
 
 const whatIsItTitle = "AI-Powered Invoice Automation with Human Control";
 const whatIsItDescription =
@@ -101,7 +128,9 @@ const faqs: FAQItem[] = [
           <li>Attachments and audit context</li>
           <li>Approval status</li>
         </ul>
-        <p className="mt-2">This keeps both systems aligned without duplicates.</p>
+        <p className="mt-2">
+          This keeps both systems aligned without duplicates.
+        </p>
       </>
     ),
   },
@@ -111,7 +140,8 @@ const faqs: FAQItem[] = [
       "Sledge intelligently matches invoices to existing QuickBooks records using names, addresses, and contextual data. If a close match exists, Sledge uses it. If not, Sledge creates a new record automatically — preventing duplicates and messy data.",
   },
   {
-    question: "Can Sledge create vendors, customers, or cost codes in QuickBooks?",
+    question:
+      "Can Sledge create vendors, customers, or cost codes in QuickBooks?",
     answer:
       "Yes. If an invoice includes a vendor, customer, or cost code that doesn't already exist, Sledge can automatically create it in QuickBooks after approval.",
   },
@@ -151,7 +181,8 @@ const faqs: FAQItem[] = [
       "Most teams can connect QuickBooks to Sledge in just a few minutes and start syncing invoices the same day.",
   },
   {
-    question: "How is this different from Procore or Buildertrend's QuickBooks integration?",
+    question:
+      "How is this different from Procore or Buildertrend's QuickBooks integration?",
     answer:
       "Sledge focuses on AI-driven invoice intake, data extraction, and clean accounting sync, not project management. That means less manual work, fewer errors, and a cleaner QuickBooks — without forcing you into a full construction ERP.",
   },

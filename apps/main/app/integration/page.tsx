@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 
@@ -5,6 +6,32 @@ import { BuiltToRun } from "@/components/product/built-to-run";
 import { FAQ, FAQItem } from "@/components/product/faq";
 import { Tools } from "@/components/product/tools";
 import { WhatsIncluded } from "@/components/pricing/whats-included";
+
+export const metadata: Metadata = {
+  title: "Construction Accounting Software Integrations | Sledge",
+  description:
+    "Connect Sledge with the accounting, email, and finance tools construction teams already use to automate accounts payable workflows.",
+  openGraph: {
+    title: "Construction Accounting Software Integrations | Sledge",
+    description:
+      "Connect Sledge with the accounting, email, and finance tools construction teams already use to automate accounts payable workflows.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Construction Accounting Software Integrations | Sledge",
+    description:
+      "Connect Sledge with the accounting, email, and finance tools construction teams already use to automate accounts payable workflows.",
+    images: ["/images/hero-visual.png"],
+  },
+};
 
 const whatsIncludedTitle = "How Sledge Integrations Work";
 const whatsIncludedText =
@@ -43,7 +70,8 @@ const faqs: FAQItem[] = [
       "Yes. All integrations use secure authentication, permission-based access, and industry-standard security practices. You control which systems Sledge can access at all times.",
   },
   {
-    question: "Does Sledge automatically sync data, or do humans still approve it?",
+    question:
+      "Does Sledge automatically sync data, or do humans still approve it?",
     answer:
       "Sledge uses AI to prepare and map data, but humans stay in control. Critical actions — such as invoice approvals or accounting syncs — require human review before execution.",
   },
