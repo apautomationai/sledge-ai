@@ -152,7 +152,11 @@ export const useRealtimeInvoices = ({
     }, [handleNotification]);
 
     // Join dashboard room for dashboard-specific updates
-    const joinDashboard = useCallback(() => {
+    const joinDashboard = useCallback(async () => {
+        // Ensure we're connected before joining
+        if (!wsClient.isConnected()) {
+            await wsClient.connect();
+        }
         wsClient.joinDashboard();
     }, []);
 
@@ -162,7 +166,11 @@ export const useRealtimeInvoices = ({
     }, []);
 
     // Join invoice list room for invoice list-specific updates
-    const joinInvoiceList = useCallback(() => {
+    const joinInvoiceList = useCallback(async () => {
+        // Ensure we're connected before joining
+        if (!wsClient.isConnected()) {
+            await wsClient.connect();
+        }
         wsClient.joinInvoiceList();
     }, []);
 
@@ -177,13 +185,7 @@ export const useRealtimeInvoices = ({
             connect();
         }
 
-        // Cleanup on unmount
-        return () => {
-            if (autoConnect) {
-                disconnect();
-            }
-        };
-    }, [autoConnect, connect, disconnect]);
+    }, [autoConnect, connect]);
 
     return {
         connect,

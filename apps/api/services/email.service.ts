@@ -1,4 +1,13 @@
 import nodemailer from "nodemailer";
+import https from "https";
+import http from "http";
+
+interface Attachment {
+    filename: string;
+    content?: Buffer;
+    path?: string;
+    contentType?: string;
+}
 
 interface EmailParams {
     to: string | string[];
@@ -6,6 +15,7 @@ interface EmailParams {
     htmlBody?: string;
     textBody?: string;
     from?: string;
+    attachments?: Attachment[];
 }
 
 // temporary using nodemailer to send email
@@ -24,7 +34,7 @@ export class EmailService {
     private notificationFrom = process.env.NOTIFICATION_EMAIL || "";
 
     // send email
-    sendEmail = async ({ to, subject, htmlBody, textBody, from }: EmailParams) => {
+    sendEmail = async ({ to, subject, htmlBody, textBody, from, attachments }: EmailParams) => {
         try {
             const info = await transporter.sendMail({
                 from: from || this.defaultFrom,
@@ -32,6 +42,7 @@ export class EmailService {
                 subject,
                 html: htmlBody,
                 text: textBody,
+                attachments: attachments,
             });
 
             return info;
@@ -39,6 +50,33 @@ export class EmailService {
             console.error("Error sending email:", err);
             throw new Error("Failed to send email");
         }
+    };
+
+    // Download file from URL and return as Buffer
+    private downloadFileFromUrl = (url: string): Promise<Buffer> => {
+        return new Promise((resolve, reject) => {
+            const protocol = url.startsWith('https') ? https : http;
+            protocol.get(url, (response) => {
+                // Handle redirects
+                if (response.statusCode === 301 || response.statusCode === 302) {
+                    const redirectUrl = response.headers.location;
+                    if (redirectUrl) {
+                        this.downloadFileFromUrl(redirectUrl).then(resolve).catch(reject);
+                        return;
+                    }
+                }
+
+                if (response.statusCode !== 200) {
+                    reject(new Error(`Failed to download file: ${response.statusCode}`));
+                    return;
+                }
+
+                const chunks: Buffer[] = [];
+                response.on('data', (chunk) => chunks.push(chunk));
+                response.on('end', () => resolve(Buffer.concat(chunks)));
+                response.on('error', reject);
+            }).on('error', reject);
+        });
     };
 
     // send password reset email
@@ -64,6 +102,7 @@ export class EmailService {
         companyName?: string;
         senderName?: string;
         senderCompany?: string;
+        invoiceFileUrl?: string;
     }) => {
         const {
             to,
@@ -72,7 +111,8 @@ export class EmailService {
             rejectionReason,
             senderName,
             senderCompany,
-            companyName = "Sledge"
+            companyName = "Sledge",
+            invoiceFileUrl
         } = params;
         const from = this.notificationFrom;
         const subject = `Invoice ${invoiceNumber} - Changes Required`;
@@ -116,7 +156,256 @@ export class EmailService {
             ${companyName}: The Builder's AI Office is used to receive, review and process invoices.
             Please do not reply directly to this email.`;
 
-        return this.sendEmail({ to, subject, htmlBody, textBody, from });
+        // Prepare attachments if invoice file URL is provided
+        let attachments: Attachment[] | undefined;
+        if (invoiceFileUrl) {
+            try {
+                const fileBuffer = await this.downloadFileFromUrl(invoiceFileUrl);
+                const filename = `Invoice_${invoiceNumber}.pdf`;
+                attachments = [{
+                    filename,
+                    content: fileBuffer,
+                    contentType: 'application/pdf',
+                }];
+            } catch (error) {
+                console.error("Failed to download invoice attachment:", error);
+            }
+        }
+
+        return this.sendEmail({ to, subject, htmlBody, textBody, from, attachments });
+    };
+
+    // send welcome email to new user
+    sendWelcomeEmail = async (params: {
+        to: string;
+        firstName: string;
+        ctaLink: string;
+    }) => {
+        const { to, firstName, ctaLink } = params;
+        const subject = "Welcome to Sledge — let's get your office off your back";
+
+        const htmlBody = this.generateWelcomeEmailHTML({ firstName, ctaLink });
+
+        const textBody = `Hey ${firstName},
+
+Welcome to Sledge 👋
+
+You're officially in.
+
+Sledge is the Builder's AI Office — built to take paperwork, invoices, and back-office chaos off your plate so you can focus on building, not babysitting admin.
+
+Here's what to do first (takes ~5 minutes):
+
+1. Connect your inbox
+Sledge watches for invoices and bills so you don't have to chase them down.
+
+2. Review your first invoice
+Approve, reject, or flag it — we'll handle the rest.
+
+3. Send it to accounting
+Seamlessly push approved invoices into your accounting system.
+
+👉 Get started now: ${ctaLink}
+
+What Sledge handles for you:
+• Automatically receives and reads invoices
+• Flags duplicates, missing info, and issues
+• Keeps everything organized and searchable
+• Creates a clean, auditable paper trail
+• Saves hours every week (seriously)
+
+This is just the beginning. Sledge starts with Accounts Payable — and grows into your entire office, powered by AI.
+
+If you ever need help, hit reply or reach us at support@getsledge.com.
+
+Let's get your time back.
+
+— The Sledge Team
+
+Sledge
+The Builder's AI Office
+
+This is an automated message. Replies are monitored by our support team.`;
+
+        return this.sendEmail({ to, subject, htmlBody, textBody });
+    };
+
+    // Generate welcome email HTML for preview (without sending)
+    generateWelcomeEmailHTML = (params: {
+        firstName: string;
+        ctaLink: string;
+    }) => {
+        const { firstName, ctaLink } = params;
+
+        return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <!--[if mso]>
+            <style type="text/css">
+                table, td { border-collapse: collapse; }
+            </style>
+            <![endif]-->
+        </head>
+        <body style="margin: 0; padding: 20px; font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333333; background-color: #f5f5f5;">
+            <!-- Main Container Table -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 700px; margin: 0 auto;">
+                <tr>
+                    <td>
+                        <!-- Email Container -->
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+
+                            <!-- Header -->
+                            <tr>
+                                <td style="background-color: #1a1a1a; padding: 24px 30px; text-align: center;">
+                                    <h1 style="margin: 0; font-size: 24px; color: #ffffff; font-weight: 700;">Welcome to Sledge</h1>
+                                </td>
+                            </tr>
+
+                            <!-- Body Content -->
+                            <tr>
+                                <td style="padding: 30px; background-color: #ffffff;">
+
+                                    <!-- Greeting -->
+                                    <p style="margin: 0 0 16px 0; font-size: 18px; color: #333333;">
+                                        Hey <strong>${firstName}</strong>, 👋
+                                    </p>
+
+                                    <p style="margin: 0 0 16px 0; font-size: 16px; color: #333333; font-weight: 600;">
+                                        You're officially in.
+                                    </p>
+
+                                    <p style="margin: 0 0 24px 0; font-size: 15px; color: #555555; line-height: 1.7;">
+                                        Sledge is the <strong>Builder's AI Office</strong> — built to take paperwork, invoices, and back-office chaos off your plate so you can focus on building, not babysitting admin.
+                                    </p>
+
+                                    <!-- Steps Section -->
+                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+                                        <tr>
+                                            <td style="background-color: #f8f9fa; padding: 20px 24px; border-radius: 12px;">
+                                                <p style="margin: 0 0 16px 0; color: #333333; font-weight: 700; font-size: 16px;">Here's what to do first <span style="color: #6c757d; font-weight: normal;">(takes ~5 minutes)</span></p>
+
+                                                <!-- Step 1 -->
+                                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 12px;">
+                                                    <tr>
+                                                        <td width="32" valign="top">
+                                                            <div style="background-color: #1a1a1a; color: #fbbf24; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-weight: 700; font-size: 14px;">1</div>
+                                                        </td>
+                                                        <td style="padding-left: 8px;">
+                                                            <p style="margin: 0 0 4px 0; font-weight: 700; color: #333333; font-size: 15px;">Connect your inbox</p>
+                                                            <p style="margin: 0; color: #555555; font-size: 14px;">Sledge watches for invoices and bills so you don't have to chase them down.</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+                                                <!-- Step 2 -->
+                                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 12px;">
+                                                    <tr>
+                                                        <td width="32" valign="top">
+                                                            <div style="background-color: #1a1a1a; color: #fbbf24; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-weight: 700; font-size: 14px;">2</div>
+                                                        </td>
+                                                        <td style="padding-left: 8px;">
+                                                            <p style="margin: 0 0 4px 0; font-weight: 700; color: #333333; font-size: 15px;">Review your first invoice</p>
+                                                            <p style="margin: 0; color: #555555; font-size: 14px;">Approve, reject, or flag it — we'll handle the rest.</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+                                                <!-- Step 3 -->
+                                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td width="32" valign="top">
+                                                            <div style="background-color: #1a1a1a; color: #fbbf24; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-weight: 700; font-size: 14px;">3</div>
+                                                        </td>
+                                                        <td style="padding-left: 8px;">
+                                                            <p style="margin: 0 0 4px 0; font-weight: 700; color: #333333; font-size: 15px;">Send it to accounting</p>
+                                                            <p style="margin: 0; color: #555555; font-size: 14px;">Seamlessly push approved invoices into your accounting system.</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <!-- CTA Button -->
+                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+                                        <tr>
+                                            <td align="center">
+                                                <a href="${ctaLink}" target="_blank" style="display: inline-block; background-color: #fbbf24; color: #1a1a1a; padding: 14px 32px; font-size: 16px; font-weight: 700; text-decoration: none; border-radius: 8px;">
+                                                    👉 Get started now
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <!-- Features Section -->
+                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+                                        <tr>
+                                            <td style="background-color: #2d2d2d; padding: 20px 24px; border-radius: 12px;">
+                                                <p style="margin: 0 0 12px 0; color: #fbbf24; font-weight: 700; font-size: 16px;">What Sledge handles for you:</p>
+
+                                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #e5e7eb; font-size: 14px;">✓ Automatically receives and reads invoices</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #e5e7eb; font-size: 14px;">✓ Flags duplicates, missing info, and issues</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #e5e7eb; font-size: 14px;">✓ Keeps everything organized and searchable</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #e5e7eb; font-size: 14px;">✓ Creates a clean, auditable paper trail</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #e5e7eb; font-size: 14px;">✓ Saves hours every week (seriously)</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <p style="margin: 0 0 16px 0; font-size: 15px; color: #555555; line-height: 1.7;">
+                                        This is just the beginning. Sledge starts with Accounts Payable — and grows into your entire office, powered by AI.
+                                    </p>
+
+                                    <p style="margin: 0 0 16px 0; font-size: 15px; color: #555555; line-height: 1.7;">
+                                        If you ever need help, hit reply or reach us at <a href="mailto:support@getsledge.com" style="color: #1a1a1a; font-weight: 600;">support@getsledge.com</a>.
+                                    </p>
+
+                                    <p style="margin: 0 0 8px 0; font-size: 15px; color: #333333; font-weight: 600;">
+                                        Let's get your time back.
+                                    </p>
+
+                                    <p style="margin: 16px 0 0 0; font-size: 15px; color: #333333;">
+                                        — <strong>The Sledge Team</strong>
+                                    </p>
+                                </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background-color: #1a1a1a; padding: 20px 30px; text-align: center;">
+                                    <p style="margin: 0 0 4px 0; font-size: 14px; color: #ffffff; font-weight: 700;">
+                                        Sledge
+                                    </p>
+                                    <p style="margin: 0 0 12px 0; font-size: 12px; color: #9ca3af;">
+                                        The Builder's AI Office
+                                    </p>
+                                    <p style="margin: 0; font-size: 11px; color: #6b7280; font-style: italic;">
+                                        This is an automated message. Replies are monitored by our support team.
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
+    `;
     };
 
     // Generate invoice rejection email HTML for preview (without sending)

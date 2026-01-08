@@ -1,33 +1,31 @@
-"use client";
-
 import Link from "next/link";
 
 export function MeetSledge() {
   return (
-    <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
-      <div className="max-w-7xl mx-auto">
+    <section className="relative flex items-center justify-center py-12 md:py-16 px-6 md:px-8 lg:px-12">
+      <div className="relative mx-auto max-w-[1400px] w-full">
         <div className="text-center">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[64px] font-bold font-league-spartan tracking-tight text-white uppercase leading-none">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold font-['League_Spartan'] tracking-tight text-white uppercase">
             Meet Sledge.
           </h2>
-          <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-[64px] font-bold font-league-spartan tracking-tight text-white uppercase leading-none -mt-1 lg:-mt-2">
+          <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold font-['League_Spartan'] tracking-tight text-white uppercase">
             The Builder&apos;s AI Office.
           </h3>
 
-          <p className="mt-6 lg:mt-8 text-base sm:text-lg md:text-xl lg:text-[24px] font-normal font-sans text-white mx-auto leading-relaxed">
+          <p className="mt-2 md:mt-2 text-lg lg:text-2xl text-white">
             An AI-first construction back-office platform, built from the ground
             up to automate how work is captured, understood, and executed —
             starting with Accounts Payable.
           </p>
 
-          <p className="mt-6 text-[16px] font-normal font-sans text-[#B1B1B1]">
+          <p className="mt-4 text-sm md:text-md lg:text-lg text-gray-300">
             The AI foundation is live today. The full AI office is what
             we&apos;re building toward.
           </p>
 
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="mt-2 md:mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
             <Link href="/sign-up" className="w-full sm:w-auto">
-              <div className="px-4 py-3 bg-[#e3b02f] rounded flex justify-center items-center gap-2 overflow-hidden hover:bg-amber-500 transition-colors duration-300">
+              <div className="px-4 py-3 bg-[#E3B02F] rounded flex justify-center items-center gap-2 overflow-hidden hover:bg-amber-500 transition-colors duration-300">
                 <div className="text-center text-stone-800 text-base font-bold font-['Inter'] uppercase leading-6">
                   start a free trial
                 </div>

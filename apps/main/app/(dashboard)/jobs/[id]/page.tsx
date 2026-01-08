@@ -30,6 +30,7 @@ import InvoiceDetailsForm from "@/components/invoice-process/invoice-details-for
 import { QuickBooksDataProvider } from "@/components/invoice-process/quickbooks-data-provider";
 import { ResizablePanels } from "@/components/ui/resizable-panels";
 import type { InvoiceDetails, InvoiceListItem, Attachment } from "@/lib/types/invoice";
+import { useRealtimeInvoices } from "@/hooks/use-realtime-invoices";
 
 export default function JobDetailPage() {
     const params = useParams();
@@ -61,6 +62,65 @@ export default function JobDetailPage() {
     } | null>(null);
 
     const currentInvoiceId = invoicesList[currentInvoiceIndex]?.id;
+
+    // Set up real-time WebSocket connection for invoice updates
+    const { joinInvoiceList, leaveInvoiceList } = useRealtimeInvoices({
+        onInvoiceCreated: (invoiceId: number) => {
+            // Refresh the invoices list to include the new invoice
+            if (jobId) {
+                client.get(`/api/v1/invoice/invoices-list?attachmentId=${jobId}`).then((response) => {
+                    const invoiceData = response.data?.data?.invoices || response.data?.invoices || [];
+                    setInvoicesList(invoiceData);
+                }).catch(console.error);
+            }
+        },
+        onInvoiceUpdated: (invoiceId: number) => {
+            // If the updated invoice is the one we're currently viewing, refresh its details
+            if (invoiceId === currentInvoiceId) {
+                fetchInvoiceDetails(invoiceId);
+            }
+        },
+        onInvoiceStatusUpdated: (invoiceId: number, status: string) => {
+            // Update the status in the list
+            setInvoicesList(prev => prev.map(inv =>
+                inv.id === invoiceId ? { ...inv, status: status as InvoiceListItem['status'] } : inv
+            ));
+            // If it's the current invoice, refresh the details
+            if (invoiceId === currentInvoiceId) {
+                fetchInvoiceDetails(invoiceId);
+            }
+        },
+        onInvoiceDeleted: (invoiceId: number) => {
+            // Remove from local list
+            const updatedList = invoicesList.filter(inv => inv.id !== invoiceId);
+            setInvoicesList(updatedList);
+
+            if (updatedList.length === 0) {
+                toast.info("All invoices deleted, returning to jobs list");
+                router.push("/jobs");
+            } else if (invoiceId === currentInvoiceId) {
+                // If we deleted the current invoice, move to the next or previous
+                const newIndex = currentInvoiceIndex >= updatedList.length
+                    ? updatedList.length - 1
+                    : currentInvoiceIndex;
+                setCurrentInvoiceIndex(newIndex);
+                const nextInvoice = updatedList[newIndex];
+                if (nextInvoice) {
+                    fetchInvoiceDetails(nextInvoice.id);
+                }
+            }
+        },
+        enableToasts: true,
+        autoConnect: true,
+    });
+
+    // Join invoice list room when component mounts
+    useEffect(() => {
+        joinInvoiceList();
+        return () => {
+            leaveInvoiceList();
+        };
+    }, [joinInvoiceList, leaveInvoiceList]);
 
     // Handle panel resize with localStorage persistence
     const handlePanelResize = (leftWidth: number) => {
@@ -214,8 +274,9 @@ export default function JobDetailPage() {
             ));
 
             setIsEditing(false);
-        } catch (err) {
-            toast.error("Failed to save changes");
+        } catch (err: any) {
+            const errorMessage = err?.response?.data?.error || err?.message || "Failed to save changes";
+            toast.error(errorMessage);
         }
     };
 

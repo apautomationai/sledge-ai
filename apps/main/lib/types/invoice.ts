@@ -45,6 +45,7 @@ export type InvoiceListItem = {
   invoiceNumber: string;
   totalAmount: string | null;
   status: InvoiceStatus | null;
+  isDuplicate: boolean;
   isDeleted?: boolean;
   deletedAt?: string | null;
   createdAt: string;
@@ -61,6 +62,7 @@ export interface InvoiceDetails {
   invoiceDate: string | null;
   dueDate: string | null;
   totalAmount: string | null;
+  totalQuantity: string | null;
   currency: string | null;
   totalTax: string | null;
   lineItems: string | null;
@@ -69,6 +71,7 @@ export interface InvoiceDetails {
   rate: string | null;
   description: string | null;
   status: InvoiceStatus | null;
+  isDuplicate: boolean;
   isDeleted?: boolean;
   deletedAt?: string | null;
   createdAt: string;
@@ -92,6 +95,9 @@ export interface LineItem {
   itemType?: 'account' | 'product' | null;
   resourceId?: string | null;
   customerId?: string | null;
+  viewType?: 'single' | 'expanded';
+  createdAt?: string;
+  updatedAt?: string;
 }
 /**
  *

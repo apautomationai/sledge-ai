@@ -3,122 +3,17 @@
   "dialect": "postgresql",
   "entries": [
     {
-      "idx": 2,
+      "idx": 0,
       "version": "7",
-      "when": 1761708546400,
-      "tag": "0002_rapid_puppet_master",
+      "when": 1767773616917,
+      "tag": "0000_initial_tables",
       "breakpoints": true
     },
     {
-      "idx": 3,
+      "idx": 1,
       "version": "7",
-      "when": 1761855262038,
-      "tag": "0003_cold_wrecking_crew",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1762474704980,
-      "tag": "0004_worthless_monster_badoon",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1763060851945,
-      "tag": "0005_rainy_lightspeed",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1763061251019,
-      "tag": "0006_slow_johnny_blaze",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1764000000000,
-      "tag": "0007_quickbooks_hybrid_search",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1764000001000,
-      "tag": "0008_integrations_oauth_fields",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1765582541930,
-      "tag": "0009_bumpy_bloodstrike",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1765583877058,
-      "tag": "0010_lucky_trauma",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1765584733501,
-      "tag": "0011_flawless_shatterstar",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1765585130319,
-      "tag": "0012_condemned_ricochet",
-      "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1765591738839,
-      "tag": "0013_bent_jetstream",
-      "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "7",
-      "when": 1765935512174,
-      "tag": "0014_handy_guardsmen",
-      "breakpoints": true
-    },
-    {
-      "idx": 15,
-      "version": "7",
-      "when": 1765936965285,
-      "tag": "0015_serious_liz_osborn",
-      "breakpoints": true
-    },
-    {
-      "idx": 16,
-      "version": "7",
-      "when": 1766442903345,
-      "tag": "0016_flashy_mesmero",
-      "breakpoints": true
-    },
-    {
-      "idx": 17,
-      "version": "7",
-      "when": 1766443748280,
-      "tag": "0017_fast_cassandra_nova",
-      "breakpoints": true
-    },
-    {
-      "idx": 18,
-      "version": "7",
-      "when": 1767150090089,
-      "tag": "0018_acoustic_sunfire",
+      "when": 1767863379514,
+      "tag": "0001_add_promo_code_to_subscriptions",
       "breakpoints": true
     }
   ]

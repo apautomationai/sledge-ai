@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/axios-client";
 import { useRealtimeInvoices } from "@/hooks/use-realtime-invoices";
@@ -127,6 +127,36 @@ export function useJobs({
   // Debounce mechanism to prevent duplicate updates
   const lastUpdateRef = useRef<{ [jobId: string]: number }>({});
 
+  // Helper function to remove job from cache
+  const removeJobFromCache = useCallback((jobId: string) => {
+    const updateCacheData = (oldData: JobsApiResponse | undefined): JobsApiResponse | undefined => {
+      if (!oldData || !oldData.jobs.some(job => String(job.id) === String(jobId))) {
+        return oldData;
+      }
+
+      const filteredJobs = oldData.jobs.filter(job => String(job.id) !== String(jobId));
+      const statusCounts = {
+        all: filteredJobs.length,
+        pending: filteredJobs.filter(j => j.jobStatus === "pending").length,
+        processing: filteredJobs.filter(j => j.jobStatus === "processing").length,
+        processed: filteredJobs.filter(j => j.jobStatus === "processed").length,
+        approved: filteredJobs.filter(j => j.jobStatus === "approved" || j.jobStatus === "rejected").length,
+        rejected: 0,
+        failed: filteredJobs.filter(j => j.jobStatus === "failed").length,
+      };
+      const updatedPagination = {
+        ...oldData.pagination,
+        totalJobs: Math.max(0, oldData.pagination.totalJobs - 1),
+        totalPages: Math.ceil(Math.max(0, oldData.pagination.totalJobs - 1) / oldData.pagination.limit),
+      };
+
+      return { ...oldData, jobs: filteredJobs, statusCounts, pagination: updatedPagination };
+    };
+    
+    queryClient.setQueriesData({ queryKey: ["jobs"] }, updateCacheData);
+    queryClient.setQueryData(queryKey, updateCacheData);
+  }, [queryClient, queryKey]);
+
   // Helper function to update job in cache
   const updateJobInCache = (jobId: string, updates: Partial<Job>) => {
     // Debounce: ignore updates that happen within 100ms of the last update for the same job
@@ -191,6 +221,12 @@ export function useJobs({
     onAttachmentStatusUpdated: (attachmentId: number, newStatus: string, attachmentData?: any) => {
       // Attachment status updated - update job with full data if available
       const jobId = attachmentId.toString();
+      
+      if (newStatus === "skipped") {
+        removeJobFromCache(jobId);
+        return;
+      }
+
       let jobStatus: Job["jobStatus"] = "pending";
 
       switch (newStatus) {

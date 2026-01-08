@@ -1,12 +1,10 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 
 export function Expanding() {
   const liveToday = {
     title: "Live Today",
-    icon: "/images/product/icon-check-badge-square.png",
+    icon: "/images/icon-check-badge-square (1).svg",
     items: [
       "AI-powered Accounts Payable workflows",
       "Automated invoice capture and parsing",
@@ -15,13 +13,13 @@ export function Expanding() {
     ],
     link: {
       text: "View AI Accounts Payable",
-      href: "ai-account-payable",
+      href: "product/ai-accounts-payable",
     },
   };
 
   const buildingToward = {
     title: "What We're Building Toward",
-    icon: "/images/product/icon-wireframe-cube.png",
+    icon: "/images/icon-check-badge-square.svg",
     items: [
       "A unified AI-driven back office",
       "Additional document and workflow automation",
@@ -31,10 +29,10 @@ export function Expanding() {
   };
 
   return (
-    <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
-      <div className="max-w-7xl mx-auto">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="max-w-[1400px] mx-auto">
         {/* Header */}
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center uppercase tracking-wide mb-8 sm:mb-10 md:mb-12 leading-tight sm:leading-tight md:leading-snug">
+        <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white text-center uppercase font-['League_Spartan'] mb-12">
           Built Today. Expanding Tomorrow.
         </h2>
 
@@ -44,7 +42,7 @@ export function Expanding() {
           <div className="bg-[#141414] border border-[#2a2a2a] rounded-2xl p-6 sm:p-8 md:p-10 w-full lg:w-[660px] lg:h-[512px]">
             <div className="flex flex-col h-full">
               <div className="flex flex-col items-center h-[240px] sm:h-[280px] md:h-[300px] lg:h-[300px]">
-                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white italic mb-2 sm:mb-3 md:mb-4 text-center">
+                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white  mb-2 sm:mb-3 md:mb-4 text-center">
                   {liveToday.title}
                 </h3>
                 <div className="w-[150px] h-[150px] sm:w-[180px] sm:h-[180px] md:w-[200px] md:h-[200px] lg:w-[225px] lg:h-[225px]">
@@ -81,7 +79,7 @@ export function Expanding() {
           <div className="bg-[#141414] border border-[#2a2a2a] rounded-2xl p-6 sm:p-8 md:p-10 w-full lg:w-[660px] lg:h-[512px]">
             <div className="flex flex-col h-full">
               <div className="flex flex-col items-center h-[240px] sm:h-[280px] md:h-[300px] lg:h-[300px]">
-                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white italic mb-2 sm:mb-3 md:mb-4 text-center whitespace-nowrap">
+                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white  mb-2 sm:mb-3 md:mb-4 text-center whitespace-nowrap">
                   {buildingToward.title}
                 </h3>
                 <div className="w-[150px] h-[150px] sm:w-[180px] sm:h-[180px] md:w-[200px] md:h-[200px] lg:w-[225px] lg:h-[225px]">

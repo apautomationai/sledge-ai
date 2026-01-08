@@ -1,5 +1,6 @@
 import { signJwt } from "@/lib/utils/jwt";
 import { userServices } from "@/services/users.service";
+import { emailService } from "@/services/email.service";
 
 import { NextFunction, Request, Response } from "express";
 import passport from "@/lib/passport";
@@ -20,6 +21,7 @@ export class UserController {
         email,
         phone,
         password,
+        promoCode,
       } = req.body;
 
       const result = await userServices.registerUser({
@@ -30,6 +32,7 @@ export class UserController {
         email,
         phone,
         password,
+        promoCode,
       });
 
       // Generate JWT token for automatic login
@@ -52,6 +55,16 @@ export class UserController {
         sameSite: "none",
         maxAge: 24 * 60 * 60 * 1000, // 1 day
         path: "/",
+      });
+
+      // Send welcome email (non-blocking)
+      const ctaLink = `${process.env.FRONTEND_URL || "https://getsledge.com"}/onboarding`;
+      emailService.sendWelcomeEmail({
+        to: result.user.email,
+        firstName: result.user.firstName,
+        ctaLink,
+      }).catch((err) => {
+        console.error("Failed to send welcome email:", err);
       });
 
       return res.status(200).json({

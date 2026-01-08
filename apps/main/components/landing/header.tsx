@@ -21,6 +21,9 @@ export function Header() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [industriesDropdownOpen, setIndustriesDropdownOpen] = useState(false);
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+  const [mobileIndustriesDropdownOpen, setMobileIndustriesDropdownOpen] =
+    useState(false);
   const bodyRef = useRef<HTMLElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const industriesDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -70,44 +73,38 @@ export function Header() {
     };
   }, [dropdownOpen, industriesDropdownOpen]);
 
-  // Prevent body scroll without causing jump to top
+  // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (!bodyRef.current) return;
 
     if (mobileMenuOpen) {
-      // Save the current scroll position
-      const scrollY = window.scrollY;
-
       // Add a class to body that prevents scrolling
       bodyRef.current.classList.add("no-scroll");
-
-      // Set the top position to maintain scroll position visually
-      bodyRef.current.style.top = `-${scrollY}px`;
     } else {
-      // Get the saved scroll position from the top style
-      const scrollY = Math.abs(parseInt(bodyRef.current.style.top || "0"));
-
       // Remove the no-scroll class
       bodyRef.current.classList.remove("no-scroll");
-
-      // Reset the top style
-      bodyRef.current.style.top = "";
-
-      // Restore the scroll position
-      window.scrollTo(0, scrollY);
     }
 
     return () => {
       if (bodyRef.current) {
         bodyRef.current.classList.remove("no-scroll");
-        bodyRef.current.style.top = "";
       }
     };
   }, [mobileMenuOpen]);
 
   const AuthButtons = () => {
     if (isAuthLoading) {
-      return null;
+      // Reserve space with invisible placeholder to prevent layout shift
+      return (
+        <div className="inline-flex justify-end items-center gap-4 opacity-0 pointer-events-none">
+          <span className="text-base font-medium leading-6">Log In</span>
+          <div className="px-4 py-3 rounded">
+            <span className="text-base font-bold uppercase leading-6">
+              start a free trial
+            </span>
+          </div>
+        </div>
+      );
     }
 
     return isLoggedIn ? (
@@ -144,24 +141,24 @@ export function Header() {
 
   return (
     <>
-      <header className="w-full bg-[#141414] backdrop-blur-none shadow-[0_4px_20px_rgba(0,0,0,0.9),0_0_30px_rgba(253,176,34,0.2)] border-yellow-600/50 ">
+      <header className="w-full bg-[#141414] backdrop-blur-none border-yellow-600/50 relative z-[9999]">
         <nav className="w-full px-4 md:px-12" aria-label="Global">
-          <div className="flex items-center justify-between py-3 md:py-[13px]">
-            <Link href="/" className="flex items-center gap-3">
+          <div className="relative flex items-center justify-between py-3 md:py-[13px]">
+            <Link href="/" className="flex items-center gap-3 z-10">
               <div className="w-full h-full rounded-xl flex items-center justify-center">
                 <Image
-                  src={"/images/logos/logosledge.png"}
+                  src={"/images/logos/logo-sledge-symbol-custom.svg"}
                   alt="Logo"
                   width={48}
                   height={48}
                 />
               </div>
-              <span className="uppercase text-white text-2xl font-bold font-league-spartan leading-6">
+              <span className="uppercase text-white text-2xl font-bold font-['League_Spartan'] leading-6">
                 SLEDGE
               </span>
             </Link>
 
-            <div className="hidden lg:flex lg:items-center lg:gap-8 2xl:gap-12">
+            <div className="hidden lg:flex lg:items-center lg:gap-8 2xl:gap-12 absolute left-1/2 -translate-x-1/2">
               {navigation.map((item) =>
                 item.name === "Products" ? (
                   <div key={item.name} className="relative" ref={dropdownRef}>
@@ -180,10 +177,12 @@ export function Header() {
                       />
                     </button>
                     {dropdownOpen && (
-                      <div className="absolute top-full left-0 mt-2 z-50 w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800">
-                        <a
-                          href="/product/overview"
-                          onClick={() => setDropdownOpen(false)}
+                      <div className="absolute top-full left-0 mt-2 z-[9999] w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800">
+                        <Link
+                          href="/product"
+                          onClick={(e) => {
+                            setDropdownOpen(false);
+                          }}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
                           <img
@@ -198,10 +197,12 @@ export function Header() {
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Product overview
                           </div>
-                        </a>
-                        <a
-                          href="/product/account-payable"
-                          onClick={() => setDropdownOpen(false)}
+                        </Link>
+                        <Link
+                          href="/product/ai-accounts-payable"
+                          onClick={(e) => {
+                            setDropdownOpen(false);
+                          }}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
                           <img
@@ -216,10 +217,12 @@ export function Header() {
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             AI Accounts Payable
                           </div>
-                        </a>
-                        <a
-                          href="/product/integration"
-                          onClick={() => setDropdownOpen(false)}
+                        </Link>
+                        <Link
+                          href="/integration"
+                          onClick={(e) => {
+                            setDropdownOpen(false);
+                          }}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
                           <img
@@ -234,7 +237,7 @@ export function Header() {
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Integrations
                           </div>
-                        </a>
+                        </Link>
                       </div>
                     )}
                   </div>
@@ -263,52 +266,60 @@ export function Header() {
                       />
                     </button>
                     {industriesDropdownOpen && (
-                      <div className="absolute top-full left-0 mt-2 z-50 w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800 inline-flex flex-col justify-start items-start overflow-hidden">
-                        <a
+                      <div className="absolute top-full left-0 mt-2 z-[9999] w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800 inline-flex flex-col justify-start items-start overflow-hidden">
+                        <Link
                           href="/industries/construction"
-                          onClick={() => setIndustriesDropdownOpen(false)}
+                          onClick={(e) => {
+                            setIndustriesDropdownOpen(false);
+                          }}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Construction
                           </div>
-                        </a>
-                        <a
+                        </Link>
+                        <Link
                           href="/industries/concrete"
-                          onClick={() => setIndustriesDropdownOpen(false)}
+                          onClick={(e) => {
+                            setIndustriesDropdownOpen(false);
+                          }}
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Concrete
                           </div>
-                        </a>
+                        </Link>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <a
+                  <Link
                     key={item.name}
                     href={item.href}
                     className="text-white font-medium transition-colors duration-300 uppercase text-sm"
                   >
                     {item.name}
-                  </a>
-                )
+                  </Link>
+                ),
               )}
             </div>
 
-            <div className="hidden lg:flex lg:items-center lg:gap-4 2xl:gap-6">
+            <div className="hidden lg:flex lg:items-center lg:gap-4 2xl:gap-6 z-10">
               <AuthButtons />
             </div>
 
             <div className="flex lg:hidden">
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-md p-2.5 text-white hover:text-yellow-400 z-50 relative"
-                onClick={() => setMobileMenuOpen(true)}
-                aria-label="Open menu"
+                className="inline-flex items-center justify-center rounded-md p-2.5 text-white hover:text-yellow-400 z-[10001] relative"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
               >
-                <Menu className="h-6 w-6" aria-hidden="true" />
+                {mobileMenuOpen ? (
+                  <X className="h-6 w-6" aria-hidden="true" />
+                ) : (
+                  <Menu className="h-6 w-6" aria-hidden="true" />
+                )}
               </button>
             </div>
           </div>
@@ -324,10 +335,12 @@ export function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 lg:hidden"
-              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 z-[10000] lg:hidden pointer-events-none"
             >
-              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+              <div
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto"
+                onClick={() => setMobileMenuOpen(false)}
+              />
             </motion.div>
 
             {/* Mobile menu panel */}
@@ -336,7 +349,7 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-neutral-900 shadow-2xl shadow-yellow-500/20 border-l-4 border-yellow-600/30 lg:hidden"
+              className="fixed inset-y-0 right-0 z-[10000] w-full max-w-sm bg-neutral-900 shadow-2xl shadow-yellow-500/20 border-l-4 border-yellow-600/30 lg:hidden pointer-events-auto"
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
@@ -368,28 +381,30 @@ export function Header() {
                       item.name === "Products" ? (
                         <div key={item.name}>
                           <button
-                            onClick={() => setDropdownOpen(!dropdownOpen)}
+                            onClick={() =>
+                              setMobileDropdownOpen(!mobileDropdownOpen)
+                            }
                             className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
                           >
                             {item.name}
                             <img
                               src="/images/logos/arrow-down.svg"
                               alt="dropdown arrow"
-                              className={`w-4 h-4 transition-transform duration-300 ${dropdownOpen ? "rotate-180" : ""}`}
+                              className={`w-4 h-4 transition-transform duration-300 ${mobileDropdownOpen ? "rotate-180" : ""}`}
                               style={{
                                 filter: "invert(1) brightness(0.8)",
                               }}
                             />
                           </button>
-                          {dropdownOpen && (
+                          {mobileDropdownOpen && (
                             <div className="mt-2 ml-4 space-y-2">
                               <Link
-                                href="/product/overview"
-                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                href="/product"
                                 onClick={() => {
-                                  setDropdownOpen(false);
                                   setMobileMenuOpen(false);
+                                  setMobileDropdownOpen(false);
                                 }}
+                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                               >
                                 <img
                                   src="/images/logos/roadmap.svg"
@@ -403,12 +418,12 @@ export function Header() {
                                 Product overview
                               </Link>
                               <Link
-                                href="/product/account-payable"
-                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                href="/product/ai-accounts-payable"
                                 onClick={() => {
-                                  setDropdownOpen(false);
                                   setMobileMenuOpen(false);
+                                  setMobileDropdownOpen(false);
                                 }}
+                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                               >
                                 <img
                                   src="/images/logos/DocumentScan.svg"
@@ -422,12 +437,12 @@ export function Header() {
                                 AI Accounts Payable
                               </Link>
                               <Link
-                                href="/product/integration"
-                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                                href="/integration"
                                 onClick={() => {
-                                  setDropdownOpen(false);
                                   setMobileMenuOpen(false);
+                                  setMobileDropdownOpen(false);
                                 }}
+                                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                               >
                                 <img
                                   src="/images/logos/Connect.svg"
@@ -447,7 +462,9 @@ export function Header() {
                         <div key={item.name}>
                           <button
                             onClick={() =>
-                              setIndustriesDropdownOpen(!industriesDropdownOpen)
+                              setMobileIndustriesDropdownOpen(
+                                !mobileIndustriesDropdownOpen,
+                              )
                             }
                             className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
                           >
@@ -456,58 +473,48 @@ export function Header() {
                               src="/images/logos/arrow-down.svg"
                               alt="dropdown arrow"
                               className={`w-4 h-4 transition-transform duration-300 ${
-                                industriesDropdownOpen ? "rotate-180" : ""
+                                mobileIndustriesDropdownOpen ? "rotate-180" : ""
                               }`}
                               style={{
                                 filter: "invert(1) brightness(0.8)",
                               }}
                             />
                           </button>
-                          {industriesDropdownOpen && (
+                          {mobileIndustriesDropdownOpen && (
                             <div className="mt-2 ml-4 space-y-2">
-                              <a
-                                href="#construction"
-                                className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                              <Link
+                                href="/industries/construction"
                                 onClick={() => {
-                                  setIndustriesDropdownOpen(false);
                                   setMobileMenuOpen(false);
+                                  setMobileIndustriesDropdownOpen(false);
                                 }}
+                                className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                               >
                                 Construction
-                              </a>
-                              <a
-                                href="#concrete"
-                                className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                              </Link>
+                              <Link
+                                href="/industries/concrete"
                                 onClick={() => {
-                                  setIndustriesDropdownOpen(false);
                                   setMobileMenuOpen(false);
+                                  setMobileIndustriesDropdownOpen(false);
                                 }}
+                                className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                               >
                                 Concrete
-                              </a>
+                              </Link>
                             </div>
                           )}
                         </div>
                       ) : (
-                        <a
+                        <Link
                           key={item.name}
                           href={item.href}
+                          onClick={() => setMobileMenuOpen(false)}
                           className="block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setMobileMenuOpen(false);
-                            // Wait for menu to close before scrolling
-                            setTimeout(() => {
-                              const target = document.querySelector(item.href);
-                              if (target) {
-                                target.scrollIntoView({ behavior: "smooth" });
-                              }
-                            }, 300);
-                          }}
                         >
                           {item.name}
-                        </a>
-                      )
+                        </Link>
+                      ),
                     )}
                   </div>
                 </div>
@@ -527,9 +534,7 @@ export function Header() {
       {/* Add this CSS to your global styles */}
       <style jsx global>{`
         body.no-scroll {
-          position: fixed;
-          width: 100%;
-          overflow-y: scroll;
+          overflow: hidden;
         }
       `}</style>
     </>

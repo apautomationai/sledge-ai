@@ -4,7 +4,8 @@ import { attachmentsModel } from "@/models/attachments.model";
 import { invoiceModel, lineItemsModel } from "@/models/invoice.model";
 import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
 import { quickbooksCustomersModel } from "@/models/quickbooks-customers.model";
-import { count, desc, eq, getTableColumns, and, sql, gte, lt, lte, inArray } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, and, sql, gte, lt, lte, inArray, ne } from "drizzle-orm";
+import { quickbooksProductsModel } from "@/models/quickbooks-products.model";
 import { PDFDocument } from "pdf-lib";
 import { s3Client, uploadBufferToS3 } from "@/helpers/s3upload";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
@@ -62,6 +63,7 @@ export class InvoiceServices {
             existingInvoice.invoiceDate?.getTime() !== invoiceData.invoiceDate?.getTime() ||
             existingInvoice.dueDate?.getTime() !== invoiceData.dueDate?.getTime() ||
             existingInvoice.totalAmount !== invoiceData.totalAmount ||
+            existingInvoice.totalQuantity !== invoiceData.totalQuantity ||
             existingInvoice.currency !== invoiceData.currency ||
             existingInvoice.totalTax !== invoiceData.totalTax ||
             existingInvoice.description !== invoiceData.description ||
@@ -79,6 +81,7 @@ export class InvoiceServices {
                 invoiceDate: invoiceData.invoiceDate,
                 dueDate: invoiceData.dueDate,
                 totalAmount: invoiceData.totalAmount,
+                totalQuantity: invoiceData.totalQuantity,
                 currency: invoiceData.currency,
                 totalTax: invoiceData.totalTax,
                 description: invoiceData.description,
@@ -97,11 +100,31 @@ export class InvoiceServices {
             invoice = existingInvoice;
           }
         } else {
-          // Create new invoice
+          // Check for duplicates: same invoice number + same vendor + same user
+          let isDuplicate = false;
+          if (invoiceData.vendorId && invoiceData.invoiceNumber) {
+            const duplicates = await tx
+              .select()
+              .from(invoiceModel)
+              .where(
+                and(
+                  eq(invoiceModel.userId, invoiceData.userId),
+                  eq(invoiceModel.vendorId, invoiceData.vendorId),
+                  eq(invoiceModel.invoiceNumber, invoiceData.invoiceNumber),
+                  eq(invoiceModel.isDeleted, false),
+                  ne(invoiceModel.status, "rejected")
+                )
+              );
+
+            isDuplicate = duplicates.length > 0;
+          }
+
+          // Create new invoice with duplicate flag if needed
           const [newInvoice] = await tx
             .insert(invoiceModel)
             .values({
               ...invoiceData,
+              isDuplicate,
               fileUrl: invoiceData.fileKey && generateS3PublicUrl(invoiceData.fileKey),
               createdAt: new Date(),
               updatedAt: new Date(),
@@ -195,6 +218,7 @@ export class InvoiceServices {
         createdAt: invoiceModel.createdAt,
         invoiceDate: invoiceModel.invoiceDate,
         status: invoiceModel.status,
+        isDuplicate: invoiceModel.isDuplicate,
         // Vendor data from quickbooks_vendors table
         vendorData: {
           id: quickbooksVendorsModel.id,
@@ -242,6 +266,7 @@ export class InvoiceServices {
         id: invoiceModel.id,
         invoiceNumber: invoiceModel.invoiceNumber,
         status: invoiceModel.status,
+        isDuplicate: invoiceModel.isDuplicate,
         createdAt: invoiceModel.createdAt,
       })
       .from(invoiceModel)
@@ -331,6 +356,7 @@ export class InvoiceServices {
         invoiceNumber: invoiceModel.invoiceNumber,
         vendorId: invoiceModel.vendorId,
         totalAmount: invoiceModel.totalAmount,
+        isDuplicate: invoiceModel.isDuplicate,
       })
       .from(invoiceModel)
       .where(
@@ -359,6 +385,41 @@ export class InvoiceServices {
 
       // Update the invoice (exclude vendorData and customerData from invoice update)
       const { vendorData: _, customerData: __, ...invoiceUpdateData } = updatedData as any;
+
+      // Re-check for duplicates if invoice number is being updated
+      if (invoiceUpdateData.invoiceNumber && invoiceUpdateData.invoiceNumber !== existingInvoice.invoiceNumber) {
+        // Use vendorId from update data if provided, otherwise use existing
+        const vendorIdToCheck = invoiceUpdateData.vendorId ?? existingInvoice.vendorId;
+
+        if (vendorIdToCheck) {
+          // Check for duplicates: same invoice number + same vendor + same user (excluding current invoice)
+          const duplicates = await db
+            .select()
+            .from(invoiceModel)
+            .where(
+              and(
+                eq(invoiceModel.userId, existingInvoice.userId),
+                eq(invoiceModel.vendorId, vendorIdToCheck),
+                eq(invoiceModel.invoiceNumber, invoiceUpdateData.invoiceNumber),
+                eq(invoiceModel.isDeleted, false),
+                ne(invoiceModel.status, "rejected"),
+                ne(invoiceModel.id, invoiceId)
+              )
+            );
+
+          // If duplicate exists, prevent the update and throw error
+          if (duplicates.length > 0) {
+            throw new BadRequestError("This invoice number already exists for this vendor. Please use a different invoice number.");
+          }
+
+          // If no duplicate, set isDuplicate to false (clearing any previous duplicate flag)
+          invoiceUpdateData.isDuplicate = false;
+        } else {
+          // If no vendor, can't be a duplicate, so set to false
+          invoiceUpdateData.isDuplicate = false;
+        }
+      }
+
       await db
         .update(invoiceModel)
         .set({ ...invoiceUpdateData, updatedAt: new Date() })
@@ -395,10 +456,182 @@ export class InvoiceServices {
         if (Object.keys(vendorUpdateData).length > 0) {
           vendorUpdateData.updatedAt = new Date();
 
-          await db
-            .update(quickbooksVendorsModel)
-            .set(vendorUpdateData)
-            .where(eq(quickbooksVendorsModel.id, existingInvoice.vendorId));
+          // Get current vendor data BEFORE updating for QuickBooks comparison
+          let currentVendorData = null;
+          try {
+            const quickbooksService = new (await import('./quickbooks.service')).QuickBooksService();
+            const integration = await quickbooksService.getUserIntegration(existingInvoice.userId);
+
+            if (integration) {
+              // Get current vendor data before update
+              [currentVendorData] = await db
+                .select({
+                  quickbooksId: quickbooksVendorsModel.quickbooksId,
+                  syncToken: quickbooksVendorsModel.syncToken,
+                  displayName: quickbooksVendorsModel.displayName,
+                  primaryEmail: quickbooksVendorsModel.primaryEmail,
+                  primaryPhone: quickbooksVendorsModel.primaryPhone,
+                  billAddrLine1: quickbooksVendorsModel.billAddrLine1,
+                  billAddrCity: quickbooksVendorsModel.billAddrCity,
+                  billAddrState: quickbooksVendorsModel.billAddrState,
+                  billAddrPostalCode: quickbooksVendorsModel.billAddrPostalCode,
+                })
+                .from(quickbooksVendorsModel)
+                .where(eq(quickbooksVendorsModel.id, existingInvoice.vendorId))
+                .limit(1);
+
+              // Update local database first
+              await db
+                .update(quickbooksVendorsModel)
+                .set(vendorUpdateData)
+                .where(eq(quickbooksVendorsModel.id, existingInvoice.vendorId));
+
+              // Now sync to QuickBooks if we have the necessary data
+              if (currentVendorData?.quickbooksId && currentVendorData?.syncToken) {
+                // Validate QuickBooks ID format
+                if (!currentVendorData.quickbooksId.match(/^\d+$/)) {
+                  console.error("Invalid QuickBooks vendor ID format:", currentVendorData.quickbooksId);
+                  throw new Error(`Invalid QuickBooks vendor ID format: ${currentVendorData.quickbooksId}`);
+                }
+
+                // Validate sync token
+                if (!currentVendorData.syncToken || currentVendorData.syncToken.trim() === '') {
+                  console.error("Invalid or missing sync token for vendor:", currentVendorData.quickbooksId);
+                  throw new Error("Invalid or missing sync token for vendor update");
+                }
+
+                // Check what actually changed
+                const hasChanges = (
+                  (vendorData.displayName !== undefined && vendorData.displayName !== currentVendorData.displayName) ||
+                  (vendorData.primaryEmail !== undefined && vendorData.primaryEmail !== currentVendorData.primaryEmail) ||
+                  (vendorData.primaryPhone !== undefined && vendorData.primaryPhone !== currentVendorData.primaryPhone) ||
+                  (vendorData.billAddrLine1 !== undefined && vendorData.billAddrLine1 !== currentVendorData.billAddrLine1) ||
+                  (vendorData.billAddrCity !== undefined && vendorData.billAddrCity !== currentVendorData.billAddrCity) ||
+                  (vendorData.billAddrState !== undefined && vendorData.billAddrState !== currentVendorData.billAddrState) ||
+                  (vendorData.billAddrPostalCode !== undefined && vendorData.billAddrPostalCode !== currentVendorData.billAddrPostalCode)
+                );
+
+                if (hasChanges) {
+                  console.log("Syncing vendor changes to QuickBooks...");
+                  console.log("Current vendor data:", currentVendorData);
+                  console.log("New vendor data:", vendorData);
+
+                  // Prepare QuickBooks update data
+                  const qbVendorData: any = {
+                    syncToken: currentVendorData.syncToken
+                  };
+
+                  if (vendorData.displayName !== undefined && vendorData.displayName !== currentVendorData.displayName) {
+                    // Ensure the name is not empty and is properly formatted
+                    const trimmedName = vendorData.displayName?.trim();
+                    if (trimmedName && trimmedName.length > 0) {
+                      qbVendorData.name = trimmedName;
+                    }
+                  }
+                  if (vendorData.primaryEmail !== undefined && vendorData.primaryEmail !== currentVendorData.primaryEmail) {
+                    // Only set email if it's not empty and has basic validation
+                    const trimmedEmail = vendorData.primaryEmail?.trim();
+                    if (trimmedEmail && trimmedEmail.includes('@')) {
+                      qbVendorData.email = trimmedEmail;
+                    }
+                  }
+                  if (vendorData.primaryPhone !== undefined && vendorData.primaryPhone !== currentVendorData.primaryPhone) {
+                    const trimmedPhone = vendorData.primaryPhone?.trim();
+                    if (trimmedPhone && trimmedPhone.length > 0) {
+                      qbVendorData.phone = trimmedPhone;
+                    }
+                  }
+                  if (vendorData.billAddrLine1 !== undefined && vendorData.billAddrLine1 !== currentVendorData.billAddrLine1) {
+                    const trimmedAddress = vendorData.billAddrLine1?.trim();
+                    if (trimmedAddress && trimmedAddress.length > 0) {
+                      qbVendorData.address = trimmedAddress;
+                    }
+                  }
+                  if (vendorData.billAddrCity !== undefined && vendorData.billAddrCity !== currentVendorData.billAddrCity) {
+                    const trimmedCity = vendorData.billAddrCity?.trim();
+                    if (trimmedCity && trimmedCity.length > 0) {
+                      qbVendorData.city = trimmedCity;
+                    }
+                  }
+                  if (vendorData.billAddrState !== undefined && vendorData.billAddrState !== currentVendorData.billAddrState) {
+                    const trimmedState = vendorData.billAddrState?.trim();
+                    if (trimmedState && trimmedState.length > 0) {
+                      qbVendorData.state = trimmedState;
+                    }
+                  }
+                  if (vendorData.billAddrPostalCode !== undefined && vendorData.billAddrPostalCode !== currentVendorData.billAddrPostalCode) {
+                    const trimmedPostalCode = vendorData.billAddrPostalCode?.trim();
+                    if (trimmedPostalCode && trimmedPostalCode.length > 0) {
+                      qbVendorData.postalCode = trimmedPostalCode;
+                    }
+                  }
+
+                  console.log("QuickBooks vendor update data:", qbVendorData);
+
+                  // Ensure we have at least one field to update besides syncToken
+                  const fieldsToUpdate = Object.keys(qbVendorData).filter(key => key !== 'syncToken');
+                  if (fieldsToUpdate.length === 0) {
+                    console.log("No valid fields to update in QuickBooks, skipping sync");
+                    return;
+                  }
+
+                  // Update in QuickBooks
+                  const updatedQBVendor = await quickbooksService.updateVendor(
+                    integration,
+                    currentVendorData.quickbooksId,
+                    qbVendorData
+                  );
+
+                  console.log("QuickBooks vendor update response:", updatedQBVendor);
+
+                  // Update sync token with response
+                  const newSyncToken = updatedQBVendor?.QueryResponse?.Vendor?.[0]?.SyncToken ||
+                    updatedQBVendor?.Vendor?.SyncToken ||
+                    updatedQBVendor?.SyncToken;
+
+                  if (newSyncToken) {
+                    await db
+                      .update(quickbooksVendorsModel)
+                      .set({
+                        syncToken: newSyncToken,
+                        updatedAt: new Date()
+                      })
+                      .where(eq(quickbooksVendorsModel.id, existingInvoice.vendorId));
+                  }
+                } else {
+                  console.log("No vendor changes detected for QuickBooks sync");
+                }
+              }
+            } else {
+              // No QuickBooks integration, just update local database
+              await db
+                .update(quickbooksVendorsModel)
+                .set(vendorUpdateData)
+                .where(eq(quickbooksVendorsModel.id, existingInvoice.vendorId));
+            }
+          } catch (qbError: any) {
+            console.error("QuickBooks vendor sync error:", qbError);
+
+            // Log detailed error information
+            if (qbError.response) {
+              console.error("QuickBooks API response status:", qbError.response.status);
+              console.error("QuickBooks API response data:", qbError.response.data);
+            }
+            if (qbError.message) {
+              console.error("QuickBooks error message:", qbError.message);
+            }
+
+            // If QuickBooks sync fails, still update local database
+            if (!currentVendorData) {
+              await db
+                .update(quickbooksVendorsModel)
+                .set(vendorUpdateData)
+                .where(eq(quickbooksVendorsModel.id, existingInvoice.vendorId));
+            }
+
+            // Re-throw the error with more context
+            throw new Error(`QuickBooks vendor sync failed: ${qbError.message || 'Unknown error'}`);
+          }
         }
       }
 
@@ -569,6 +802,10 @@ export class InvoiceServices {
       return updatedInvoiceWithData;
     } catch (error) {
       console.error("Error updating invoice:", error);
+      // Re-throw the error if it's already a BadRequestError or NotFoundError
+      if (error instanceof BadRequestError || error instanceof NotFoundError) {
+        throw error;
+      }
       throw new BadRequestError("Unable to update invoice");
     }
   }
@@ -609,12 +846,19 @@ export class InvoiceServices {
     }
   }
 
-  async getInvoiceLineItems(invoiceId: number) {
+  async getInvoiceLineItems(invoiceId: number, viewType?: 'single' | 'expanded') {
     try {
+      const whereConditions = [eq(lineItemsModel.invoiceId, invoiceId)];
+
+      // Filter by view type if specified
+      if (viewType) {
+        whereConditions.push(eq(lineItemsModel.viewType, viewType));
+      }
+
       const lineItems = await db
         .select()
         .from(lineItemsModel)
-        .where(eq(lineItemsModel.invoiceId, invoiceId));
+        .where(and(...whereConditions));
 
       return lineItems;
     } catch (error) {
@@ -930,17 +1174,22 @@ export class InvoiceServices {
     }
   }
 
-  async getLineItemsByInvoiceId(invoiceId: number) {
+  async getLineItemsByInvoiceId(invoiceId: number, viewType?: 'single' | 'expanded') {
     try {
+      const whereConditions = [
+        eq(lineItemsModel.invoiceId, invoiceId),
+        eq(lineItemsModel.isDeleted, false)
+      ];
+
+      // Filter by view type if specified
+      if (viewType) {
+        whereConditions.push(eq(lineItemsModel.viewType, viewType));
+      }
+
       const lineItems = await db
         .select()
         .from(lineItemsModel)
-        .where(
-          and(
-            eq(lineItemsModel.invoiceId, invoiceId),
-            eq(lineItemsModel.isDeleted, false)
-          )
-        );
+        .where(and(...whereConditions));
 
       return lineItems;
     } catch (error) {
@@ -1026,6 +1275,7 @@ export class InvoiceServices {
             rejectionReason: rejectionReason,
             senderName: senderName,
             senderCompany: senderCompany,
+            invoiceFileUrl: updatedInvoiceWithVendor.fileUrl || undefined,
           });
           console.log(`Rejection email sent to ${recipientEmails.join(', ')} for invoice ${updatedInvoiceWithVendor.invoiceNumber}`);
         } catch (emailError) {
@@ -1316,6 +1566,18 @@ export class InvoiceServices {
         throw new NotFoundError("Line item not found");
       }
 
+      // Get invoice information for user ID
+      const [invoiceInfo] = await db
+        .select({
+          userId: invoiceModel.userId,
+        })
+        .from(invoiceModel)
+        .where(eq(invoiceModel.id, existingLineItem.invoiceId));
+
+      if (!invoiceInfo) {
+        throw new NotFoundError("Invoice not found for line item");
+      }
+
       // Prepare update data
       const updateFields: any = {};
 
@@ -1357,11 +1619,90 @@ export class InvoiceServices {
         updateFields.resourceId = null;
       }
 
+      // Update the line item in database first
       const [updatedLineItem] = await db
         .update(lineItemsModel)
         .set(updateFields)
         .where(eq(lineItemsModel.id, lineItemId))
         .returning();
+
+      // Sync description changes to QuickBooks if description was updated and we have a resourceId
+      if (updateData.description !== undefined && existingLineItem.resourceId && existingLineItem.itemType === 'product') {
+        try {
+          const quickbooksService = new (await import('./quickbooks.service')).QuickBooksService();
+          const integration = await quickbooksService.getUserIntegration(invoiceInfo.userId);
+
+          if (integration) {
+            // Get current QuickBooks product data
+            const [currentProductData] = await db
+              .select({
+                quickbooksId: quickbooksProductsModel.quickbooksId,
+                syncToken: quickbooksProductsModel.syncToken,
+                name: quickbooksProductsModel.name,
+                description: quickbooksProductsModel.description,
+              })
+              .from(quickbooksProductsModel)
+              .where(
+                and(
+                  eq(quickbooksProductsModel.quickbooksId, existingLineItem.resourceId),
+                  eq(quickbooksProductsModel.userId, invoiceInfo.userId)
+                )
+              )
+              .limit(1);
+
+            if (currentProductData?.quickbooksId && currentProductData?.syncToken) {
+              // Check if description actually changed
+              const hasDescriptionChange = updateData.description !== currentProductData.description;
+
+              if (hasDescriptionChange) {
+                // Update in QuickBooks
+                const updatedQBItem = await quickbooksService.updateItem(
+                  integration,
+                  currentProductData.quickbooksId,
+                  {
+                    description: updateData.description,
+                    syncToken: currentProductData.syncToken
+                  }
+                );
+
+                // Update sync token in local database
+                const newSyncToken = updatedQBItem?.QueryResponse?.Item?.[0]?.SyncToken ||
+                  updatedQBItem?.Item?.SyncToken ||
+                  updatedQBItem?.SyncToken;
+
+                if (newSyncToken) {
+                  await db
+                    .update(quickbooksProductsModel)
+                    .set({
+                      description: updateData.description,
+                      syncToken: newSyncToken,
+                      updatedAt: new Date()
+                    })
+                    .where(
+                      and(
+                        eq(quickbooksProductsModel.quickbooksId, currentProductData.quickbooksId),
+                        eq(quickbooksProductsModel.userId, invoiceInfo.userId)
+                      )
+                    );
+                }
+              }
+            }
+          }
+        } catch (qbError: any) {
+          console.error("QuickBooks item description sync error:", qbError);
+
+          // Log detailed error information
+          if (qbError.response) {
+            console.error("QuickBooks API response status:", qbError.response.status);
+            console.error("QuickBooks API response data:", qbError.response.data);
+          }
+          if (qbError.message) {
+            console.error("QuickBooks error message:", qbError.message);
+          }
+
+          // Don't throw error - line item was updated successfully, QB sync is optional
+        }
+      }
 
       return updatedLineItem;
     } catch (error) {
@@ -1691,6 +2032,80 @@ export class InvoiceServices {
       .limit(1);
 
     return vendor.length > 0 ? vendor[0] : null;
+  }
+
+  async createOrUpdateSingleModeLineItem(data: {
+    userId: number;
+    invoiceId: number;
+    itemType: 'account' | 'product';
+    resourceId: string;
+    customerId?: string;
+    quantity?: string;
+    rate?: string;
+    totalAmount: string;
+    description: string;
+  }) {
+    try {
+      // Get existing single mode line item for this invoice
+      const [existingSingleItem] = await db
+        .select()
+        .from(lineItemsModel)
+        .where(
+          and(
+            eq(lineItemsModel.invoiceId, data.invoiceId),
+            eq(lineItemsModel.viewType, 'single')
+          )
+        );
+
+      let lineItemData;
+
+      if (existingSingleItem) {
+        // Update existing single mode line item (no QuickBooks item creation needed)
+        const [updatedLineItem] = await db
+          .update(lineItemsModel)
+          .set({
+            item_name: data.description,
+            description: data.description,
+            quantity: data.quantity || "1",
+            rate: data.rate || data.totalAmount,
+            amount: data.totalAmount,
+            itemType: data.itemType,
+            resourceId: data.resourceId,
+            customerId: data.customerId,
+            updatedAt: new Date(),
+          })
+          .where(eq(lineItemsModel.id, existingSingleItem.id))
+          .returning();
+
+        lineItemData = updatedLineItem;
+      } else {
+        // Create new single mode line item (no QuickBooks item creation needed - use existing resourceId)
+        const [newLineItem] = await db
+          .insert(lineItemsModel)
+          .values({
+            invoiceId: data.invoiceId,
+            item_name: data.description,
+            description: data.description,
+            quantity: data.quantity || "1",
+            rate: data.rate || data.totalAmount,
+            amount: data.totalAmount,
+            itemType: data.itemType,
+            resourceId: data.resourceId, // This is already a QuickBooks ID from the dropdown selection
+            customerId: data.customerId,
+            viewType: 'single',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+
+        lineItemData = newLineItem;
+      }
+
+      return lineItemData;
+    } catch (error: any) {
+      console.error("Error in createOrUpdateSingleModeLineItem:", error);
+      throw error;
+    }
   }
 }
 export const invoiceServices = new InvoiceServices();

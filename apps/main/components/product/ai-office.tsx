@@ -2,18 +2,18 @@ import Image from "next/image";
 
 export function AiOffice() {
   return (
-    <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-12">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="max-w-[1400px] mx-auto flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-12">
         {/* Left Content */}
         <div className="flex-1 text-white">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold uppercase leading-tight sm:leading-tight md:leading-snug mb-4 sm:mb-6">
+          <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan'] mb-6">
             The Builder&apos;s AI Office
           </h2>
-          <p className="text-gray-300 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base ">
+          <p className="text-lg md:text-2xl text-white mb-6">
             Construction back offices are fragmented across inboxes, accounting
             systems, spreadsheets, and disconnected tools.
           </p>
-          <p className="text-gray-300 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base">
+          <p className="text-lg md:text-2xl text-white mb-6">
             Our vision is a single AI-powered office where core operational work
             runs automatically and teams stay in control through approvals and
             oversight.
@@ -23,7 +23,7 @@ export function AiOffice() {
         {/* Right Image */}
         <div className="flex-1 flex justify-center lg:justify-end">
           <Image
-            src="/images/product/image-sledge-to-accounts-payable-module.png"
+            src="/images/image-sledge-to-accounts-payable-module-adjusted-2 1.svg"
             alt="Sledge AI Office"
             width={588}
             height={588}

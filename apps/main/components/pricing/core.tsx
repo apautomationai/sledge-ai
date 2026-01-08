@@ -18,19 +18,20 @@ const features = [
 
 export function PricingCore() {
   return (
-    <section className="w-full px-6 md:px-8 lg:px-12 xl:px-32 py-12 md:py-16">
-      <div className="max-w-7xl mx-auto">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="mx-auto max-w-[1400px]">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-10 md:mb-12">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white uppercase leading-tight sm:leading-tight md:leading-snug mb-4">
+          <p className="text-sm md:text-md lg:text-lg text-gray-300">
+            Construction Software Pricing | AI Back Office Tools – Sledge
+          </p>
+          <h2 className="mt-2 text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
             One Plan.
             <br />
             Real Construction Back-Office Tools.
           </h2>
-          <p className="text-base sm:text-[16px] md:text-[18px] font-normal font-sans text-white max-w-2xl mx-auto">
-            Start with automated invoicing and payments today.
-            <br />
-            As we release more back-office tools, you'll already be in.
+          <p className="mt-2 md:mt-2 text-lg lg:text-2xl text-white">
+            One AI-powered construction back office plan — starting with Accounts Payable <br />automation and expanding as new workflows are released.
           </p>
         </div>
 
@@ -55,7 +56,9 @@ export function PricingCore() {
 
               {/* Price */}
               <div className="text-center mb-2 sm:mb-3">
-                <span className="text-3xl sm:text-5xl font-bold text-[#e3b02f]">$299</span>
+                <span className="text-3xl sm:text-5xl font-bold text-[#e3b02f]">
+                  $299
+                </span>
                 <span className="text-base sm:text-lg text-white">/month</span>
               </div>
 
@@ -91,7 +94,9 @@ export function PricingCore() {
                 {features.map((feature, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <Check className="w-3 h-3 sm:w-4 sm:h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <span className="text-xs sm:text-[15px] text-white">{feature}</span>
+                    <span className="text-xs sm:text-[15px] text-white">
+                      {feature}
+                    </span>
                   </li>
                 ))}
               </ul>

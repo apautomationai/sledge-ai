@@ -1,38 +1,39 @@
 export default function IntegrationShowcase() {
   return (
-    <div className="flex flex-col justify-center items-center gap-6 overflow-hidden pt-12 pb-6 md:pt-16 md:pb-8">
-      <div className="flex flex-col justify-center items-center gap-2">
-        <div className="text-center text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold font-league-spartan uppercase leading-tight sm:leading-tight md:leading-snug">
-          Sledge connects directly with the tools construction teams already
-          use.
+    <div className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
+      <div className="max-w-[1400px] mx-auto">
+        <div className="text-center">
+          <h2 className="text-xl lg:text-2xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
+            Sledge connects directly with the tools construction teams already
+            use.
+          </h2>
+          <p className="mt-2 text-base md:text-lg text-white">
+            Email, accounting, and payments — unified through AI-powered
+            workflows.
+          </p>
         </div>
-        <div className="text-center text-white text-sm sm:text-base md:text-lg lg:text-xl font-normal font-sans leading-relaxed sm:leading-relaxed md:leading-6">
-          Email, accounting, and payments — unified through AI-powered
-          workflows.
+        <div className="mt-6 flex flex-wrap justify-center items-center gap-3 md:gap-16">
+          <img
+            className="w-16 h-6 md:w-36 md:h-12 object-contain"
+            src="/images/Stripe wordmark - White 1.svg"
+            alt="Stripe"
+          />
+          <img
+            className="w-8 h-6 md:w-16 md:h-12 object-contain"
+            src="/images/128px-Gmail_icon_(2020).svg 1.svg"
+            alt="Gmail"
+          />
+          <img
+            className="w-8 h-6 md:w-16 md:h-12 object-contain"
+            src="/images/1024px-Microsoft_Outlook_logo_(2024–2025).svg 1.svg"
+            alt="Microsoft Outlook"
+          />
+          <img
+            className="w-20 h-6 md:w-48 md:h-12 object-contain"
+            src="/images/quickbooks-brand-preferred-logo-50-50-white-external 1.svg"
+            alt="QuickBooks"
+          />
         </div>
-      </div>
-      <div className="flex justify-center items-center gap-4 sm:gap-8 md:gap-16">
-        <img
-          className="h-6 sm:h-8 md:h-12 object-contain"
-          src="/images/Stripe wordmark - White 1.png"
-          alt="Stripe"
-        />
-
-        <img
-          className="h-6 sm:h-8 md:h-12 object-contain"
-          src="/images/128px-Gmail_icon_(2020).svg 1.png"
-          alt="Gmail"
-        />
-        <img
-          className="h-6 sm:h-8 md:h-12 object-contain"
-          src="/images/1024px-Microsoft_Outlook_logo_(2024–2025).svg 1.png"
-          alt="Microsoft Outlook"
-        />
-        <img
-          className="h-6 sm:h-8 md:h-12 object-contain"
-          src="/images/quickbooks-brand-preferred-logo-50-50-white-external 1.png"
-          alt="QuickBooks"
-        />
       </div>
     </div>
   );

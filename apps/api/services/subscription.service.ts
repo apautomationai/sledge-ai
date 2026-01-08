@@ -155,7 +155,7 @@ export class SubscriptionService {
      * Create subscription with tier assignment
      * Requirements: 1.1, 1.5
      */
-    static async createSubscription(userId: number, registrationOrder: number): Promise<any> {
+    static async createSubscription(userId: number, registrationOrder: number, promoCode?: string): Promise<any> {
         try {
             // Check if subscription already exists for this user
             const existingSubscription = await this.getSubscriptionByUserId(userId);
@@ -169,6 +169,7 @@ export class SubscriptionService {
             console.log(`📊 Creating subscription for user ${userId}:`, {
                 registrationOrder,
                 tier,
+                promoCode: promoCode || 'none',
                 tierLimits: {
                     FREE_MAX: SUBSCRIPTION_CONFIG.TIER_LIMITS.FREE_MAX,
                     PROMOTIONAL_MAX: SUBSCRIPTION_CONFIG.TIER_LIMITS.PROMOTIONAL_MAX
@@ -201,6 +202,7 @@ export class SubscriptionService {
                 trialStart,
                 trialEnd,
                 stripePriceId: this.getStripePriceId(tier),
+                promoCode: promoCode || null,
             };
 
             console.log(`💾 Inserting subscription record:`, subscriptionData);
