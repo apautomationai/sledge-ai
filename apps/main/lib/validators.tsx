@@ -149,3 +149,12 @@ export const bugReportSchema = z.object({
 
 export type BugReportFormData = z.infer<typeof bugReportSchema>;
 export type DebugInfo = z.infer<typeof debugInfoSchema>;
+export const contactFormSchema = z.object({
+  firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
+  lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  subject: z.string().min(1, { message: "Please select a subject." }),
+  message: z.string().min(10, { message: "Message must be at least 10 characters." }).max(5000, { message: "Message must not exceed 5000 characters." }),
+});
+
+export type ContactFormData = z.infer<typeof contactFormSchema>;

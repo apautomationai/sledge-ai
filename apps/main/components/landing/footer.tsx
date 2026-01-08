@@ -12,7 +12,10 @@ const navigation = {
     { name: "Construction", href: "/industries/construction" },
     { name: "Concrete", href: "/industries/concrete" },
   ],
-  company: [{ name: "Contact", href: "/contact-us" }],
+  company: [
+    { name: "Contact", href: "/contact-us" },
+    { name: "About Us", href: "/about" },
+  ],
 
   legal: [
     { name: "Privacy Policy", href: "/privacy-policy" },

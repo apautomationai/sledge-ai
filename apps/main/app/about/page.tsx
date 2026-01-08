@@ -1,179 +1,278 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { Badge } from "@workspace/ui/components/badge";
-import { Card } from "@workspace/ui/components/card";
-import { FileText, Target, Users, ArrowRight, Eye } from "lucide-react";
-import { PulsingOrb, FloatingElements, GeometricPattern } from "@/components/landing/animated-icons";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
+import { Target, Eye, Users, Lightbulb, Shield, Zap } from "lucide-react";
 import Image from "next/image";
 
 export default function AboutPage() {
-  const stats = [
+  const founders = [
     {
-      value: "10,000+",
-      label: "Invoices Processed",
-      icon: FileText,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      name: "DAVID CANNON",
+      title: "Co-Founder & CEO",
+      image: "/images/founders/Davis.jpg",
     },
     {
-      value: "98%",
-      label: "Accuracy Rate",
+      name: "MARTIN MIRALAIE",
+      title: "Co-Founder & CTO",
+      image: "/images/founders/Matteo.jpg",
+    },
+    {
+      name: "RAZ DANOUKH",
+      title: "Co-Founder & COO",
+      image: "/images/founders/Raz.jpg",
+    },
+  ];
+
+  const principles = [
+    {
+      icon: Lightbulb,
+      title: "AI-Native From the Ground Up",
+      description:
+        "Sledge is AI-construction management software built with AI at its core — not added later. AI runs the workflows so builders don't have to.",
+    },
+    {
+      icon: Shield,
+      title: "No Gatekeeping. Ever.",
+      description:
+        "No revenue percentages. No enterprise lock-in. No pricing builders out of the market.",
+    },
+    {
       icon: Target,
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-50",
+      title: "One Platform. End to End",
+      description:
+        "Run your entire construction business — from company setup to projects, accounting, operations, and scale — in one platform.",
     },
     {
-      value: "500+",
-      label: "Happy Customers",
+      icon: Zap,
+      title: "Minimal Manual Work",
+      description:
+        "Autonomous AI handles invoices, accounting, documents, and approvals — so you spend less time in the office and more time building.",
+    },
+    {
       icon: Users,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      title: "Built for Builders",
+      description:
+        "Designed for contractors, trades, and jobbers — not boardrooms or procurement committees.",
+    },
+    {
+      icon: Eye,
+      title: "Scales With You",
+      description:
+        "Start small or run an enterprise scale. Sledge grows with your business without forcing migrations or complexity.",
     },
   ];
 
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-gray-800 relative overflow-hidden">
-        {/* Diamond plate texture - ROUGHER */}
-        <div className="absolute inset-0 opacity-[0.1]" style={{
-          backgroundImage: `repeating-linear-gradient(45deg, #FDB022 0, #FDB022 2px, transparent 0, transparent 40px),
-                           repeating-linear-gradient(-45deg, #FDB022 0, #FDB022 2px, transparent 0, transparent 40px)`,
-          backgroundSize: '40px 40px'
-        }} />
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Fixed background image */}
+        <div
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+          style={{
+            backgroundImage: "url('/images/gpt4.png')",
+            zIndex: -1,
+          }}
+        />
+        {/* Black overlay with opacity */}
+        <div
+          className="fixed inset-0 bg-black pointer-events-none"
+          style={{
+            opacity: 0.7,
+            zIndex: -1,
+          }}
+        />
 
-        {/* Grunge overlay */}
-        <div className="absolute inset-0 opacity-[0.06]" style={{
-          backgroundImage: `radial-gradient(ellipse at 30% 40%, transparent 30%, rgba(253, 176, 34, 0.15) 31%, transparent 32%)`,
-          backgroundSize: '300px 300px'
-        }} />
-
-        {/* Background Elements */}
-        <GeometricPattern />
-        <FloatingElements />
-
-        {/* Background decorative elements */}
-        <div className="absolute top-20 right-10 opacity-10">
-          <PulsingOrb color="#FDB022" size={120} />
-        </div>
-        <div className="absolute bottom-20 left-10 opacity-10">
-          <PulsingOrb color="#F59E0B" size={100} />
-        </div>
-
-        <section className="py-24 sm:py-32 relative overflow-hidden">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-              {/* Left column - Content */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                viewport={{ once: true }}
-              >
-                <Badge
-                  variant="outline"
-                  className="mb-6 px-3 py-1 text-sm font-medium border-yellow-600 bg-yellow-500/20 text-yellow-400 uppercase"
-                >
-                  About SLEDGE
-                </Badge>
-
-                <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl mb-6 uppercase">
-                  Why We Built{" "}
-                  <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                    SLEDGE
-                  </span>
-                </h2>
-
-                <p className="text-xl text-gray-300 mb-6 leading-8">
-                  We've all been there — chasing down invoices, juggling emails, and
-                  trying to keep projects moving while paperwork slows everything
-                  down. In construction and small business especially, missed
-                  invoices or late payments can kill cash flow and damage
-                  relationships. We built SLEDGE because we were tired of watching
-                  businesses lose time and money on something that should be simple.
-                </p>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-gray-900 font-bold rounded-lg transition-all duration-300 shadow-lg shadow-yellow-500/50 hover:shadow-xl hover:shadow-yellow-400/60 border-2 border-yellow-600 uppercase"
-                >
-                  Learn More About Us
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </motion.button>
-              </motion.div>
-
-              {/* Right column - Image */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                viewport={{ once: true }}
-              >
+        {/* Main Content */}
+        <div className="relative w-full py-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            {/* About Us Header Section */}
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center justify-center gap-2 mb-6">
                 <Image
-                  src={"/images/SLEDGE-MEET.png"}
-                  alt="SLEDGE Team Meeting"
-                  height={500}
-                  width={500}
-                  className="w-auto h-auto rounded-xl shadow-lg border border-gray-200 dark:border-gray-200"
+                  src="/images/logos/logo-sledge-symbol-custom.svg"
+                  alt="Sledge Logo"
+                  width={56}
+                  height={56}
+                  className="w-12 h-12"
                 />
-              </motion.div>
+              </div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 uppercase font-['League_Spartan']">
+                ABOUT US
+              </h1>
+              <p className="text-2xl md:text-3xl text-[#e3b02f] font-bold uppercase font-['League_Spartan']">
+                The Builder's AI Office.
+              </p>
+              <div className="text-lg text-zinc-300 max-w-4xl mx-auto mt-6 leading-relaxed space-y-4">
+                <p>
+                  Sledge is{" "}
+                  <strong className="text-white">
+                    modern construction management software
+                  </strong>{" "}
+                  built to automate the construction back office.
+                </p>
+                <p>
+                  We help construction companies replace manual workflows with{" "}
+                  <strong className="text-white">AI-powered systems</strong> —
+                  so builders can run their business smarter, faster, and with
+                  less overhead.
+                </p>
+              </div>
             </div>
 
-            {/* Mission and Vision Cards - Now in their own row */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              viewport={{ once: true }}
-              className="mt-16"
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Mission Card */}
-                <Card className="p-6 border-8 border-yellow-600/60 bg-gradient-to-br from-gray-900 to-black hover:shadow-[0_0_40px_rgba(253,176,34,0.5),inset_0_0_30px_rgba(0,0,0,0.6)] transition-all duration-300 rounded-none">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-lg bg-yellow-500/20 border-2 border-yellow-600/40">
-                      <Target className="h-6 w-6 text-yellow-500" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-white mb-2 uppercase">
-                        Our Mission
-                      </h3>
-                      <p className="text-gray-300 text-sm leading-6">
-                        To take the headache out of accounts payable by giving
-                        builders, contractors, and small businesses the tools to
-                        manage invoices effortlessly, pay vendors on time, and keep
-                        every project moving forward.
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Vision Card */}
-                <Card className="p-6 border-8 border-orange-600/60 bg-gradient-to-br from-gray-900 to-black hover:shadow-[0_0_40px_rgba(245,158,11,0.5),inset_0_0_30px_rgba(0,0,0,0.6)] transition-all duration-300 rounded-none">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-lg bg-orange-500/20 border-2 border-orange-600/40">
-                      <Eye className="h-6 w-6 text-orange-500" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-white mb-2 uppercase">
-                        Our Vision
-                      </h3>
-                      <p className="text-gray-300 text-sm leading-6">
-                        A world where no business loses time, money, or
-                        opportunities because of messy invoice processes. We're
-                        building the future of accounts payable — faster, smarter,
-                        and built for the trades.
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+            {/* Why We Exist Section - No card, just content */}
+            <div className="mb-20">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#e3b02f] mb-6 uppercase font-['League_Spartan'] flex items-center gap-3">
+                <Target className="w-8 h-8" />
+                Why We Exist
+              </h2>
+              <div className="space-y-4 text-zinc-200 text-base md:text-lg leading-relaxed">
+                <p className="flex items-start gap-3">
+                  <span className="text-[#e3b02f] font-bold mt-1">•</span>
+                  <span>
+                    <strong>
+                      Construction has the worst — but the software serving
+                      construction is even worse.
+                    </strong>{" "}
+                    Vendors rush to add features but ignore what contractors
+                    actually need.
+                  </span>
+                </p>
+                <p className="flex items-start gap-3">
+                  <span className="text-[#e3b02f] font-bold mt-1">•</span>
+                  <span>
+                    Most AP software is clunky, requires too much setup, or
+                    forces you to abandon workflows you've spent years building.
+                  </span>
+                </p>
+                <p className="flex items-start gap-3">
+                  <span className="text-[#e3b02f] font-bold mt-1">•</span>
+                  <span>
+                    <strong>Overhyped and bloated.</strong>
+                  </span>
+                </p>
+                <p className="flex items-start gap-3">
+                  <span className="text-[#e3b02f] font-bold mt-1">•</span>
+                  <span>
+                    Demos promise magic, but construction operations are still
+                    broken and slow. Invoices still arrive through email or
+                    paper — and companies are stuck cleaning up the chaos of bad
+                    integrations.
+                  </span>
+                </p>
+                <p className="flex items-start gap-3">
+                  <span className="text-[#e3b02f] font-bold mt-1">•</span>
+                  <span>
+                    <strong>We built Sledge</strong> because construction
+                    deserves a tool that's actually easy to use, truly
+                    integrates with your existing setup, and actually delivers
+                    on the promise of improving efficiency.
+                  </span>
+                </p>
               </div>
-            </motion.div>
+            </div>
+
+            {/* Vision & Mission Grid - No cards, simple layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
+              {/* Vision */}
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[#e3b02f] flex items-center justify-center">
+                    <Eye className="w-6 h-6 text-zinc-900" />
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-[#e3b02f] uppercase font-['League_Spartan']">
+                    Vision
+                  </h2>
+                </div>
+                <p className="text-zinc-200 text-base leading-relaxed">
+                  Our vision is to democratize construction management software
+                  and bring the industry into a new era — one where back-office
+                  work is fully automated, efficient, and painless. We want
+                  every contractor, large or small, to have tools that run in
+                  the background and just work. No hassle, no downtime, no
+                  missed opportunities because of software that couldn't keep
+                  up.
+                </p>
+              </div>
+
+              {/* Mission */}
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[#e3b02f] flex items-center justify-center">
+                    <Target className="w-6 h-6 text-zinc-900" />
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-[#e3b02f] uppercase font-['League_Spartan']">
+                    Mission
+                  </h2>
+                </div>
+                <p className="text-zinc-200 text-base leading-relaxed">
+                  We take the headache out of accounts payable by giving
+                  builders, contractors, and small businesses the tools to
+                  manage invoices effortlessly, pay vendors on time, and keep
+                  every project moving forward. We're here to make construction
+                  back-office operations so smooth, you'll forget they're even
+                  happening. That's Sledge — an AI that actually works for
+                  construction.
+                </p>
+              </div>
+            </div>
+
+            {/* Founders Section */}
+            <div className="mb-20">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#e3b02f] mb-8 md:mb-12 uppercase font-['League_Spartan'] text-center">
+                Founders
+              </h2>
+              <div className="grid grid-cols-3 md:grid-cols-3 gap-4 md:gap-6">
+                {founders.map((founder) => (
+                  <div
+                    key={founder.name}
+                    className="bg-[#1b1a17] border border-[#4a4a4a] rounded-lg p-4 md:p-8 text-center"
+                  >
+                    <div className="w-20 h-20 md:w-32 md:h-32 mx-auto mb-3 md:mb-4 rounded-full overflow-hidden border-2 md:border-4 border-[#e3b02f] bg-zinc-800">
+                      <Image
+                        src={founder.image}
+                        alt={founder.name}
+                        width={128}
+                        height={128}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <h3 className="text-xs md:text-xl font-bold text-white uppercase font-['League_Spartan'] mb-1 md:mb-2 leading-tight">
+                      {founder.name}
+                    </h3>
+                    <p className="text-[#e3b02f] text-[10px] md:text-sm uppercase font-semibold">
+                      {founder.title}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Principles & Values Section */}
+            <div className="mb-20">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#e3b02f] mb-12 uppercase font-['League_Spartan'] text-center">
+                Principles & Values
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {principles.map((principle) => (
+                  <div
+                    key={principle.title}
+                    className="bg-[#1b1a17] border border-[#4a4a4a] rounded-lg p-6 flex flex-col items-center h-full"
+                  >
+                    <div className="w-14 h-14 bg-[#e3b02f] flex items-center justify-center mb-4">
+                      <principle.icon className="w-7 h-7 text-zinc-900" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white uppercase font-['League_Spartan'] mb-3 text-center">
+                      {principle.title}
+                    </h3>
+                    <p className="text-zinc-300 text-sm leading-relaxed text-center">
+                      {principle.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
       </div>
       <Footer />
     </>

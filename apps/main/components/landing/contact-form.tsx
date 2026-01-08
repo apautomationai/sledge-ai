@@ -1,37 +1,54 @@
 'use client';
 
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { Send, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { contactFormSchema, type ContactFormData } from '@/lib/validators';
+import client from '@/lib/axios-client';
 
 export default function ContactForm() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ContactFormData>({
+    resolver: zodResolver(contactFormSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      subject: '',
+      message: '',
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const mutation = useMutation({
+    mutationFn: async (data: ContactFormData) => {
+      return client.post('/api/v1/contact', data);
+    },
+    onSuccess: () => {
+      toast.success('Message sent successfully!', {
+        description: "Thank you for reaching out. We'll get back to you within 24 hours.",
+      });
+      reset();
+    },
+    onError: (error: any) => {
+      console.error('Contact form error:', error);
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to send message. Please try again later.';
+      toast.error('Failed to send message', {
+        description: message,
+      });
+    },
+  });
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    setIsLoading(false);
-    setIsSubmitted(true);
-    setFormData({ name: '', email: '', subject: '', message: '' });
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+  const onSubmit = (data: ContactFormData) => {
+    mutation.mutate(data);
   };
 
   return (
@@ -46,45 +63,64 @@ export default function ContactForm() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col justify-start items-start gap-4 flex-1">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col justify-start items-start gap-4 flex-1">
           <div className="self-stretch flex flex-col sm:flex-row justify-start items-start gap-4">
             <div className="w-full sm:flex-1 flex flex-col justify-start items-start gap-1 min-w-0">
               <label
-                htmlFor="name"
+                htmlFor="firstName"
                 className="self-stretch justify-start text-white text-sm font-medium font-['Inter']"
               >
-                Full Name
+                First Name
               </label>
               <input
                 type="text"
-                id="name"
-                name="name"
-                required
-                value={formData.name}
-                onChange={handleChange}
+                id="firstName"
+                placeholder="John"
                 className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
-                placeholder="John Doe"
+                {...register('firstName')}
               />
+              {errors.firstName && (
+                <span className="text-red-400 text-xs font-medium">{errors.firstName.message}</span>
+              )}
             </div>
 
             <div className="w-full sm:flex-1 flex flex-col justify-start items-start gap-1 min-w-0">
               <label
-                htmlFor="email"
+                htmlFor="lastName"
                 className="self-stretch justify-start text-white text-sm font-medium font-['Inter']"
               >
-                Email Address
+                Last Name
               </label>
               <input
-                type="email"
-                id="email"
-                name="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
+                type="text"
+                id="lastName"
+                placeholder="Doe"
                 className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
-                placeholder="john@example.com"
+                {...register('lastName')}
               />
+              {errors.lastName && (
+                <span className="text-red-400 text-xs font-medium">{errors.lastName.message}</span>
+              )}
             </div>
+          </div>
+
+          <div className="self-stretch flex flex-col justify-start items-start gap-1">
+            <label
+              htmlFor="email"
+              className="self-stretch justify-start text-white text-sm font-medium font-['Inter']"
+            >
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              placeholder="john@example.com"
+              className="self-stretch h-11 px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors"
+              {...register('email')}
+            />
+            {errors.email && (
+              <span className="text-red-400 text-xs font-medium">{errors.email.message}</span>
+            )}
           </div>
 
           <div className="self-stretch flex flex-col justify-start items-start gap-1">
@@ -97,11 +133,8 @@ export default function ContactForm() {
             <div className="relative self-stretch">
               <select
                 id="subject"
-                name="subject"
-                required
-                value={formData.subject}
-                onChange={handleChange}
                 className="w-full h-11 px-4 py-2 pr-10 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors appearance-none cursor-pointer [&>option]:bg-zinc-800 [&>option]:text-neutral-100 [&>option:checked]:bg-zinc-700 [&>option:hover]:bg-zinc-700"
+                {...register('subject')}
               >
                 <option value="" disabled className="text-neutral-400">Select a topic</option>
                 <option value="general">General Question</option>
@@ -119,6 +152,9 @@ export default function ContactForm() {
                 </svg>
               </div>
             </div>
+            {errors.subject && (
+              <span className="text-red-400 text-xs font-medium">{errors.subject.message}</span>
+            )}
           </div>
 
           <div className="self-stretch flex flex-col justify-start items-start gap-1 flex-1">
@@ -130,23 +166,23 @@ export default function ContactForm() {
             </label>
             <textarea
               id="message"
-              name="message"
-              required
               rows={6}
-              value={formData.message}
-              onChange={handleChange}
               className="self-stretch flex-1 min-h-[150px] px-4 py-2 bg-zinc-800 rounded outline outline-1 outline-offset-[-1px] outline-neutral-400 text-neutral-100 text-sm font-medium focus:outline-amber-400 transition-colors resize-none"
               placeholder="Tell us more about your inquiry..."
+              {...register('message')}
             />
+            {errors.message && (
+              <span className="text-red-400 text-xs font-medium">{errors.message.message}</span>
+            )}
           </div>
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={mutation.isPending}
             className="cursor-pointer self-stretch h-11 px-4 py-2 bg-amber-400 hover:bg-amber-500 rounded text-zinc-900 text-sm font-bold font-['Inter'] uppercase transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="flex items-center justify-center">
-              {isLoading ? (
+              {mutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Sending...
@@ -161,31 +197,6 @@ export default function ContactForm() {
           </button>
         </form>
       </div>
-
-      {/* Success Modal */}
-      {isSubmitted && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-zinc-900 rounded-lg p-8 max-w-md mx-4 text-center shadow-[0px_0px_4px_1px_rgba(227,176,47,1.00)] outline outline-1 outline-offset-[-1px] outline-neutral-700">
-            <div className="flex justify-center mb-4">
-              <div className="p-4 rounded-full bg-amber-400">
-                <Send className="w-8 h-8 text-zinc-900" />
-              </div>
-            </div>
-            <h3 className="text-amber-400 text-2xl font-bold font-['League_Spartan'] uppercase mb-2">
-              Message Sent!
-            </h3>
-            <p className="text-gray-200 text-sm font-normal font-['Inter'] mb-6">
-              Thank you for reaching out. We'll get back to you within 24 hours.
-            </p>
-            <button
-              onClick={() => setIsSubmitted(false)}
-              className="h-11 px-6 py-2 bg-amber-400 hover:bg-amber-500 rounded text-zinc-900 text-sm font-bold font-['Inter'] uppercase transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }
