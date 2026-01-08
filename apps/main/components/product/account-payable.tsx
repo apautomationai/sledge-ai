@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function AiAccount() {
   return (
-    <section className="relative flex items-center justify-center py-12 md:py-16 px-6 md:px-8 lg:px-12">
+    <section className="relative flex items-center justify-center min-h-[412px] md:min-h-screen py-12 md:py-16 px-6 md:px-8 lg:px-12">
       <div className="relative mx-auto max-w-[1400px] w-full">
         <div className=" text-center">
           
