@@ -128,7 +128,7 @@ export default function InvoiceTrendChart({ dateRange }: InvoiceTrendChartProps)
                                 borderRadius: "8px",
                             }}
                             formatter={(value: any, name: string) => [
-                                name === "Total Amount ($)"
+                                name === "Total Outstanding ($)"
                                     ? `$${Number(value).toLocaleString()}`
                                     : value,
                                 name
@@ -153,7 +153,7 @@ export default function InvoiceTrendChart({ dateRange }: InvoiceTrendChartProps)
                             strokeWidth={2}
                             dot={{ fill: "#10b981", r: 4 }}
                             activeDot={{ r: 6 }}
-                            name="Total Amount ($)"
+                            name="Total Outstanding ($)"
                         />
                     </LineChart>
                 </ResponsiveContainer>

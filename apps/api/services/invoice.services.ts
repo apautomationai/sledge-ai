@@ -1878,9 +1878,42 @@ export class InvoiceServices {
       let trendData: any[] = [];
 
       if (dateRange === 'monthly') {
-        // Get weekly data for current month
+        // For debugging: let's also get the total monthly count to compare
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+        // Debug: Get total monthly count using same logic as dashboard metrics
+        const [totalMonthlyCount] = await db
+          .select({ count: count() })
+          .from(invoiceModel)
+          .where(
+            and(
+              eq(invoiceModel.userId, userId),
+              eq(invoiceModel.isDeleted, false),
+              gte(invoiceModel.createdAt, startOfMonth),
+              lt(invoiceModel.createdAt, endOfMonth) // Use lt() like dashboard metrics
+            )
+          );
+
+        const [totalMonthlyOutstanding] = await db
+          .select({
+            total: sql<string>`COALESCE(SUM(${invoiceModel.totalAmount}::numeric), 0)`,
+          })
+          .from(invoiceModel)
+          .where(
+            and(
+              eq(invoiceModel.userId, userId),
+              eq(invoiceModel.isDeleted, false),
+              eq(invoiceModel.status, "pending"),
+              gte(invoiceModel.createdAt, startOfMonth),
+              lt(invoiceModel.createdAt, endOfMonth) // Use lt() like dashboard metrics
+            )
+          );
+
+        console.log(`DEBUG: Total monthly invoices: ${totalMonthlyCount.count}, Total outstanding: ${totalMonthlyOutstanding.total}`);
+
+        // Get weekly data for current month
+        const actualEndOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of month
 
         // Calculate actual weeks of the current month
         const weeks: { start: Date; end: Date; name: string }[] = [];
@@ -1898,13 +1931,15 @@ export class InvoiceServices {
         }
 
         let weekNumber = 1;
-        while (currentWeekStart <= endOfMonth) {
+        while (currentWeekStart <= actualEndOfMonth) {
           const weekEnd = new Date(currentWeekStart);
           weekEnd.setDate(weekEnd.getDate() + 6);
+          weekEnd.setHours(23, 59, 59, 999); // End of day
 
           // Don't go beyond end of month
-          if (weekEnd > endOfMonth) {
-            weekEnd.setTime(endOfMonth.getTime());
+          if (weekEnd > actualEndOfMonth) {
+            weekEnd.setTime(actualEndOfMonth.getTime());
+            weekEnd.setHours(23, 59, 59, 999);
           }
 
           // Only include weeks that have at least one day in the current month
@@ -1923,6 +1958,7 @@ export class InvoiceServices {
 
         // Generate data for each week
         for (const week of weeks) {
+          // Use createdAt and same date logic as dashboard metrics
           const [invoiceCount] = await db
             .select({ count: count() })
             .from(invoiceModel)
@@ -1930,13 +1966,13 @@ export class InvoiceServices {
               and(
                 eq(invoiceModel.userId, userId),
                 eq(invoiceModel.isDeleted, false),
-                inArray(invoiceModel.status, ['pending', 'approved']),
-                gte(invoiceModel.invoiceDate, week.start),
-                lte(invoiceModel.invoiceDate, week.end)
+                gte(invoiceModel.createdAt, week.start),
+                lte(invoiceModel.createdAt, week.end) // Use lte for week end
               )
             );
 
-          const [totalAmount] = await db
+          // Calculate total outstanding (pending invoices only) to match dashboard metrics
+          const [totalOutstanding] = await db
             .select({
               total: sql<string>`COALESCE(SUM(${invoiceModel.totalAmount}::numeric), 0)`,
             })
@@ -1945,18 +1981,20 @@ export class InvoiceServices {
               and(
                 eq(invoiceModel.userId, userId),
                 eq(invoiceModel.isDeleted, false),
-                inArray(invoiceModel.status, ['pending', 'approved']),
-                gte(invoiceModel.invoiceDate, week.start),
-                lte(invoiceModel.invoiceDate, week.end)
+                eq(invoiceModel.status, "pending"), // Only pending invoices for outstanding amount
+                gte(invoiceModel.createdAt, week.start),
+                lte(invoiceModel.createdAt, week.end) // Use lte for week end
               )
             );
+
 
           trendData.push({
             name: week.name,
             invoices: invoiceCount.count,
-            amount: parseFloat(totalAmount.total || "0"),
+            amount: parseFloat(totalOutstanding.total || "0"), // This is now total outstanding
           });
         }
+
       } else {
         // Get yearly data for all-time view
         const earliestYear = 1970; // Start from a reasonable earliest year
@@ -1966,6 +2004,7 @@ export class InvoiceServices {
           const yearStart = new Date(year, 0, 1);
           const yearEnd = new Date(year, 11, 31, 23, 59, 59);
 
+          // Use createdAt instead of invoiceDate to match dashboard metrics
           const [invoiceCount] = await db
             .select({ count: count() })
             .from(invoiceModel)
@@ -1973,13 +2012,14 @@ export class InvoiceServices {
               and(
                 eq(invoiceModel.userId, userId),
                 eq(invoiceModel.isDeleted, false),
-                inArray(invoiceModel.status, ['pending', 'approved']),
-                gte(invoiceModel.invoiceDate, yearStart),
-                lte(invoiceModel.invoiceDate, yearEnd)
+                // Include all statuses to match dashboard metrics
+                gte(invoiceModel.createdAt, yearStart),
+                lte(invoiceModel.createdAt, yearEnd)
               )
             );
 
-          const [totalAmount] = await db
+          // Calculate total outstanding (pending invoices only) to match dashboard metrics
+          const [totalOutstanding] = await db
             .select({
               total: sql<string>`COALESCE(SUM(${invoiceModel.totalAmount}::numeric), 0)`,
             })
@@ -1988,9 +2028,9 @@ export class InvoiceServices {
               and(
                 eq(invoiceModel.userId, userId),
                 eq(invoiceModel.isDeleted, false),
-                inArray(invoiceModel.status, ['pending', 'approved']),
-                gte(invoiceModel.invoiceDate, yearStart),
-                lte(invoiceModel.invoiceDate, yearEnd)
+                eq(invoiceModel.status, "pending"), // Only pending invoices for outstanding amount
+                gte(invoiceModel.createdAt, yearStart),
+                lte(invoiceModel.createdAt, yearEnd)
               )
             );
 
@@ -1999,7 +2039,7 @@ export class InvoiceServices {
             trendData.push({
               name: year.toString(),
               invoices: invoiceCount.count,
-              amount: parseFloat(totalAmount.total || "0"),
+              amount: parseFloat(totalOutstanding.total || "0"), // This is now total outstanding
             });
           }
         }
