@@ -36,64 +36,68 @@ export class UserServices {
     password: string;
     promoCode?: string;
   }) => {
-    if (!firstName || !email || !password) {
-      throw new BadRequestError(
-        "First name, email, and password are required"
-      );
-    }
-
-    // Check if email already exists
-    const [existingUser] = await db
-      .select()
-      .from(usersModel)
-      .where(eq(usersModel.email, email));
-
-    if (existingUser) {
-      throw new ConflictError("Email already in use");
-    }
-
-    // Hash the password
-    const passwordHash = await hashPassword(password);
-
-    // Insert the new user
-    const inserted = await db
-      .insert(usersModel)
-      //@ts-ignore
-      .values({
-        firstName,
-        lastName,
-        avatar,
-        businessName,
-        email,
-        phone,
-        passwordHash,
-      })
-      .returning();
-
-    const createdUser = Array.isArray(inserted) ? inserted[0] : inserted;
-
-    // Assign subscription to user (with error handling to not break registration)
     try {
-      await RegistrationService.assignSubscriptionToUser(createdUser.id, undefined, promoCode);
-    } catch (subscriptionError: any) {
-      // Silently handle subscription assignment errors to not break registration
-      // Note: In production, you might want to add this to a retry queue
+      if (!firstName || !email || !password) {
+        throw new BadRequestError(
+          "First name, email, and password are required"
+        );
+      }
+
+      // Check if email already exists
+      const [existingUser] = await db
+        .select()
+        .from(usersModel)
+        .where(eq(usersModel.email, email));
+
+      if (existingUser) {
+        throw new ConflictError("Email already in use");
+      }
+
+      // Hash the password
+      const passwordHash = await hashPassword(password);
+
+      // Insert the new user
+      const inserted = await db
+        .insert(usersModel)
+        //@ts-ignore
+        .values({
+          firstName,
+          lastName,
+          avatar,
+          businessName,
+          email,
+          phone,
+          passwordHash,
+        })
+        .returning();
+
+      const createdUser = Array.isArray(inserted) ? inserted[0] : inserted;
+
+      // Assign subscription to user (with error handling to not break registration)
+      try {
+        await RegistrationService.assignSubscriptionToUser(createdUser.id, undefined, promoCode);
+      } catch (subscriptionError: any) {
+        // Silently handle subscription assignment errors to not break registration
+        // Note: In production, you might want to add this to a retry queue
+      }
+
+      // Issue JWT
+      const token = signJwt({ sub: createdUser.id, email: createdUser.email });
+
+      return {
+        user: {
+          id: createdUser.id,
+          firstName: createdUser.firstName,
+          lastName: createdUser.lastName,
+          avatar: createdUser.avatar,
+          email: createdUser.email,
+          phone: createdUser.phone,
+        },
+        token,
+      };
+    } catch (error: any) {
+      throw new BadRequestError(error.message || "Registration failed");
     }
-
-    // Issue JWT
-    const token = signJwt({ sub: createdUser.id, email: createdUser.email });
-
-    return {
-      user: {
-        id: createdUser.id,
-        firstName: createdUser.firstName,
-        lastName: createdUser.lastName,
-        avatar: createdUser.avatar,
-        email: createdUser.email,
-        phone: createdUser.phone,
-      },
-      token,
-    };
   };
   getUsers = async () => {
     try {
