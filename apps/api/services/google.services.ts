@@ -267,11 +267,18 @@ export class GoogleServices {
       });
       metadata.tokenRefreshed = true;
 
+      // Fetch current metadata if not provided to preserve fields like startReading
+      let currentMetadata = integrationMetadata;
+      if (!currentMetadata) {
+        const integration = await integrationsService.getIntegrationById(integrationId);
+        currentMetadata = (integration?.metadata as any) || {};
+      }
+
       await integrationsService.updateIntegration(integrationId, {
         accessToken,
         expiryDate: expiryDateMs ? new Date(expiryDateMs) : null,
         metadata: {
-          ...integrationMetadata,
+          ...currentMetadata,
           lastErrorMessage: null,
           lastErrorAt: new Date().toISOString(),
         },
