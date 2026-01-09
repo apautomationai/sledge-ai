@@ -12,19 +12,24 @@ export async function errorHandler(
   res: Response,
   _next: NextFunction // Prefix with _ to indicate it's intentionally unused
 ) {
-  // Capture error in Sentry and wait for it to be sent
-  Sentry.captureException(err, {
-    contexts: {
-      request: {
-        url: req.originalUrl,
-        method: req.method,
-        headers: req.headers,
-      },
-    },
-  });
+  // Determine if this is a server error (5xx) that should be reported to Sentry
+  const isServerError = !(err instanceof BaseError) || err.statusCode >= 500;
 
-  // Flush Sentry events (wait max 2 seconds)
-  await Sentry.flush(2000);
+  // Only capture server errors (5xx) in Sentry, not client errors (4xx)
+  if (isServerError) {
+    Sentry.captureException(err, {
+      contexts: {
+        request: {
+          url: req.originalUrl,
+          method: req.method,
+          headers: req.headers,
+        },
+      },
+    });
+
+    // Flush Sentry events (wait max 2 seconds)
+    await Sentry.flush(2000);
+  }
 
   // Log the error for debugging
   const errorLog = {
@@ -59,9 +64,9 @@ export async function errorHandler(
     error: {
       code: 'INTERNAL_SERVER_ERROR',
       message: 'An unexpected error occurred',
-      ...(process.env.NODE_ENV === 'development' && { 
+      ...(process.env.NODE_ENV === 'development' && {
         stack: err.stack,
-        name: err.name 
+        name: err.name
       })
     },
     timestamp: new Date().toISOString()
