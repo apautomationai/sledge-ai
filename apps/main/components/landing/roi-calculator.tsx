@@ -136,15 +136,16 @@ export default function RoiCalculator() {
                   Annual Savings
                 </div>
                 <div className="self-stretch inline-flex justify-center items-center gap-2">
-                  <div className="w-12 h-12 min-[375px]:w-14 min-[375px]:h-14 relative overflow-hidden flex-shrink-0">
+                  <div className="relative overflow-hidden flex-shrink-0">
                     <Image
-                      src="/images/Vector.png"
+                      src="/images/Vector.svg"
                       alt="Savings icon"
-                      fill
+                      width={48}
+                      height={48}
                       className="object-contain"
                     />
                   </div>
-                  <div className="text-amber-400 text-3xl min-[375px]:text-4xl font-bold font-['League_Spartan']">
+                  <div className="text-amber-400 text-3xl min-[375px]:text-5xl font-bold font-['League_Spartan']">
                     ${annualSavings.toLocaleString()}
                   </div>
                 </div>
@@ -156,15 +157,16 @@ export default function RoiCalculator() {
                   Annual Time Saved
                 </div>
                 <div className="self-stretch inline-flex justify-center items-center gap-2">
-                  <div className="w-12 h-12 min-[375px]:w-14 min-[375px]:h-14 relative overflow-hidden flex-shrink-0">
+                  <div className="relative overflow-hidden flex-shrink-0">
                     <Image
-                      src="/updated-images/money-bag-outline.svg"
+                      src="/images/Frame.svg"
                       alt="Time saved icon"
-                      fill
+                      width={64}
+                      height={64}
                       className="object-contain"
                     />
                   </div>
-                  <div className="text-amber-400 text-3xl min-[375px]:text-4xl font-bold font-['League_Spartan']">
+                  <div className="text-amber-400 text-3xl min-[375px]:text-5xl font-bold font-['League_Spartan']">
                     {hoursPerYear.toLocaleString()} HOURS
                   </div>
                 </div>
@@ -209,11 +211,12 @@ export default function RoiCalculator() {
                   Annual Savings
                 </div>
                 <div className="self-stretch inline-flex justify-center items-center gap-2">
-                  <div className="w-14 h-14 lg:w-16 lg:h-16 relative overflow-hidden flex-shrink-0">
+                  <div className="relative overflow-hidden flex-shrink-0">
                     <Image
-                      src="/images/Vector.png"
+                      src="/images/Vector.svg"
                       alt="Savings icon"
-                      fill
+                      width={48}
+                      height={48}
                       className="object-contain"
                     />
                   </div>
@@ -229,11 +232,12 @@ export default function RoiCalculator() {
                   Annual Time Saved
                 </div>
                 <div className="self-stretch inline-flex justify-center items-center gap-2">
-                  <div className="w-14 h-14 lg:w-16 lg:h-16 relative overflow-hidden flex-shrink-0">
+                  <div className="relative overflow-hidden flex-shrink-0">
                     <Image
-                      src="/images/Vector (1).png"
+                      src="/images/Frame.svg"
                       alt="Time saved icon"
-                      fill
+                      width={64}
+                      height={64}
                       className="object-contain"
                     />
                   </div>

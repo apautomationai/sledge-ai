@@ -9,7 +9,7 @@ export function PromoHeader() {
           <Link href="/" className="flex items-center gap-3 z-10">
             <div className="w-full h-full rounded-xl flex items-center justify-center">
               <Image
-                src={"/images/logos/logosledge.png"}
+                src={"/images/logos/logo-sledge-symbol-custom.svg"}
                 alt="Logo"
                 width={48}
                 height={48}

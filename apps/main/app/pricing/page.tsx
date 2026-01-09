@@ -1,5 +1,4 @@
-"use client";
-
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 
 import { Footer } from "@/components/landing/footer";
@@ -9,7 +8,6 @@ import { FAQ, FAQItem } from "@/components/product/faq";
 import { PricingCore } from "@/components/pricing/core";
 import { PricingTools } from "@/components/pricing/tools";
 import { WhatsIncluded } from "@/components/pricing/whats-included";
-import { MoreComing } from "@/components/pricing/more";
 import WhatIsIt from "@/components/landing/what-is-it";
 
 const whatsIncludedTitle = "What's Included";
@@ -24,6 +22,42 @@ const whatsIncludedFeatures = [
   "No usage caps",
 ];
 
+const moreComingTitle = "More Coming, At No Extra Cost.";
+const moreComingText =
+  "Sledge is starting with invoicing and payments, but we're building toward a complete construction back office.";
+const moreComingFeatures = [
+  {
+    title: "Cash flow and reporting",
+    description:
+      "See what's been invoiced, what's been paid, and what's outstanding, so you can spot issues before they turn into cash flow problems.",
+  },
+  {
+    title: "Lien waiver workflows",
+    description:
+      "Generate, track, and exchange conditional and unconditional lien waivers without chasing paperwork or risking compliance mistakes.",
+  },
+  {
+    title: "AIA G702 / G703 support",
+    description:
+      "Create and manage AIA payment applications with accurate schedules of values, stored and tied to each project.",
+  },
+  {
+    title: "Accounting and ERP integrations",
+    description:
+      "Generate, track, and exchange conditional and unconditional lien waivers without chasing paperwork or risking compliance mistakes.",
+  },
+  {
+    title: "Pay Package Support",
+    description:
+      "Create clean, complete pay packages that speed up approvals and reduce payment delays.",
+  },
+  {
+    title: "Accounts Receivable",
+    description:
+      "See who owes you what, track payment status in one place, and reduce time spent chasing invoices.",
+  },
+];
+
 const builtToRunTitle = "Built to run your back office.";
 const builtToRunSubtitle = "Not just invoices.";
 const builtToRunDescription =
@@ -33,80 +67,127 @@ const whatIsItTitle = "Simple Pricing for Construction Teams";
 const whatIsItDescription =
   "Construction software pricing is often complicated, unpredictable, and filled with hidden fees. Sledge offers one transparent plan so teams can automate their back office without worrying about per-invoice charges, user limits, or usage caps.";
 
+export const metadata: Metadata = {
+  title: "Construction Accounts Payable Software Pricing | Sledge",
+  description:
+    "Simple pricing for Sledge's AI-powered accounts payable software built for construction teams, with new workflows added over time.",
+  openGraph: {
+    title: "Construction Accounts Payable Software Pricing | Sledge",
+    description:
+      "Simple pricing for Sledge's AI-powered accounts payable software built for construction teams, with new workflows added over time.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Construction Accounts Payable Software Pricing | Sledge",
+    description:
+      "Simple pricing for Sledge's AI-powered accounts payable software built for construction teams, with new workflows added over time.",
+    images: ["/images/hero-visual.png"],
+  },
+};
+
 const faqs: FAQItem[] = [
   {
     question: "How much does Sledge cost?",
     answer:
-      "Sledge offers one simple plan at $299 per month. The plan includes a 1-month free trial and a 100% money-back guarantee.",
+      "Sledge costs $299 per month. That's flat pricing with no tiers, no add-ons, and no surprise fees.",
   },
   {
-    question: "What's included in the $299 plan?",
+    question: "What's included in Sledge's $299 plan?",
     answer: (
       <>
-        The Core plan includes:
+        The $299 plan includes:
         <ul className="list-disc pl-5 mt-2 space-y-1">
-          <li>Unlimited AI invoice processing</li>
-          <li>Automatic invoice capture from email</li>
-          <li>AI data extraction and validation</li>
-          <li>Human-in-the-loop approval workflows</li>
-          <li>QuickBooks, Gmail, and Outlook integrations</li>
-          <li>Unlimited invoice projects</li>
-          <li>No per-invoice fees</li>
-          <li>No usage caps</li>
+          <li>AI-powered accounts payable</li>
+          <li>Unlimited invoice processing</li>
+          <li>Email inbox integrations (Gmail & Outlook)</li>
+          <li>Approval and rejection workflows</li>
+          <li>Accounting integrations (including QuickBooks)</li>
+          <li>Ongoing product updates</li>
         </ul>
-        <p className="mt-2">Everything needed to automate construction accounts payable.</p>
+        <p className="mt-2">Everything you need to automate AP — included.</p>
       </>
     ),
   },
   {
-    question: "Are there any per-invoice or usage fees?",
-    answer:
-      "No. Sledge does not charge per invoice, per document, or per transaction. There are no usage caps or overage fees.",
+    question: "Are there any per-invoice, usage, or volume fees with Sledge?",
+    answer: (
+      <>
+        No. Sledge does not charge:
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          <li>Per invoice</li>
+          <li>Per user</li>
+          <li>Per project</li>
+          <li>Based on revenue or volume</li>
+        </ul>
+        <p className="mt-2">Unlimited usage means unlimited usage.</p>
+      </>
+    ),
   },
   {
-    question: "Is there a free trial?",
+    question: "Is there a free trial for Sledge?",
     answer:
-      "Yes. Sledge includes a 1-month free trial so you can fully test the platform before paying.",
+      "Yes. Sledge offers a 1-month free trial, so you can run real invoices through the system before paying.",
   },
   {
-    question: "What happens if Sledge isn't a good fit?",
+    question: "What happens if Sledge isn't a good fit for my business?",
     answer:
-      "Sledge offers a 100% money-back guarantee. If it doesn't meet your needs, you can cancel and get your money back.",
+      "If Sledge isn't a good fit, you can cancel anytime. There's also a 100% money-back guarantee, so you're never locked into something that doesn't deliver value.",
   },
   {
-    question: "Do I need to sign a long-term contract?",
+    question: "Do I need to sign a long-term contract to use Sledge?",
     answer:
-      "No. Sledge does not require long-term contracts. You can cancel at any time.",
+      "No. Sledge is month-to-month with no long-term contracts, no enterprise agreements, and no legal lock-ins. Subscribe or cancel anytime.",
   },
   {
-    question: "Does pricing change based on company size or number of users?",
-    answer:
-      "No. Pricing is not based on company size, user count, or invoice volume. One plan covers your entire team.",
+    question: "Does Sledge pricing change based on company size or number of users?",
+    answer: (
+      <>
+        No. Sledge pricing does not increase based on:
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          <li>Company size</li>
+          <li>Number of users</li>
+          <li>Revenue</li>
+          <li>Invoice volume</li>
+        </ul>
+        <p className="mt-2">The price stays the same as you grow.</p>
+      </>
+    ),
   },
   {
-    question: "Does Sledge replace my accounting software?",
+    question: "Are integrations included in Sledge's pricing?",
     answer:
-      "No. Sledge works with your accounting software. It automates invoice intake, approvals, and syncing — your accounting system remains the system of record.",
+      "Yes. All integrations — including email inboxes and accounting software — are included in the $299 monthly price. No extra fees to connect your tools.",
   },
   {
-    question: "Are integrations included in the price?",
+    question: "Will Sledge charge extra for future features?",
     answer:
-      "Yes. Integrations with QuickBooks, Gmail, Outlook, and Stripe are included in the Core plan.",
-  },
-  {
-    question: "Will I be charged for future features?",
-    answer:
-      "Your plan includes access to new back-office workflows as they're released, starting with Accounts Payable. Pricing changes, if any, will always be communicated clearly.",
+      "Your subscription includes access to ongoing improvements and new features as Sledge expands the Builder's AI Office. If new, optional products are introduced in the future, they'll be clearly communicated — never hidden or forced.",
   },
   {
     question: "How does Sledge compare to other construction software pricing?",
-    answer:
-      "Many construction tools charge per user, per invoice, or add hidden fees. Sledge offers one transparent price with unlimited usage, designed for construction back offices.",
-  },
-  {
-    question: "How quickly can I get started?",
-    answer:
-      "Most teams can start using Sledge the same day they sign up. There's no complex setup or onboarding required.",
+    answer: (
+      <>
+        Most construction software charges:
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          <li>High setup or onboarding fees</li>
+          <li>Per-user or per-project costs</li>
+          <li>A percentage of your revenue</li>
+          <li>Expensive long-term contracts</li>
+        </ul>
+        <p className="mt-2">
+          Sledge offers simple, transparent, flat pricing because we believe
+          software should help builders grow — not tax their success.
+        </p>
+      </>
+    ),
   },
 ];
 
@@ -139,7 +220,11 @@ export default function Integrations() {
             text={whatsIncludedText}
             features={whatsIncludedFeatures}
           />
-          <MoreComing />
+          <WhatsIncluded
+            title={moreComingTitle}
+            text={moreComingText}
+            features={moreComingFeatures}
+          />
           <BuiltToRun
             title={builtToRunTitle}
             subtitle={builtToRunSubtitle}

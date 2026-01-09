@@ -175,6 +175,239 @@ export class EmailService {
         return this.sendEmail({ to, subject, htmlBody, textBody, from, attachments });
     };
 
+    // send welcome email to new user
+    sendWelcomeEmail = async (params: {
+        to: string;
+        firstName: string;
+        ctaLink: string;
+    }) => {
+        const { to, firstName, ctaLink } = params;
+        const subject = "Welcome to Sledge — let's get your office off your back";
+
+        const htmlBody = this.generateWelcomeEmailHTML({ firstName, ctaLink });
+
+        const textBody = `Hey ${firstName},
+
+Welcome to Sledge 👋
+
+You're officially in.
+
+Sledge is the Builder's AI Office — built to take paperwork, invoices, and back-office chaos off your plate so you can focus on building, not babysitting admin.
+
+Here's what to do first (takes ~5 minutes):
+
+1. Connect your inbox
+Sledge watches for invoices and bills so you don't have to chase them down.
+
+2. Review your first invoice
+Approve, reject, or flag it — we'll handle the rest.
+
+3. Send it to accounting
+Seamlessly push approved invoices into your accounting system.
+
+👉 Get started now: ${ctaLink}
+
+What Sledge handles for you:
+• Automatically receives and reads invoices
+• Flags duplicates, missing info, and issues
+• Keeps everything organized and searchable
+• Creates a clean, auditable paper trail
+• Saves hours every week (seriously)
+
+This is just the beginning. Sledge starts with Accounts Payable — and grows into your entire office, powered by AI.
+
+If you ever need help, hit reply or reach us at support@getsledge.com.
+
+Let's get your time back.
+
+— The Sledge Team
+
+Sledge
+The Builder's AI Office
+
+This is an automated message. Replies are monitored by our support team.`;
+
+        return this.sendEmail({ to, subject, htmlBody, textBody });
+    };
+
+    // Generate welcome email HTML for preview (without sending)
+    generateWelcomeEmailHTML = (params: {
+        firstName: string;
+        ctaLink: string;
+    }) => {
+        const { firstName, ctaLink } = params;
+
+        return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <!--[if mso]>
+            <style type="text/css">
+                table, td { border-collapse: collapse; }
+            </style>
+            <![endif]-->
+        </head>
+        <body style="margin: 0; padding: 20px; font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333333; background-color: #f5f5f5;">
+            <!-- Main Container Table -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 700px; margin: 0 auto;">
+                <tr>
+                    <td>
+                        <!-- Email Container -->
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+
+                            <!-- Header -->
+                            <tr>
+                                <td style="background-color: #1a1a1a; padding: 24px 30px; text-align: center;">
+                                    <h1 style="margin: 0; font-size: 24px; color: #ffffff; font-weight: 700;">Welcome to Sledge</h1>
+                                </td>
+                            </tr>
+
+                            <!-- Body Content -->
+                            <tr>
+                                <td style="padding: 30px; background-color: #ffffff;">
+
+                                    <!-- Greeting -->
+                                    <p style="margin: 0 0 16px 0; font-size: 18px; color: #333333;">
+                                        Hey <strong>${firstName}</strong>, 👋
+                                    </p>
+
+                                    <p style="margin: 0 0 16px 0; font-size: 16px; color: #333333; font-weight: 600;">
+                                        You're officially in.
+                                    </p>
+
+                                    <p style="margin: 0 0 24px 0; font-size: 15px; color: #555555; line-height: 1.7;">
+                                        Sledge is the <strong>Builder's AI Office</strong> — built to take paperwork, invoices, and back-office chaos off your plate so you can focus on building, not babysitting admin.
+                                    </p>
+
+                                    <!-- Steps Section -->
+                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+                                        <tr>
+                                            <td style="background-color: #f8f9fa; padding: 20px 24px; border-radius: 12px;">
+                                                <p style="margin: 0 0 16px 0; color: #333333; font-weight: 700; font-size: 16px;">Here's what to do first <span style="color: #6c757d; font-weight: normal;">(takes ~5 minutes)</span></p>
+
+                                                <!-- Step 1 -->
+                                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 12px;">
+                                                    <tr>
+                                                        <td width="32" valign="top">
+                                                            <div style="background-color: #1a1a1a; color: #fbbf24; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-weight: 700; font-size: 14px;">1</div>
+                                                        </td>
+                                                        <td style="padding-left: 8px;">
+                                                            <p style="margin: 0 0 4px 0; font-weight: 700; color: #333333; font-size: 15px;">Connect your inbox</p>
+                                                            <p style="margin: 0; color: #555555; font-size: 14px;">Sledge watches for invoices and bills so you don't have to chase them down.</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+                                                <!-- Step 2 -->
+                                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 12px;">
+                                                    <tr>
+                                                        <td width="32" valign="top">
+                                                            <div style="background-color: #1a1a1a; color: #fbbf24; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-weight: 700; font-size: 14px;">2</div>
+                                                        </td>
+                                                        <td style="padding-left: 8px;">
+                                                            <p style="margin: 0 0 4px 0; font-weight: 700; color: #333333; font-size: 15px;">Review your first invoice</p>
+                                                            <p style="margin: 0; color: #555555; font-size: 14px;">Approve, reject, or flag it — we'll handle the rest.</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+                                                <!-- Step 3 -->
+                                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td width="32" valign="top">
+                                                            <div style="background-color: #1a1a1a; color: #fbbf24; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-weight: 700; font-size: 14px;">3</div>
+                                                        </td>
+                                                        <td style="padding-left: 8px;">
+                                                            <p style="margin: 0 0 4px 0; font-weight: 700; color: #333333; font-size: 15px;">Send it to accounting</p>
+                                                            <p style="margin: 0; color: #555555; font-size: 14px;">Seamlessly push approved invoices into your accounting system.</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <!-- CTA Button -->
+                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+                                        <tr>
+                                            <td align="center">
+                                                <a href="${ctaLink}" target="_blank" style="display: inline-block; background-color: #fbbf24; color: #1a1a1a; padding: 14px 32px; font-size: 16px; font-weight: 700; text-decoration: none; border-radius: 8px;">
+                                                    👉 Get started now
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <!-- Features Section -->
+                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+                                        <tr>
+                                            <td style="background-color: #2d2d2d; padding: 20px 24px; border-radius: 12px;">
+                                                <p style="margin: 0 0 12px 0; color: #fbbf24; font-weight: 700; font-size: 16px;">What Sledge handles for you:</p>
+
+                                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #e5e7eb; font-size: 14px;">✓ Automatically receives and reads invoices</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #e5e7eb; font-size: 14px;">✓ Flags duplicates, missing info, and issues</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #e5e7eb; font-size: 14px;">✓ Keeps everything organized and searchable</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #e5e7eb; font-size: 14px;">✓ Creates a clean, auditable paper trail</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #e5e7eb; font-size: 14px;">✓ Saves hours every week (seriously)</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <p style="margin: 0 0 16px 0; font-size: 15px; color: #555555; line-height: 1.7;">
+                                        This is just the beginning. Sledge starts with Accounts Payable — and grows into your entire office, powered by AI.
+                                    </p>
+
+                                    <p style="margin: 0 0 16px 0; font-size: 15px; color: #555555; line-height: 1.7;">
+                                        If you ever need help, hit reply or reach us at <a href="mailto:support@getsledge.com" style="color: #1a1a1a; font-weight: 600;">support@getsledge.com</a>.
+                                    </p>
+
+                                    <p style="margin: 0 0 8px 0; font-size: 15px; color: #333333; font-weight: 600;">
+                                        Let's get your time back.
+                                    </p>
+
+                                    <p style="margin: 16px 0 0 0; font-size: 15px; color: #333333;">
+                                        — <strong>The Sledge Team</strong>
+                                    </p>
+                                </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background-color: #1a1a1a; padding: 20px 30px; text-align: center;">
+                                    <p style="margin: 0 0 4px 0; font-size: 14px; color: #ffffff; font-weight: 700;">
+                                        Sledge
+                                    </p>
+                                    <p style="margin: 0 0 12px 0; font-size: 12px; color: #9ca3af;">
+                                        The Builder's AI Office
+                                    </p>
+                                    <p style="margin: 0; font-size: 11px; color: #6b7280; font-style: italic;">
+                                        This is an automated message. Replies are monitored by our support team.
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
+    `;
+    };
+
     // Generate invoice rejection email HTML for preview (without sending)
     generateInvoiceRejectionEmailHTML = (params: {
         invoiceNumber: string;
@@ -334,6 +567,171 @@ export class EmailService {
         </body>
         </html>
     `;
+    };
+
+    // send contact form email to support
+    sendContactFormEmail = async (params: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        subject: string;
+        message: string;
+    }) => {
+        const { firstName, lastName, email, subject, message } = params;
+        const to = "support@getsledge.com";
+        const from = this.notificationFrom;
+
+        // Map subject codes to readable labels
+        const subjectLabels: Record<string, string> = {
+            general: "General Question",
+            technical: "Technical Support",
+            billing: "Billing & Account",
+            integrations: "Integrations (Email, QuickBooks, etc.)",
+            sales: "Sales & Pricing",
+            security: "Security, Privacy, or Legal",
+            feedback: "Feedback or Feature Request",
+            other: "Other"
+        };
+
+        const subjectLabel = subjectLabels[subject] || subject;
+        const emailSubject = `New Contact Form Submission: ${subjectLabel}`;
+
+        const htmlBody = this.generateContactFormEmailHTML({
+            firstName,
+            lastName,
+            email,
+            subject,
+            message,
+        });
+
+        const textBody = `New Contact Form Submission
+
+Name: ${firstName} ${lastName}
+Email: ${email}
+Subject: ${subjectLabel}
+
+Message:
+${message}
+
+---
+This message was submitted via the Sledge contact form.
+Reply directly to this email to respond to ${firstName}.`;
+
+        return this.sendEmail({
+            to,
+            subject: emailSubject,
+            htmlBody,
+            textBody,
+            from,
+        });
+    };
+
+    // Generate contact form email HTML
+    generateContactFormEmailHTML = (params: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        subject: string;
+        message: string;
+    }) => {
+        const { firstName, lastName, email, subject, message } = params;
+
+        // Map subject codes to readable labels
+        const subjectLabels: Record<string, string> = {
+            general: "General Question",
+            technical: "Technical Support",
+            billing: "Billing & Account",
+            integrations: "Integrations (Email, QuickBooks, etc.)",
+            sales: "Sales & Pricing",
+            security: "Security, Privacy, or Legal",
+            feedback: "Feedback or Feature Request",
+            other: "Other"
+        };
+
+        const subjectLabel = subjectLabels[subject] || subject;
+
+        return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 20px; font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333333; background-color: #f5f5f5;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 700px; margin: 0 auto;">
+            <tr>
+                <td>
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+
+                        <!-- Header -->
+                        <tr>
+                            <td style="background-color: #1a1a1a; padding: 24px 30px; text-align: center;">
+                                <h1 style="margin: 0; font-size: 24px; color: #fbbf24; font-weight: 700;">New Contact Form Submission</h1>
+                            </td>
+                        </tr>
+
+                        <!-- Body Content -->
+                        <tr>
+                            <td style="padding: 30px; background-color: #ffffff;">
+
+                                <!-- Contact Info Box -->
+                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 24px 0;">
+                                    <tr>
+                                        <td style="background-color: #f8f9fa; padding: 20px 24px; border-radius: 12px;">
+                                            <p style="margin: 0 0 12px 0; color: #333333; font-weight: 700; font-size: 16px;">Contact Information</p>
+
+                                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                <tr>
+                                                    <td style="padding: 4px 0; color: #555555; font-size: 14px;">
+                                                        <strong>Name:</strong> ${firstName} ${lastName}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 4px 0; color: #555555; font-size: 14px;">
+                                                        <strong>Email:</strong> <a href="mailto:${email}" style="color: #1a1a1a; text-decoration: none;">${email}</a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 4px 0; color: #555555; font-size: 14px;">
+                                                        <strong>Subject:</strong> ${subjectLabel}
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <!-- Message Content -->
+                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+                                    <tr>
+                                        <td style="background-color: #2d2d2d; padding: 20px 24px; border-radius: 12px;">
+                                            <p style="margin: 0 0 12px 0; color: #fbbf24; font-weight: 700; font-size: 16px;">Message</p>
+                                            <p style="margin: 0; color: #e5e7eb; font-size: 14px; line-height: 1.7; white-space: pre-wrap;">${message}</p>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <p style="margin: 24px 0 0 0; font-size: 13px; color: #6c757d; font-style: italic;">
+                                    Reply directly to this email to respond to ${firstName}.
+                                </p>
+                            </td>
+                        </tr>
+
+                        <!-- Footer -->
+                        <tr>
+                            <td style="background-color: #f8f9fa; padding: 20px 30px; border-top: 1px solid #e9ecef; text-align: center;">
+                                <p style="margin: 0; font-size: 12px; color: #6c757d;">
+                                    This message was submitted via the Sledge contact form at <strong style="color: #333333;">getsledge.com/contact-us</strong>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+  `;
     };
 }
 

@@ -12,31 +12,31 @@ export function HowItWorks() {
 
   const cards = [
     {
-      icon: "/images/product/icon-display-email-capture.png",
+      icon: "/images/icon-capture 1.svg",
       title: "1. AI Intake",
       description:
         "AI automatically captures emails, documents, and attachments as they arrive.",
     },
     {
-      icon: "/images/product/icon-display-ai-understand.png",
+      icon: "/images/icon-understand 1.svg",
       title: "2. AI Understanding",
       description:
         "AI interprets unstructured data and maps it into structured business context.",
     },
     {
-      icon: "/images/product/icon-display-checklist.png",
+      icon: "/images/icon-complete 1.svg",
       title: "3. AI Routing",
       description:
         "AI prepares work for completion and pauses for approval when required.",
     },
     {
-      icon: "/images/product/icon-capture 2 (1).png",
+      icon: "/images/icon-capture 2.svg",
       title: "4. Human Review",
       description:
         "AI prepares work for completion and pauses for approval when required.",
     },
     {
-      icon: "/images/product/quickbooks-brand-preferred-logo-50-50-white-external 1.png",
+      icon: "/images/quickbooks-brand-preferred-logo-50-50-white-external 1.svg",
       title: "5. 1-Click Sync",
       description:
         "AI prepares work for completion and pauses for approval when required.",
@@ -159,7 +159,7 @@ export function HowItWorks() {
                   }}
                 >
                   {/* Icon */}
-                  <div className="w-[160px] h-[160px] sm:w-[190px] sm:h-[190px] md:w-[225px] md:h-[225px] mb-4 sm:mb-6 relative">
+                  <div className={`w-[160px] h-[160px] sm:w-[190px] sm:h-[190px] md:w-[225px] md:h-[225px] mb-4 sm:mb-6 relative ${card.title === "5. 1-Click Sync" ? "z-10" : ""}`}>
                     <Image
                       src={card.icon}
                       alt={card.title}

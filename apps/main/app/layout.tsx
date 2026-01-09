@@ -8,24 +8,28 @@ import { Providers } from "@/components/providers";
 import "@/instrumentation-client";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const leagueSpartan = League_Spartan({ subsets: ["latin"], variable: "--font-league-spartan" });
+const leagueSpartan = League_Spartan({
+  subsets: ["latin"],
+  variable: "--font-league-spartan",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://getsledge.com"),
   title: "Sledge: The Builder's AI Office",
-  description: "A modern dashboard to manage and process invoices with AI-powered data extraction.",
+  description:
+    "A modern dashboard to manage and process invoices with AI-powered data extraction.",
   openGraph: {
     siteName: "SLEDGE AI",
     type: "website",
     images: [
       {
-        url: "/images/logos/icon.png",
-        width: 512,
-        height: 512,
+        url: "/images/icon.svg",
+        width: 48,
+        height: 48,
         alt: "Sledge: The Builder's AI Office",
       },
     ],
-  }
+  },
 };
 
 export default function RootLayout({
@@ -34,9 +38,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <body
-        className={cn("bg-background font-sans antialiased", inter.variable, leagueSpartan.variable)}
+        className={cn(
+          "bg-background font-sans antialiased",
+          inter.variable,
+          leagueSpartan.variable,
+        )}
       >
         <Providers>
           {children}

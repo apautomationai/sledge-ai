@@ -8,6 +8,7 @@ interface ResizablePanelsProps {
     defaultLeftWidth?: number; // percentage (0-100)
     minLeftWidth?: number; // percentage
     maxLeftWidth?: number; // percentage
+    minRightWidth?: number; // percentage
     className?: string;
     onResize?: (leftWidth: number) => void;
 }
@@ -17,6 +18,7 @@ export function ResizablePanels({
     defaultLeftWidth = 50,
     minLeftWidth = 20,
     maxLeftWidth = 80,
+    minRightWidth = 20,
     className,
     onResize,
 }: ResizablePanelsProps) {
@@ -38,14 +40,16 @@ export function ResizablePanels({
         const mouseX = e.clientX - containerRect.left;
 
         // Calculate new left width as percentage
-        const newLeftWidth = Math.min(
-            Math.max((mouseX / containerWidth) * 100, minLeftWidth),
-            maxLeftWidth
-        );
+        let newLeftWidth = (mouseX / containerWidth) * 100;
+
+        // Apply constraints: respect minLeftWidth, maxLeftWidth, and minRightWidth
+        newLeftWidth = Math.max(newLeftWidth, minLeftWidth); // Ensure left panel isn't too small
+        newLeftWidth = Math.min(newLeftWidth, maxLeftWidth); // Ensure left panel isn't too large
+        newLeftWidth = Math.min(newLeftWidth, 100 - minRightWidth); // Ensure right panel isn't too small
 
         setLeftWidth(newLeftWidth);
         onResize?.(newLeftWidth);
-    }, [isDragging, minLeftWidth, maxLeftWidth, onResize]);
+    }, [isDragging, minLeftWidth, maxLeftWidth, minRightWidth, onResize]);
 
     const handleMouseUp = useCallback(() => {
         setIsDragging(false);

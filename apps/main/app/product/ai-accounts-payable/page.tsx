@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 
@@ -10,6 +11,32 @@ import { HowItWorks } from "@/components/product/how-it-works";
 import WhatSledgeAutomate from "@/components/product/what-sledge-automate";
 import Benefits from "@/components/product/benefits";
 import WhatIsIt from "@/components/landing/what-is-it";
+
+export const metadata: Metadata = {
+  title: "AI Accounts Payable Software for Construction | Invoice Automation",
+  description:
+    "Automate construction invoice processing with AI accounts payable software that captures, validates, routes, and syncs bills automatically.",
+  openGraph: {
+    title: "AI Accounts Payable Software for Construction | Invoice Automation",
+    description:
+      "Automate construction invoice processing with AI accounts payable software that captures, validates, routes, and syncs bills automatically.",
+    images: [
+      {
+        url: "/images/hero-visual.png",
+        width: 1200,
+        height: 630,
+        alt: "Sledge: The Builder's AI Office",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Accounts Payable Software for Construction | Invoice Automation",
+    description:
+      "Automate construction invoice processing with AI accounts payable software that captures, validates, routes, and syncs bills automatically.",
+    images: ["/images/hero-visual.png"],
+  },
+};
 
 const whatIsItTitle = "Autonomous AI Accounts Payable for Construction";
 const whatIsItDescription =
@@ -24,79 +51,100 @@ const builtToRunDescription =
 
 const faqs: FAQItem[] = [
   {
-    question: "What is Sledge Accounts Payable?",
+    question: "What is Sledge AI Accounts Payable?",
     answer:
-      "Sledge Accounts Payable is an AI-powered system that automates how construction teams capture invoices, extract data, route approvals, and sync approved bills into their accounting system — without manual data entry.",
+      "Sledge AI Accounts Payable is an AI-powered accounts payable solution for construction that automates invoice intake, data extraction, approvals, and accounting sync — eliminating manual invoice processing and data entry.",
   },
   {
-    question: "Who is Sledge Accounts Payable built for?",
+    question: "Who is Sledge AI Accounts Payable built for?",
     answer:
-      "Sledge is built for construction teams that process vendor invoices, including general contractors, subcontractors, office managers, accountants, and bookkeepers.",
+      "Sledge AI Accounts Payable is built for:",
+    listItems: [
+      "General contractors",
+      "Trade and service contractors",
+      "Construction office managers",
+      "Accountants and bookkeepers",
+    ],
+    afterList:
+      "Anyone responsible for processing, approving, or paying construction invoices will benefit.",
   },
   {
-    question: "How does Sledge automate accounts payable?",
+    question: "How does Sledge automate accounts payable with AI?",
     answer:
-      "Sledge uses AI to capture invoices, read and extract invoice data, understand line items, and prepare invoices for approval. Humans review and approve invoices before anything is finalized or synced.",
+      "Sledge uses AI to automate the entire accounts payable workflow, including:",
+    listItems: [
+      "Automatically ingesting invoices",
+      "Reading and parsing invoice data",
+      "Extracting line items, totals, vendors, and job details",
+      "Detecting duplicates and inconsistencies",
+      "Routing invoices through approval and rejection workflows",
+      "Syncing approved invoices directly into accounting software",
+    ],
+    afterList:
+      "This removes manual work from AP while keeping teams in control.",
   },
   {
-    question: "Do invoices still require human approval?",
+    question: "Does Sledge eliminate manual invoice processing and data entry?",
     answer:
-      "Yes. All invoices require human approval. AI prepares the work, but humans make the final decision before invoices move forward or sync into accounting.",
+      "Yes. Sledge is designed to eliminate manual invoice processing and repetitive data entry, significantly reducing admin time, errors, and accounting overhead in construction businesses.",
   },
   {
-    question: "Does Sledge replace my accounting software?",
+    question: "Do invoices still require human approval in Sledge?",
     answer:
-      "No. Sledge works alongside your accounting system. It prepares and routes invoices for approval, then syncs approved bills into your accounting software, which remains the system of record.",
+      "Yes — always. Sledge automates the work, but humans stay in control. Invoices can be approved or rejected through clear workflows, and nothing is finalized or synced until it's reviewed and approved.",
   },
   {
     question: "How does Sledge capture invoices?",
     answer:
-      "Sledge captures invoices automatically from email inboxes and manual uploads. AI identifies real invoices and ignores non-invoice documents.",
+      "Sledge uses AI to scan your email inboxes and automatically capture invoices.",
+    listItems: [
+      "Connect Gmail and Outlook inboxes",
+      "Sledge reads incoming emails, identifies invoices, and parses them automatically",
+      "Users can also upload invoices manually if needed",
+    ],
+    afterList: "No more downloading, renaming, or forwarding files.",
   },
   {
-    question: "What happens if an invoice is incorrect?",
-    answer:
-      "Incorrect invoices can be rejected during review. Rejected invoices are flagged and can be sent back for correction before approval.",
+    question: "What happens in Sledge if an invoice is incorrect or needs changes?",
+    answer: "If an invoice is incorrect, Sledge allows you to:",
+    listItems: [
+      "Flag the issue",
+      "Reject the invoice",
+      "Leave comments for clarification",
+      "Send it back for correction",
+    ],
+    afterList:
+      "Nothing moves forward in Sledge until the invoice is accurate and approved, ensuring clean records and preventing payment errors.",
   },
   {
-    question: "How does Sledge prevent duplicate vendors or records?",
-    answer:
-      "Sledge intelligently searches existing records to find close matches before creating anything new, preventing duplicate vendors, accounts, or cost codes.",
+    question: "How does Sledge prevent duplicate invoices and double payments?",
+    answer: "Sledge uses AI and validation checks to identify:",
+    listItems: [
+      "Duplicate invoice numbers",
+      "Duplicate vendors",
+      "Matching amounts and dates",
+    ],
+    afterList:
+      "This helps prevent double payments and keeps your books clean.",
   },
   {
     question: "Can Sledge handle high invoice volume?",
     answer:
-      "Yes. Sledge is designed to scale with construction invoice volume, allowing teams to process more invoices without adding back-office staff.",
+      "Yes. Sledge is built to handle high invoice volume without slowing down — whether you process dozens or thousands of invoices per month. Automation scales as your business grows.",
   },
   {
-    question: "Is Sledge secure?",
+    question: "How is Sledge AI Accounts Payable different from traditional construction AP tools?",
     answer:
-      "Yes. Sledge uses secure authentication, permission-based access controls, and industry-standard security practices.",
-  },
-  {
-    question: "Is Sledge built specifically for construction?",
-    answer:
-      "Yes. Sledge is designed for construction-specific invoice volume, approval workflows, and accounting requirements — not generic AP use cases.",
-  },
-  {
-    question: "How long does it take to get started?",
-    answer:
-      "Most teams can connect their inboxes and begin processing invoices the same day. There is no long or complex setup required.",
-  },
-  {
-    question: "Is there a long-term contract?",
-    answer:
-      "No. Sledge does not require long-term contracts. Teams can start, scale, and adapt as needed.",
-  },
-  {
-    question: "How is Sledge different from traditional construction AP tools?",
-    answer:
-      "Traditional tools rely on manual entry and spreadsheets. Sledge uses AI to automate invoice processing while keeping humans in control of approvals and outcomes.",
-  },
-  {
-    question: "What's included in the audit trail?",
-    answer:
-      "Every invoice includes its source, extracted data, approval history, timestamps, and execution status — creating a complete and traceable audit record.",
+      "Traditional construction AP tools rely on manual data entry, complex workflows, and outdated interfaces that slow teams down. Sledge AI Accounts Payable is different:",
+    listItems: [
+      "AI-first, not manual-first",
+      "Eliminates repetitive AP work instead of shifting it",
+      "Simple, intuitive interface",
+      "Fast setup with minimal configuration",
+      "Built to reduce overhead and save hours every week",
+    ],
+    afterList:
+      "Sledge modernizes accounts payable so construction teams can move faster with less effort.",
   },
 ];
 

@@ -38,7 +38,7 @@ export default function WhatSledgeAutomate() {
           {/* Right Image */}
           <div className="flex-1 flex justify-end">
             <Image
-              src="/updated-images/image-sledge-to-accounts-payable-module-adjusted-2 1.png"
+              src="/images/image-sledge-to-accounts-payable-module-adjusted.svg"
               alt="Sledge AI Accounts Payable automation workflow"
               width={588}
               height={588}

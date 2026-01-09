@@ -5,14 +5,17 @@ import Image from "next/image";
 const navigation = {
   product: [
     { name: "Overview", href: "/product" },
-    { name: "Ai Accounts Payable", href: "/product/ai-accounts-payable" },
+    { name: "AI Accounts Payable", href: "/product/ai-accounts-payable" },
     { name: "Integrations", href: "/integration" },
   ],
   industries: [
     { name: "Construction", href: "/industries/construction" },
     { name: "Concrete", href: "/industries/concrete" },
   ],
-  company: [{ name: "Contact", href: "/contact-us" }],
+  company: [
+    { name: "Contact", href: "/contact-us" },
+    { name: "About Us", href: "/about" },
+  ],
 
   legal: [
     { name: "Privacy Policy", href: "/privacy-policy" },
@@ -40,7 +43,7 @@ export function Footer() {
                 <div className="relative">
                   <div className="w-full h-full rounded-lg flex items-center justify-center shadow-lg">
                     <Image
-                      src={"/images/logos/logosledge.png"}
+                      src={"/images/logos/logo-sledge-symbol-custom.svg"}
                       alt="logo"
                       width={40}
                       height={40}

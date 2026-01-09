@@ -41,7 +41,7 @@ export async function signUpAction(
     };
   }
 
-  const { firstName, lastName, email, phone, businessName, password } = validatedFields.data;
+  const { firstName, lastName, email, phone, businessName, password, promoCode } = validatedFields.data;
 
   try {
     const response = await fetch(
@@ -58,7 +58,8 @@ export async function signUpAction(
           email,
           phone,
           businessName,
-          password
+          password,
+          promoCode,
         }),
       }
     );

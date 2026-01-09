@@ -331,12 +331,19 @@ export class OutlookServices {
       }
       metadata.tokenRefreshed = true;
 
+      // Fetch current metadata if not provided to preserve fields like startReading
+      let currentMetadata = integrationMetadata;
+      if (!currentMetadata) {
+        const integration = await integrationsService.getIntegrationById(integrationId);
+        currentMetadata = (integration?.metadata as any) || {};
+      }
+
       await integrationsService.updateIntegration(integrationId, {
         accessToken: response.data.access_token,
         refreshToken: response.data.refresh_token || tokens.refresh_token,
         expiryDate: new Date(expiryDateMs),
         metadata: {
-          ...integrationMetadata,
+          ...currentMetadata,
           lastErrorMessage: null,
           lastErrorAt: new Date().toISOString(),
         },

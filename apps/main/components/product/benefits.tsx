@@ -12,11 +12,11 @@ export default function Benefits() {
   return (
     <section className="w-full overflow-hidden py-12 md:py-16 px-6 md:px-8 lg:px-12">
       <div className="flex flex-col gap-8 items-center max-w-[1400px] mx-auto">
-        <div className="w-full flex flex-col lg:flex-row items-center gap-12">
+        <div className="w-full flex flex-col-reverse lg:flex-row items-center gap-12">
           {/* Left Image */}
           <div className="flex-1 flex justify-center">
             <Image
-              src="/updated-images/image-accuracy.png"
+              src="/images/Frame 103.svg"
               alt="Built for accuracy, control, and scale badge"
               width={588}
               height={588}

@@ -4,11 +4,9 @@ export function AiAccount() {
   return (
     <section className="relative flex items-center justify-center min-h-[412px] md:min-h-screen py-12 md:py-16 px-6 md:px-8 lg:px-12">
       <div className="relative mx-auto max-w-[1400px] w-full">
-        <div className="mx-auto max-w-4xl text-center">
-          <p className="text-sm md:text-md lg:text-lg text-gray-300">
-            AI ACCOUNTS PAYABLE
-          </p>
-          <h1 className="mt-2 text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
+        <div className=" text-center">
+          
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
             AI Accounts payable. done for you.
           </h1>
 

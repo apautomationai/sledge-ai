@@ -164,7 +164,7 @@ export class QuickBooksController {
           status: "success",
           companyName: integration.metadata?.companyName || "Unknown Company",
           connectedAt: integration.createdAt,
-          lastSync: integration.metadata?.lastSyncAt,
+          lastSync: integration.metadata?.lastSyncedAt,
         },
       });
     } catch (error) {
@@ -830,22 +830,8 @@ export class QuickBooksController {
       // Extract products from response
       const products = lineItemsResponse?.QueryResponse?.Item || [];
 
-      // Sync to database (includes embedding generation)
+      // Sync to database (includes embedding generation and lastSyncedAt update)
       const productsResult = await quickbooksService.syncProductsToDatabase(userId, [products[0]]);
-
-      // Update lastSyncedAt in metadata after successful sync
-      try {
-        const currentMetadata = (integration.metadata as any) || {};
-        await integrationsService.updateIntegration(integration.id, {
-          metadata: {
-            ...currentMetadata,
-            lastSyncedAt: new Date().toISOString(),
-          },
-        });
-      } catch (updateError: any) {
-        console.error("Failed to update lastSyncedAt in metadata:", updateError);
-        // Don't fail the request if metadata update fails
-      }
 
       res.json({
         success: true,
@@ -890,22 +876,8 @@ export class QuickBooksController {
       // Extract accounts from response
       const accounts = accountsResponse?.QueryResponse?.Account || [];
 
-      // Sync to database (includes embedding generation)
+      // Sync to database (includes embedding generation and lastSyncedAt update)
       const accountsResult = await quickbooksService.syncAccountsToDatabase(userId, accounts);
-
-      // Update lastSyncedAt in metadata after successful sync
-      try {
-        const currentMetadata = (integration.metadata as any) || {};
-        await integrationsService.updateIntegration(integration.id, {
-          metadata: {
-            ...currentMetadata,
-            lastSyncedAt: new Date().toISOString(),
-          },
-        });
-      } catch (updateError: any) {
-        console.error("Failed to update lastSyncedAt in metadata:", updateError);
-        // Don't fail the request if metadata update fails
-      }
 
       res.json({
         success: true,
@@ -950,22 +922,8 @@ export class QuickBooksController {
       // Extract vendors from response
       const vendors = vendorsResponse?.QueryResponse?.Vendor || [];
 
-      // Sync to database (includes embedding generation)
+      // Sync to database (includes embedding generation and lastSyncedAt update)
       const vendorsResult = await quickbooksService.syncVendorsToDatabase(userId, vendors);
-
-      // Update lastSyncedAt in metadata after successful sync
-      try {
-        const currentMetadata = (integration.metadata as any) || {};
-        await integrationsService.updateIntegration(integration.id, {
-          metadata: {
-            ...currentMetadata,
-            lastSyncedAt: new Date().toISOString(),
-          },
-        });
-      } catch (updateError: any) {
-        console.error("Failed to update lastSyncedAt in metadata:", updateError);
-        // Don't fail the request if metadata update fails
-      }
 
       res.json({
         success: true,
@@ -1015,25 +973,11 @@ export class QuickBooksController {
       const vendors = vendorsResponse?.QueryResponse?.Vendor || [];
       const customers = customersResponse?.QueryResponse?.Customer || [];
 
-      // Sync to database
+      // Sync to database (each method updates lastSyncedAt)
       const productsResult = await quickbooksService.syncProductsToDatabase(userId, products);
       const accountsResult = await quickbooksService.syncAccountsToDatabase(userId, accounts);
       const vendorsResult = await quickbooksService.syncVendorsToDatabase(userId, vendors);
       const customersResult = await quickbooksService.syncCustomersToDatabase(userId, customers);
-
-      // Update lastSyncedAt in metadata after successful sync
-      try {
-        const currentMetadata = (integration.metadata as any) || {};
-        await integrationsService.updateIntegration(integration.id, {
-          metadata: {
-            ...currentMetadata,
-            lastSyncedAt: new Date().toISOString(),
-          },
-        });
-      } catch (updateError: any) {
-        console.error("Failed to update lastSyncedAt in metadata:", updateError);
-        // Don't fail the request if metadata update fails
-      }
 
       res.json({
         success: true,

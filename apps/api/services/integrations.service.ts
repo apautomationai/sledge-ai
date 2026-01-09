@@ -131,6 +131,18 @@ class IntegrationsService {
     }
   }
 
+  async getIntegrationById(id: number) {
+    try {
+      const [integration] = await db
+        .select()
+        .from(integrationsModel)
+        .where(eq(integrationsModel.id, id));
+      return integration || null;
+    } catch (error: any) {
+      return null;
+    }
+  }
+
   async checkIntegration(userId: number, name: string) {
     // check if this integration exists for the user
 

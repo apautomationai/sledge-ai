@@ -12,6 +12,7 @@ const navigation = [
   { name: "Products", href: "/#products" },
   { name: "Industries", href: "/#industries" },
   { name: "Pricing", href: "/pricing" },
+  { name: "Company", href: "#" },
 ];
 
 export function Header() {
@@ -21,12 +22,16 @@ export function Header() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [industriesDropdownOpen, setIndustriesDropdownOpen] = useState(false);
+  const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const [mobileIndustriesDropdownOpen, setMobileIndustriesDropdownOpen] =
+    useState(false);
+  const [mobileCompanyDropdownOpen, setMobileCompanyDropdownOpen] =
     useState(false);
   const bodyRef = useRef<HTMLElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const industriesDropdownRef = useRef<HTMLDivElement | null>(null);
+  const companyDropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -62,16 +67,22 @@ export function Header() {
       ) {
         setIndustriesDropdownOpen(false);
       }
+      if (
+        companyDropdownRef.current &&
+        !companyDropdownRef.current.contains(event.target as Node)
+      ) {
+        setCompanyDropdownOpen(false);
+      }
     };
 
-    if (dropdownOpen || industriesDropdownOpen) {
+    if (dropdownOpen || industriesDropdownOpen || companyDropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [dropdownOpen, industriesDropdownOpen]);
+  }, [dropdownOpen, industriesDropdownOpen, companyDropdownOpen]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -141,13 +152,13 @@ export function Header() {
 
   return (
     <>
-      <header className="w-full bg-[#141414] backdrop-blur-none shadow-[0_4px_20px_rgba(0,0,0,0.9),0_0_30px_rgba(253,176,34,0.2)] border-yellow-600/50 relative z-[9999]">
+      <header className="w-full bg-[#141414] backdrop-blur-none border-yellow-600/50 relative z-[9999]">
         <nav className="w-full px-4 md:px-12" aria-label="Global">
           <div className="relative flex items-center justify-between py-3 md:py-[13px]">
             <Link href="/" className="flex items-center gap-3 z-10">
               <div className="w-full h-full rounded-xl flex items-center justify-center">
                 <Image
-                  src={"/images/logos/logosledge.png"}
+                  src={"/images/logos/logo-sledge-symbol-custom.svg"}
                   alt="Logo"
                   width={48}
                   height={48}
@@ -287,6 +298,57 @@ export function Header() {
                         >
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
                             Concrete
+                          </div>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                ) : item.name === "Company" ? (
+                  <div
+                    key={item.name}
+                    className="relative"
+                    ref={companyDropdownRef}
+                  >
+                    <button
+                      onClick={() =>
+                        setCompanyDropdownOpen(!companyDropdownOpen)
+                      }
+                      className="text-white font-medium transition-colors duration-300 uppercase text-sm flex items-center gap-2 cursor-pointer"
+                    >
+                      {item.name}
+                      <img
+                        src="/images/logos/arrow-down.svg"
+                        alt="dropdown arrow"
+                        className={`w-4 h-4 transition-transform duration-300 ${
+                          companyDropdownOpen ? "rotate-180" : ""
+                        }`}
+                        style={{
+                          filter: "invert(1) brightness(0.8)",
+                        }}
+                      />
+                    </button>
+                    {companyDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-2 z-[9999] w-64 p-4 bg-zinc-900 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-800 inline-flex flex-col justify-start items-start overflow-hidden">
+                        <Link
+                          href="/about"
+                          onClick={(e) => {
+                            setCompanyDropdownOpen(false);
+                          }}
+                          className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
+                        >
+                          <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
+                            About
+                          </div>
+                        </Link>
+                        <Link
+                          href="/contact-us"
+                          onClick={(e) => {
+                            setCompanyDropdownOpen(false);
+                          }}
+                          className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
+                        >
+                          <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
+                            Contact Us
                           </div>
                         </Link>
                       </div>
@@ -501,6 +563,53 @@ export function Header() {
                                 className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                               >
                                 Concrete
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+                      ) : item.name === "Company" ? (
+                        <div key={item.name}>
+                          <button
+                            onClick={() =>
+                              setMobileCompanyDropdownOpen(
+                                !mobileCompanyDropdownOpen,
+                              )
+                            }
+                            className="w-full text-left block rounded-lg px-4 py-3 text-lg font-semibold text-gray-300 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30 uppercase flex items-center justify-between"
+                          >
+                            {item.name}
+                            <img
+                              src="/images/logos/arrow-down.svg"
+                              alt="dropdown arrow"
+                              className={`w-4 h-4 transition-transform duration-300 ${
+                                mobileCompanyDropdownOpen ? "rotate-180" : ""
+                              }`}
+                              style={{
+                                filter: "invert(1) brightness(0.8)",
+                              }}
+                            />
+                          </button>
+                          {mobileCompanyDropdownOpen && (
+                            <div className="mt-2 ml-4 space-y-2">
+                              <Link
+                                href="/about"
+                                onClick={() => {
+                                  setMobileMenuOpen(false);
+                                  setMobileCompanyDropdownOpen(false);
+                                }}
+                                className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                              >
+                                About
+                              </Link>
+                              <Link
+                                href="/contact-us"
+                                onClick={() => {
+                                  setMobileMenuOpen(false);
+                                  setMobileCompanyDropdownOpen(false);
+                                }}
+                                className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
+                              >
+                                Contact Us
                               </Link>
                             </div>
                           )}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Card,
@@ -65,6 +66,7 @@ export function IntegrationCard({
   shouldOpenConfigDialog,
   onConfigDialogClose,
 }: IntegrationCardProps) {
+  const router = useRouter();
   const {
     name,
     status,
@@ -85,6 +87,7 @@ export function IntegrationCard({
   const isQuickBooks = name.toLowerCase() === "quickbooks";
   const IntegrationLogo = INTEGRATION_LOGOS[name];
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const connectedTime = formatDate(createdAt);
 
@@ -112,11 +115,25 @@ export function IntegrationCard({
         toast.success("Gmail sync completed successfully", {
           description: result.message || "Emails synced successfully",
         });
+
+        // Refresh the page data to show updated sync information
+        setIsRefreshing(true);
+        setTimeout(() => {
+          router.refresh();
+          setIsRefreshing(false);
+        }, 1500);
       } else if (isOutlook) {
         const result = await syncOutlookData();
         toast.success("Outlook sync completed successfully", {
           description: result.message || "Emails synced successfully",
         });
+
+        // Refresh the page data to show updated sync information
+        setIsRefreshing(true);
+        setTimeout(() => {
+          router.refresh();
+          setIsRefreshing(false);
+        }, 1500);
       } else if (isQuickBooks) {
         const result = await syncQuickBooksData();
         toast.success("Sync completed successfully", {
@@ -125,6 +142,13 @@ export function IntegrationCard({
                         Vendors: ${result.data.vendors.inserted} inserted, ${result.data.vendors.updated} updated, ${result.data.vendors.skipped} skipped.
                         Customers: ${result.data.customers.inserted} inserted, ${result.data.customers.updated} updated, ${result.data.customers.skipped} skipped.`,
         });
+
+        // Refresh the page data to show updated lastSyncedAt timestamp
+        setIsRefreshing(true);
+        setTimeout(() => {
+          router.refresh();
+          setIsRefreshing(false);
+        }, 1500); // Wait 1.5 seconds to let user see the success message
       }
     } catch (error: unknown) {
       const syncErrorMessage =
@@ -225,12 +249,16 @@ export function IntegrationCard({
                   size="sm"
                   variant="outline"
                   onClick={handleSync}
-                  disabled={isSyncing}
+                  disabled={isSyncing || isRefreshing}
                   className="cursor-pointer"
                 >
                   {isSyncing ? (
                     <>
                       <RefreshCcw className="h-4 w-4 mr-2 animate-spin" /> Syncing...
+                    </>
+                  ) : isRefreshing ? (
+                    <>
+                      <RefreshCcw className="h-4 w-4 mr-2 animate-spin" /> Updating...
                     </>
                   ) : (
                     <>
@@ -261,12 +289,16 @@ export function IntegrationCard({
                   size="sm"
                   variant="outline"
                   onClick={handleSync}
-                  disabled={isSyncing}
+                  disabled={isSyncing || isRefreshing}
                   className="cursor-pointer"
                 >
                   {isSyncing ? (
                     <>
                       <RefreshCcw className="h-4 w-4 mr-2 animate-spin" /> Syncing...
+                    </>
+                  ) : isRefreshing ? (
+                    <>
+                      <RefreshCcw className="h-4 w-4 mr-2 animate-spin" /> Updating...
                     </>
                   ) : (
                     <>

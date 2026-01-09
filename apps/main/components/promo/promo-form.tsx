@@ -12,7 +12,13 @@ const initialState: SignUpFormState = {
   success: false,
 };
 
-export function PromoForm() {
+type PromoFormProps = {
+  code?: string;
+};
+
+export function PromoForm({ code }: PromoFormProps) {
+  const promoCode = code || "";
+
   const [state, formAction] = useActionState(signUpAction, initialState);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -56,10 +62,16 @@ export function PromoForm() {
 
         {/* Price */}
         <div className="flex flex-col justify-start items-center gap-1">
-          <div className="w-32 h-7 relative">
-            <div className="left-0 top-0 absolute justify-start text-gray-200 text-xl font-normal font-['Inter'] leading-7 line-through">
-              $299/month
-            </div>
+          <div className="flex justify-center items-baseline">
+            <span className="relative text-gray-200 text-xl font-normal font-['Inter'] leading-7">
+              $299
+              {/* Double strikethrough lines */}
+              <span className="absolute left-0 top-1/2 w-full h-[2px] bg-red-500 -rotate-12 -translate-y-1/2" />
+              <span className="absolute left-0 top-1/2 w-full h-[2px] bg-red-500 rotate-12 -translate-y-1/2" />
+            </span>
+            <span className="text-gray-200 text-xl font-normal font-['Inter'] leading-7">
+              /month
+            </span>
           </div>
           <div className="justify-start">
             <span className="text-amber-400 text-3xl md:text-5xl font-bold font-['League_Spartan'] uppercase leading-[52px]">
@@ -80,6 +92,9 @@ export function PromoForm() {
 
         {/* Form */}
         <form action={formAction} className="self-stretch flex flex-col justify-start items-start gap-4">
+          {/* Hidden promo code field */}
+          <input type="hidden" name="promoCode" value={promoCode} />
+
           {/* First Name & Last Name */}
           <div className="self-stretch flex flex-col sm:flex-row justify-start items-start gap-4">
             <div className="w-full sm:flex-1 flex flex-col justify-start items-start gap-1 min-w-0">
@@ -231,7 +246,14 @@ export function PromoForm() {
             href="/terms-conditions"
             className="text-[#E3B02F] hover:underline"
           >
-            Terms and Privacy Policy
+            Terms
+          </Link>
+          {" "}and{" "}
+          <Link
+            href="/privacy-policy"
+            className="text-[#E3B02F] hover:underline"
+          >
+            Privacy Policy
           </Link>
         </p>
       </div>

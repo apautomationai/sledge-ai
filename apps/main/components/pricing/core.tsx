@@ -1,5 +1,4 @@
 import { Check } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 const features = [
@@ -31,26 +30,15 @@ export function PricingCore() {
             Real Construction Back-Office Tools.
           </h2>
           <p className="mt-2 md:mt-2 text-lg lg:text-2xl text-white">
-            Start with automated invoicing and payments today.
-            <br />
-            As we release more back-office tools, you'll already be in.
+            One AI-powered construction back office plan — starting with Accounts Payable <br />automation and expanding as new workflows are released.
           </p>
         </div>
 
         {/* Pricing Card */}
         <div className="flex justify-center">
-          <div className="relative w-full max-w-[468px] aspect-[468/706]">
-            {/* Background Image */}
-            <Image
-              src="/images/Pricing Card.png"
-              alt="Pricing Card Background"
-              width={468}
-              height={706}
-              className="absolute inset-0 w-full h-full"
-              priority
-            />
+          <div className="relative w-full max-w-[468px]">
             {/* Content */}
-            <div className="relative z-10 h-full flex flex-col px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6">
+            <div className="h-full flex flex-col px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 bg-gradient-to-b from-[#2d2820] to-[#1f1c18] rounded-lg shadow-[0px_0px_4px_1px_#e3b02f] border border-[#e3b02f]/20">
               {/* Plan Name */}
               <h3 className="text-2xl sm:text-[32px] font-semibold font-sans text-[#e3b02f] text-center mb-2 sm:mb-3">
                 Core
@@ -65,11 +53,11 @@ export function PricingCore() {
               </div>
 
               {/* Trial Info */}
-              <div className="text-center mb-3 sm:mb-4">
-                <p className="text-sm sm:text-[16px] font-semibold text-white">
+              <div className="text-center mb-3 sm:mb-4 pb-3 sm:pb-4 border-b border-[#353430]">
+                <p className="text-sm sm:text-[20px] font-bold text-white">
                   1-Month Free Trial
                 </p>
-                <p className="text-sm sm:text-[16px] font-semibold text-white">
+                <p className="text-sm sm:text-[20px] font-bold text-white">
                   100% Money-Back Guarantee
                 </p>
               </div>
@@ -83,11 +71,9 @@ export function PricingCore() {
               </Link>
 
               {/* Description */}
-              <div className="mb-3 sm:mb-4">
-                <p className="text-sm sm:text-[16px] text-white">
-                  Ideal for growing businesses.
-                  <br />
-                  Advanced industry-leading capabilities.
+              <div className="mb-3 sm:mb-4 pb-3 sm:pb-4 border-b border-[#353430]">
+                <p className="text-sm sm:text-[20px] text-white">
+                  AI-powered back office automation for construction teams.
                 </p>
               </div>
 

@@ -1,7 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+// Import instrumentation BEFORE Express
+import "./instrumentation";
+
 import express from "express";
+import * as Sentry from "@sentry/node";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import passport from "@/lib/passport";
@@ -23,8 +27,13 @@ import projectsRoutes from "@/routes/projects.routes";
 import reportRoutes from "@/routes/report.route"
 import emailIntegrationRoutes from "./routes/email-integration.routes";
 import vendorsRoutes from "./routes/vendors.routes";
+import contactRoutes from "@/routes/contact.routes";
 
 const app = express();
+
+// Note: With expressIntegration() and httpIntegration() in instrumentation.ts,
+// request and tracing handlers are automatically set up.
+// No need for manual Sentry.Handlers.requestHandler() or tracingHandler()
 
 // Configure CORS
 const getCorsOrigins = (): string | string[] => {
@@ -72,9 +81,18 @@ app.use("/api/v1/jobs", jobsRoutes);
 app.use("/api/v1/projects", projectsRoutes);
 app.use("/api/v1/vendors", vendorsRoutes);
 app.use("/api/v1/report", reportRoutes);
+app.use("/api/v1/contact", contactRoutes);
 
 // Error handlers
 app.use(notFoundHandler);
+
+/**
+ * SENTRY ERROR HANDLER (MUST BE BEFORE CUSTOM ERROR HANDLER)
+ * This captures errors and attaches them to traces
+ */
+app.use(Sentry.expressErrorHandler());
+
+// Custom error handler (after Sentry)
 app.use(errorHandler);
 
 export default app;

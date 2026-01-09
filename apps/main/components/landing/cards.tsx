@@ -6,22 +6,22 @@ import Image from "next/image";
 export function Cards() {
   const cards = [
     {
-      icon: "/updated-images/3cfa3268a9913f8a513a76661892da0c449dc054.png",
+      icon: "/images/image 11.svg",
       title: "Money",
       subtile: "Automate invoices, payables, & approvals ",
     },
     {
-      icon: "/updated-images/9b3e0277fa729b1b602b31838d6418de126cd1d2.png",
+      icon: "/images/image 12.svg",
       title: "People",
       subtile: "Ai handles reminders and scheduling",
     },
     {
-      icon: "/updated-images/5a1be1eb0489bcd63361d95d5e0c2e9324f36d53.png",
+      icon: "/images/image 13.svg",
       title: "Docs",
       subtile: "Instantly scan, sort and search every file",
     },
     {
-      icon: "/updated-images/33f5739e7cef34f37051f3e20151b2f64e424ad8.png",
+      icon: "/images/image 14.svg",
       title: "Projects",
       subtile: "Automate invoices, payables, & approvals ",
     },
@@ -131,17 +131,18 @@ export function Cards() {
             {cards.map((card, index) => (
               <motion.div
                 key={index}
-                className="relative w-full max-w-[318px] min-h-[346px] aspect-318/346 group cursor-pointer overflow-hidden rounded-2xl"
+                className="relative group cursor-pointer overflow-hidden rounded-2xl"
                 variants={cardVariants}
                 animate="normal"
                 whileHover="hover"
                 whileTap="hover"
               >
                 <Image
-                  src="/updated-images/bg-steelplate.png"
+                  src="/images/bg-steelplate.svg"
                   alt={card.title}
-                  fill
-                  className="object-fill rounded-2xl"
+                  width={318}
+                  height={346}
+                  className="rounded-2xl"
                 />
 
                 {/* Content Container */}
