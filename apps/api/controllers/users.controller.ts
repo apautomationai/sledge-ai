@@ -5,11 +5,7 @@ import * as Sentry from "@sentry/node";
 
 import { NextFunction, Request, Response } from "express";
 import passport from "@/lib/passport";
-import {
-  BadRequestError,
-  InternalServerError,
-  NotFoundError,
-} from "@/helpers/errors";
+import { BadRequestError, NotFoundError } from "@/helpers/errors";
 
 export class UserController {
   registerUser = async (req: Request, res: Response) => {
@@ -59,26 +55,28 @@ export class UserController {
 
     // Send welcome email (non-blocking)
     const ctaLink = `${process.env.FRONTEND_URL || "https://getsledge.com"}/onboarding`;
-    emailService.sendWelcomeEmail({
-      to: result.user.email,
-      firstName: result.user.firstName,
-      ctaLink,
-    }).catch((err) => {
-      // Log to console for immediate visibility
-      console.error("Failed to send welcome email:", err);
+    emailService
+      .sendWelcomeEmail({
+        to: result.user.email,
+        firstName: result.user.firstName,
+        ctaLink,
+      })
+      .catch((err) => {
+        // Log to console for immediate visibility
+        console.error("Failed to send welcome email:", err);
 
-      // Capture to Sentry as this is an internal error
-      Sentry.captureException(err, {
-        tags: {
-          operation: "send_welcome_email",
-          userId: result.user.id,
-        },
-        extra: {
-          email: result.user.email,
-          firstName: result.user.firstName,
-        },
+        // Capture to Sentry as this is an internal error
+        Sentry.captureException(err, {
+          tags: {
+            operation: "send_welcome_email",
+            userId: result.user.id,
+          },
+          extra: {
+            email: result.user.email,
+            firstName: result.user.firstName,
+          },
+        });
       });
-    });
 
     return res.status(200).json({
       success: true,
@@ -138,7 +136,7 @@ export class UserController {
         });
 
         return res.json({ user, token });
-      }
+      },
     )(req, res, next);
   };
 
@@ -241,18 +239,18 @@ export class UserController {
     const { oldPassword, newPassword, confirmPassword } = req.body;
     if (!oldPassword || !newPassword || !confirmPassword) {
       throw new BadRequestError(
-        "Old password, new password, confirm password are required"
+        "Old password, new password, confirm password are required",
       );
     }
     if (newPassword !== confirmPassword) {
       throw new BadRequestError(
-        "new password should match the confirm password"
+        "new password should match the confirm password",
       );
     }
     const response = await userServices.changePassword(
       userId,
       oldPassword,
-      newPassword
+      newPassword,
     );
     if (!response) {
       throw new BadRequestError("Password has not change");
