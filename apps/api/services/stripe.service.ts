@@ -157,11 +157,6 @@ export class StripeService {
                 throw new Error(`Subscription not found for user ${userId}`);
             }
 
-            // Free tier doesn't need checkout
-            if (subscription.tier === SUBSCRIPTION_CONFIG.TIERS.FREE) {
-                throw new Error('Free tier users do not need to create checkout sessions');
-            }
-
             // Ensure customer exists
             const customerId = await this.ensureStripeCustomer(userId);
 
@@ -171,16 +166,11 @@ export class StripeService {
                 throw new Error(`No Stripe price ID configured for tier: ${subscription.tier}`);
             }
 
-            // Calculate trial period days
-            let trialPeriodDays = subscription.tier === SUBSCRIPTION_CONFIG.TIERS.PROMOTIONAL
-                ? SUBSCRIPTION_CONFIG.TRIALS.PROMOTIONAL_DAYS
-                : SUBSCRIPTION_CONFIG.TRIALS.STANDARD_DAYS;
+            // Calculate trial period days - add 30 extra days if promo code is used
+            const baseTrialDays = parseInt(SUBSCRIPTION_CONFIG.TRIALS.STANDARD_DAYS || '0', 10);
+            const trialPeriodDays = subscription.promoCode ? baseTrialDays + 30 : baseTrialDays;
 
-            // Add extra 30 days trial if promo code is used
-            if (subscription.promoCode) {
-                trialPeriodDays += 30;
-                console.log(`Extended trial to ${trialPeriodDays} days for promo code: ${subscription.promoCode}`);
-            }
+            console.log(`Trial period: ${trialPeriodDays} days${subscription.promoCode ? ` (promo code: ${subscription.promoCode})` : ''}`);
 
             // Default URLs
             const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -214,7 +204,7 @@ export class StripeService {
                 },
             };
 
-            // Apply promo code if stored in subscription
+            // Apply promo code discount if stored in subscription
             if (subscription.promoCode) {
                 try {
                     // Look up the promotion code in Stripe
@@ -230,16 +220,14 @@ export class StripeService {
                         }];
                         console.log(`Applied promo code ${subscription.promoCode} to checkout session`);
                     } else {
-                        console.warn(`Promo code ${subscription.promoCode} not found or inactive in Stripe, allowing manual entry`);
+                        console.warn(`Promo code ${subscription.promoCode} not found or inactive in Stripe`);
                         sessionConfig.allow_promotion_codes = true;
                     }
                 } catch (promoError) {
                     console.error(`Error looking up promo code ${subscription.promoCode}:`, promoError);
-                    // Fall back to allowing manual promo code entry
                     sessionConfig.allow_promotion_codes = true;
                 }
             } else {
-                // No promo code stored, allow manual entry
                 sessionConfig.allow_promotion_codes = true;
             }
 
@@ -318,11 +306,6 @@ export class StripeService {
 
             if (!subscription) {
                 throw new Error(`Subscription not found for user ${userId}`);
-            }
-
-            // Free tier users don't need portal access
-            if (subscription.tier === SUBSCRIPTION_CONFIG.TIERS.FREE) {
-                throw new Error('Free tier users do not have access to customer portal');
             }
 
             // Ensure customer exists
@@ -405,11 +388,6 @@ export class StripeService {
             const subscription = await SubscriptionService.getSubscriptionByUserId(userId);
 
             if (!subscription) {
-                return false;
-            }
-
-            // Free tier users don't have portal access
-            if (subscription.tier === SUBSCRIPTION_CONFIG.TIERS.FREE) {
                 return false;
             }
 
