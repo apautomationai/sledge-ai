@@ -557,14 +557,28 @@ export function LineItemsTable({
                             <Table className="table-fixed">
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="w-[16%] px-2 py-2">Description</TableHead>
-                                        <TableHead className="w-[8%] px-2 py-2">Qty</TableHead>
-                                        <TableHead className="w-[8%] px-2 py-2">Rate</TableHead>
-                                        <TableHead className="w-[8%] px-2 py-2">Amount</TableHead>
-                                        <TableHead className="w-[12%] px-2 py-2">Cost Type</TableHead>
-                                        <TableHead className="w-[20%] px-2 py-2">{getCategoryHeaderText()}</TableHead>
-                                        <TableHead className="w-[20%] px-2 py-2">Job</TableHead>
-                                        {isEditing && <TableHead className="w-[8%] px-2 py-2"></TableHead>}
+                                        <TableHead className="w-[16%] min-w-[120px] px-2 py-2">
+                                            <span className="truncate block">Description</span>
+                                        </TableHead>
+                                        <TableHead className="w-[8%] min-w-[60px] px-2 py-2">
+                                            <span className="truncate block">Qty</span>
+                                        </TableHead>
+                                        <TableHead className="w-[8%] min-w-[60px] px-2 py-2">
+                                            <span className="truncate block">Rate</span>
+                                        </TableHead>
+                                        <TableHead className="w-[8%] min-w-[70px] px-2 py-2">
+                                            <span className="truncate block">Amount</span>
+                                        </TableHead>
+                                        <TableHead className="w-[12%] min-w-[90px] px-2 py-2">
+                                            <span className="truncate block">Cost Type</span>
+                                        </TableHead>
+                                        <TableHead className="w-[20%] min-w-[150px] px-2 py-2">
+                                            <span className="truncate block">{getCategoryHeaderText()}</span>
+                                        </TableHead>
+                                        <TableHead className="w-[20%] min-w-[120px] px-2 py-2">
+                                            <span className="truncate block">Job</span>
+                                        </TableHead>
+                                        {isEditing && <TableHead className="w-[8%] min-w-[50px] px-2 py-2"></TableHead>}
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -760,14 +774,28 @@ export function LineItemsTable({
                                             onCheckedChange={handleSelectAll}
                                         />
                                     </TableHead>
-                                    <TableHead className="w-[14%] px-2 py-2">Description</TableHead>
-                                    <TableHead className="w-[8%] px-2 py-2">Qty</TableHead>
-                                    <TableHead className="w-[8%] px-2 py-2">Rate</TableHead>
-                                    <TableHead className="w-[8%] px-2 py-2">Amount</TableHead>
-                                    <TableHead className="w-[12%] px-2 py-2">Cost Type</TableHead>
-                                    <TableHead className="w-[18%] px-2 py-2">{getCategoryHeaderText()}</TableHead>
-                                    <TableHead className="w-[18%] px-2 py-2">Job</TableHead>
-                                    {isEditing && <TableHead className="w-[6%] px-2 py-2"></TableHead>}
+                                    <TableHead className="w-[14%] min-w-[120px] px-2 py-2">
+                                        <span className="truncate block">Description</span>
+                                    </TableHead>
+                                    <TableHead className="w-[8%] min-w-[60px] px-2 py-2">
+                                        <span className="truncate block">Qty</span>
+                                    </TableHead>
+                                    <TableHead className="w-[8%] min-w-[60px] px-2 py-2">
+                                        <span className="truncate block">Rate</span>
+                                    </TableHead>
+                                    <TableHead className="w-[8%] min-w-[70px] px-2 py-2">
+                                        <span className="truncate block">Amount</span>
+                                    </TableHead>
+                                    <TableHead className="w-[12%] min-w-[90px] px-2 py-2">
+                                        <span className="truncate block">Cost Type</span>
+                                    </TableHead>
+                                    <TableHead className="w-[18%] min-w-[150px] px-2 py-2">
+                                        <span className="truncate block">{getCategoryHeaderText()}</span>
+                                    </TableHead>
+                                    <TableHead className="w-[18%] min-w-[120px] px-2 py-2">
+                                        <span className="truncate block">Job</span>
+                                    </TableHead>
+                                    {isEditing && <TableHead className="w-[6%] min-w-[50px] px-2 py-2"></TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
