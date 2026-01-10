@@ -68,11 +68,6 @@ export const requireSubscriptionAccess = async (
  * Grace period: 7 days after payment failure for paid tiers
  */
 function checkGracePeriod(subscription: any): boolean {
-    // Free tier doesn't have grace period
-    if (subscription.tier === SUBSCRIPTION_CONFIG.TIERS.FREE) {
-        return false;
-    }
-
     // Only apply grace period for past_due status
     if (subscription.status !== SUBSCRIPTION_CONFIG.STATUS.PAST_DUE) {
         return false;
@@ -151,7 +146,7 @@ function getAccessDeniedResponse(subscription: any) {
                 ...baseResponse,
                 message: "Access denied. Please check your subscription status.",
                 code: "ACCESS_DENIED",
-                requiresPayment: subscription.tier !== SUBSCRIPTION_CONFIG.TIERS.FREE
+                requiresPayment: true
             };
     }
 }
@@ -183,11 +178,6 @@ export const allowTrialSetup = async (
                 error: "SubscriptionRequired",
                 message: "No subscription found for user"
             });
-        }
-
-        // Free tier always has access
-        if (subscription.tier === SUBSCRIPTION_CONFIG.TIERS.FREE) {
-            return next();
         }
 
         // Allow access if user has active subscription or is in trial
