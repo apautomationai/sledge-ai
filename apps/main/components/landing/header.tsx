@@ -337,7 +337,7 @@ export function Header() {
                           className="w-56 p-4 rounded-lg inline-flex justify-start items-center gap-2 hover:bg-amber-400/10 transition-colors cursor-pointer"
                         >
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
-                            About
+                            About Us
                           </div>
                         </Link>
                         <Link
@@ -599,7 +599,7 @@ export function Header() {
                                 }}
                                 className="block rounded-lg px-4 py-3 text-base font-semibold text-amber-400 hover:bg-neutral-800 transition-colors duration-200 border-2 border-transparent hover:border-yellow-600/30"
                               >
-                                About
+                                About Us
                               </Link>
                               <Link
                                 href="/contact-us"

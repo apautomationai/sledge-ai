@@ -18,6 +18,9 @@ export function AiOffice() {
             runs automatically and teams stay in control through approvals and
             oversight.
           </p>
+          <p className="text-lg md:text-2xl text-white mb-6">
+            Sledge is building toward that future — starting with Accounts Payable and expanding outward.
+          </p>
         </div>
 
         {/* Right Image */}

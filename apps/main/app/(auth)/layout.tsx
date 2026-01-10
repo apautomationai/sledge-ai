@@ -54,11 +54,11 @@ export default function AuthLayout({
 
           {/* Footer - Sticky to bottom */}
           <div className="w-full text-center py-4 md:py-6 px-6 mt-auto">
-            <Link href="/terms" className="text-zinc-400 text-sm font-normal font-['Inter'] underline leading-5 hover:text-zinc-400 active:text-zinc-400 focus:text-zinc-400 focus:outline-none">
+            <Link href="/terms-conditions" className="text-zinc-400 text-sm font-normal font-['Inter'] underline leading-5 hover:text-zinc-400 active:text-zinc-400 focus:text-zinc-400 focus:outline-none">
               Terms of Service
             </Link>
             <span className="text-zinc-400 text-sm font-normal font-['Inter'] leading-5"> | </span>
-            <Link href="/privacy" className="text-zinc-400 text-sm font-normal font-['Inter'] underline leading-5 hover:text-zinc-400 active:text-zinc-400 focus:text-zinc-400 focus:outline-none">
+            <Link href="/privacy-policy" className="text-zinc-400 text-sm font-normal font-['Inter'] underline leading-5 hover:text-zinc-400 active:text-zinc-400 focus:text-zinc-400 focus:outline-none">
               Privacy Policy
             </Link>
           </div>

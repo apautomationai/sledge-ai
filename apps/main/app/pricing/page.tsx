@@ -27,34 +27,34 @@ const moreComingText =
   "Sledge is starting with invoicing and payments, but we're building toward a complete construction back office.";
 const moreComingFeatures = [
   {
-    title: "Cash flow and reporting",
+    title: "Conditional & Unconditional Lien Waivers",
     description:
-      "See what's been invoiced, what's been paid, and what's outstanding, so you can spot issues before they turn into cash flow problems.",
+      "AI auto-generates, pre-fills, sends, tracks, and stores lien waivers each billing cycle using your invoices — reconciled automatically and signed faster.",
   },
   {
-    title: "Lien waiver workflows",
+    title: "AIA G702 / G703 & Pay Packages",
     description:
-      "Generate, track, and exchange conditional and unconditional lien waivers without chasing paperwork or risking compliance mistakes.",
+      "AI builds complete pay apps and pay packages from your project data — schedules of values, invoices, lien waivers, and approvals included.",
   },
   {
-    title: "AIA G702 / G703 support",
+    title: "Accounts Payable & Accounts Receivable",
     description:
-      "Create and manage AIA payment applications with accurate schedules of values, stored and tied to each project.",
+      "AI manages vendor bills, subcontractor pay apps, owner billing, progress billing, and change orders — with automatic tracking of billing cycles, retainage, aging, and cash flow.",
   },
   {
-    title: "Accounting and ERP integrations",
+    title: "Retention Management",
     description:
-      "Generate, track, and exchange conditional and unconditional lien waivers without chasing paperwork or risking compliance mistakes.",
+      "AI tracks retention across payables and receivables — managing withheld amounts, releases, and close-out automatically.",
   },
   {
-    title: "Pay Package Support",
+    title: "Projects & Billing Cycles",
     description:
-      "Create clean, complete pay packages that speed up approvals and reduce payment delays.",
+      "AI coordinates project billing, approvals, retainage, and payments — giving real-time visibility into what's billed, paid, and outstanding.",
   },
   {
-    title: "Accounts Receivable",
+    title: "The Builder's Back Office",
     description:
-      "See who owes you what, track payment status in one place, and reduce time spent chasing invoices.",
+      "AI powers contracts, bidding, insurance tracking, time clocks, dispatch, scheduling, HR, legal, and business operations — all in one system.",
   },
 ];
 
