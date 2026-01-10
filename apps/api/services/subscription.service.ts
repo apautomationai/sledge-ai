@@ -5,82 +5,42 @@ import { eq } from 'drizzle-orm';
 
 export class SubscriptionService {
     /**
-     * Determine tier based on registration order
-     * Requirements: 1.2, 1.3, 1.4
+     * Determine tier - all users get standard tier
      */
-    static determineTier(registrationOrder: number): SubscriptionTier {
-        if (registrationOrder <= SUBSCRIPTION_CONFIG.TIER_LIMITS.FREE_MAX) {
-            return SUBSCRIPTION_CONFIG.TIERS.FREE;
-        } else if (registrationOrder <= SUBSCRIPTION_CONFIG.TIER_LIMITS.PROMOTIONAL_MAX) {
-            return SUBSCRIPTION_CONFIG.TIERS.PROMOTIONAL;
-        } else {
-            return SUBSCRIPTION_CONFIG.TIERS.STANDARD;
-        }
+    static determineTier(_registrationOrder: number): SubscriptionTier {
+        return SUBSCRIPTION_CONFIG.TIERS.STANDARD;
     }
 
     /**
-     * Calculate trial end date for each tier
-     * Requirements: 1.2, 1.3, 1.4
+     * Calculate trial end date
      */
-    static calculateTrialEnd(tier: SubscriptionTier, startDate: Date = new Date()): Date | null {
-        switch (tier) {
-            case SUBSCRIPTION_CONFIG.TIERS.FREE:
-                return null; // Free tier has no trial period
-            case SUBSCRIPTION_CONFIG.TIERS.PROMOTIONAL:
-                return new Date(startDate.getTime() + (SUBSCRIPTION_CONFIG.TRIALS.PROMOTIONAL_DAYS * 24 * 60 * 60 * 1000));
-            case SUBSCRIPTION_CONFIG.TIERS.STANDARD:
-                return new Date(startDate.getTime() + (SUBSCRIPTION_CONFIG.TRIALS.STANDARD_DAYS * 24 * 60 * 60 * 1000));
-            default:
-                return null;
-        }
+    static calculateTrialEnd(startDate: Date = new Date()): Date | null {
+        const trialDays = parseInt(SUBSCRIPTION_CONFIG.TRIALS.STANDARD_DAYS || '0', 10);
+        return new Date(startDate.getTime() + (trialDays * 24 * 60 * 60 * 1000));
     }
 
     /**
      * Get pricing for a tier
      */
-    static getTierPricing(tier: SubscriptionTier): number {
-        switch (tier) {
-            case SUBSCRIPTION_CONFIG.TIERS.FREE:
-                return 0;
-            case SUBSCRIPTION_CONFIG.TIERS.PROMOTIONAL:
-                return SUBSCRIPTION_CONFIG.PRICING.PROMOTIONAL_MONTHLY;
-            case SUBSCRIPTION_CONFIG.TIERS.STANDARD:
-                return SUBSCRIPTION_CONFIG.PRICING.STANDARD_MONTHLY;
-            default:
-                return 0;
-        }
+    static getTierPricing(_tier: SubscriptionTier): number {
+        return SUBSCRIPTION_CONFIG.PRICING.STANDARD_MONTHLY;
     }
 
     /**
      * Get Stripe price ID for a tier
      */
-    static getStripePriceId(tier: SubscriptionTier): string | null {
-        switch (tier) {
-            case SUBSCRIPTION_CONFIG.TIERS.FREE:
-                return null;
-            case SUBSCRIPTION_CONFIG.TIERS.PROMOTIONAL:
-                return SUBSCRIPTION_CONFIG.STRIPE_PRICE_IDS.PROMOTIONAL;
-            case SUBSCRIPTION_CONFIG.TIERS.STANDARD:
-                return SUBSCRIPTION_CONFIG.STRIPE_PRICE_IDS.STANDARD;
-            default:
-                return null;
-        }
+    static getStripePriceId(_tier: SubscriptionTier): string | null {
+        return SUBSCRIPTION_CONFIG.STRIPE_PRICE_IDS.STANDARD;
     }
 
     /**
      * Check if subscription has active access
-     * Requirements: 1.2, 1.3, 1.4
      */
     static hasActiveAccess(subscription: {
         tier: string;
         status: string;
         trialEnd: Date | null;
     }): boolean {
-        // Free tier always has access
-        if (subscription.tier === SUBSCRIPTION_CONFIG.TIERS.FREE) {
-            return true;
-        }
-
         // Check if subscription is active
         if (subscription.status === SUBSCRIPTION_CONFIG.STATUS.ACTIVE) {
             return true;
@@ -111,11 +71,6 @@ export class SubscriptionService {
         stripeCustomerId: string | null;
         stripeSubscriptionId: string | null;
     }): boolean {
-        // Free tier never requires payment
-        if (subscription.tier === SUBSCRIPTION_CONFIG.TIERS.FREE) {
-            return false;
-        }
-
         // If no Stripe subscription exists, payment setup is required
         return !subscription.stripeSubscriptionId;
     }
@@ -170,29 +125,14 @@ export class SubscriptionService {
                 registrationOrder,
                 tier,
                 promoCode: promoCode || 'none',
-                tierLimits: {
-                    FREE_MAX: SUBSCRIPTION_CONFIG.TIER_LIMITS.FREE_MAX,
-                    PROMOTIONAL_MAX: SUBSCRIPTION_CONFIG.TIER_LIMITS.PROMOTIONAL_MAX
-                }
             });
 
-            // For paid tiers, users start with 'incomplete' status until they set up payment
+            // Users start with 'incomplete' status until they set up payment
             // Trial only starts after payment method is added
-            let trialStart = null;
-            let trialEnd = null;
-            let status;
-
-            if (tier === SUBSCRIPTION_CONFIG.TIERS.FREE) {
-                status = SUBSCRIPTION_CONFIG.STATUS.ACTIVE;
-                console.log(`✅ User ${userId} assigned to FREE tier (active)`);
-            } else if (tier === SUBSCRIPTION_CONFIG.TIERS.PROMOTIONAL) {
-                status = SUBSCRIPTION_CONFIG.STATUS.INCOMPLETE;
-                console.log(`✅ User ${userId} assigned to PROMOTIONAL tier (incomplete - needs payment setup)`);
-            } else {
-                // Paid tiers start as 'incomplete' - requiring payment setup
-                status = SUBSCRIPTION_CONFIG.STATUS.INCOMPLETE;
-                console.log(`✅ User ${userId} assigned to STANDARD tier (incomplete - needs payment setup)`);
-            }
+            const trialStart = null;
+            const trialEnd = null;
+            const status = SUBSCRIPTION_CONFIG.STATUS.INCOMPLETE;
+            console.log(`✅ User ${userId} assigned to STANDARD tier (incomplete - needs payment setup)`);
 
             const subscriptionData = {
                 userId,
@@ -322,14 +262,13 @@ export class SubscriptionService {
             throw new Error('Subscription not found');
         }
 
-        // Only start trial for incomplete paid tier subscriptions
-        if (subscription.tier === SUBSCRIPTION_CONFIG.TIERS.FREE ||
-            subscription.status !== SUBSCRIPTION_CONFIG.STATUS.INCOMPLETE) {
+        // Only start trial for incomplete subscriptions
+        if (subscription.status !== SUBSCRIPTION_CONFIG.STATUS.INCOMPLETE) {
             return subscription;
         }
 
         const trialStart = new Date();
-        const trialEnd = this.calculateTrialEnd(subscription.tier, trialStart);
+        const trialEnd = this.calculateTrialEnd(trialStart);
 
         const [updatedSubscription] = await db
             .update(subscriptionsModel)

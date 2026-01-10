@@ -126,11 +126,6 @@ export class SubscriptionController {
                 throw new NotFoundError('Subscription not found for user');
             }
 
-            // Free tier users don't need checkout
-            if (subscription.tier === SUBSCRIPTION_CONFIG.TIERS.FREE) {
-                throw new BadRequestError('Free tier users do not need to create checkout sessions');
-            }
-
             // Check if user already has an active subscription
             if (subscription.stripeSubscriptionId && subscription.status === SUBSCRIPTION_CONFIG.STATUS.ACTIVE) {
                 throw new BadRequestError('User already has an active subscription');
