@@ -45,14 +45,14 @@ export default function SignUpForm() {
   };
 
   useEffect(() => {
-    // Handle success - redirect to verify email page
+    // Handle success - trigger browser refresh
     if (state?.success && state?.redirectTo) {
       toast.success("Account Created", {
-        description: "Please check your email to verify your account.",
+        description: "Welcome! Redirecting to onboarding...",
       });
-      // Redirect to the verify-email page
+      // Use setTimeout to allow toast to show before refresh
       setTimeout(() => {
-        window.location.href = state.redirectTo!;
+        window.location.reload();
       }, 1000);
       return;
     }

@@ -1,34 +1,33 @@
 import { invoiceController } from "@/controllers/invoice.controller";
 import { authenticate } from "@/middlewares/auth.middleware";
-import { requireEmailVerification } from "@/middlewares/email-verified.middleware";
 import { requireSubscriptionAccess } from "@/middlewares/subscription.middleware";
 import { Router } from "express";
 
 const router = Router();
 
 // Get dashboard metrics
-router.get("/dashboard", authenticate, requireEmailVerification, requireSubscriptionAccess, invoiceController.getDashboardMetrics);
+router.get("/dashboard", authenticate, requireSubscriptionAccess, invoiceController.getDashboardMetrics);
 
 // Get invoice trends
-router.get("/trends", authenticate, requireEmailVerification, requireSubscriptionAccess, invoiceController.getInvoiceTrends);
+router.get("/trends", authenticate, requireSubscriptionAccess, invoiceController.getInvoiceTrends);
 
 // Create a new invoice
-router.post("/invoices", authenticate, requireEmailVerification, requireSubscriptionAccess, invoiceController.insertInvoice);
+router.post("/invoices", authenticate, requireSubscriptionAccess, invoiceController.insertInvoice);
 
 // Get all invoices (paginated)
-router.get("/invoices", authenticate, requireEmailVerification, requireSubscriptionAccess, invoiceController.getAllInvoices);
+router.get("/invoices", authenticate, requireSubscriptionAccess, invoiceController.getAllInvoices);
 
 // Get lightweight invoices list (only IDs and statuses)
-router.get("/invoices-list", authenticate, requireEmailVerification, requireSubscriptionAccess, invoiceController.getInvoicesList);
+router.get("/invoices-list", authenticate, requireSubscriptionAccess, invoiceController.getInvoicesList);
 
 // Get a single invoice by its ID
-router.get("/invoices/:id", authenticate, requireEmailVerification, requireSubscriptionAccess, invoiceController.getInvoice);
+router.get("/invoices/:id", authenticate, requireSubscriptionAccess, invoiceController.getInvoice);
 
 // Update a single invoice by its ID
-router.patch("/:id", authenticate, requireEmailVerification, requireSubscriptionAccess, invoiceController.updateInvoice);
+router.patch("/:id", authenticate, requireSubscriptionAccess, invoiceController.updateInvoice);
 
 // Update invoice status
-router.patch("/:id/status", authenticate, requireEmailVerification, requireSubscriptionAccess, invoiceController.updateInvoiceStatus);
+router.patch("/:id/status", authenticate, requireSubscriptionAccess, invoiceController.updateInvoiceStatus);
 
 // Clone an invoice
 router.post("/invoices/:id/clone", authenticate, requireSubscriptionAccess, invoiceController.cloneInvoice);

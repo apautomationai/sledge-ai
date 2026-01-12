@@ -283,14 +283,11 @@ export class StripeService {
                 throw new Error('No subscription ID found in checkout session');
             }
 
-            // Update local subscription with Stripe subscription ID and remove promo code
+            // Update local subscription with Stripe subscription ID
             await SubscriptionService.updateSubscriptionByUserId(userId, {
                 stripeSubscriptionId,
                 status: SUBSCRIPTION_CONFIG.STATUS.TRIALING,
-                promoCode: null, // Remove promo code after successful payment setup
             });
-
-            console.log(`✅ Checkout successful for user ${userId} - promo code removed from database`);
         } catch (error) {
             console.error('Error handling checkout success:', error);
             throw new Error(`Failed to handle checkout success: ${error instanceof Error ? error.message : 'Unknown error'}`);
