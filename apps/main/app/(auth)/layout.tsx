@@ -68,9 +68,9 @@ export default function AuthLayout({
       {/* Right Side - Image */}
       <div className="relative hidden md:block overflow-hidden flex-1 h-full">
         <img
-          src={pathname === '/sign-up' ? "/images/sign-up-test-1 2.png" : "/images/login.png"}
+          src={pathname === '/sign-up' ? "/images/Right.svg" : "/images/generative-fill 1.svg"}
           alt={pathname === '/sign-up' ? "Sign Up" : "Login"}
-          className="h-full w-full object-fill"
+          className="h-full w-full object-cover"
         />
       </div>
     </div>
