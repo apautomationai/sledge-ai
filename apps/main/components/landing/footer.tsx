@@ -13,8 +13,8 @@ const navigation = {
     { name: "Concrete", href: "/industries/concrete" },
   ],
   company: [
-    { name: "Contact", href: "/contact-us" },
     { name: "About Us", href: "/about" },
+    { name: "Contact Us", href: "/contact-us" },
   ],
 
   legal: [

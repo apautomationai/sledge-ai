@@ -27,7 +27,7 @@ export function PromoHero() {
             </h2>
 
             <div className="mt-2 md:mt-6 flex items-center justify-center  md:pb-0">
-              <Link href="/sign-up">
+              <Link href="/promo#redeem">
                 <div className="px-3 sm:px-4 py-2 sm:py-3 bg-[#E3B02F] rounded flex justify-center items-center gap-2 overflow-hidden hover:bg-amber-500 transition-colors duration-300">
                   <div className="text-center text-stone-800 text-sm sm:text-base font-bold font-['Inter'] uppercase leading-6">
                     REDEEM FREE TRIAL

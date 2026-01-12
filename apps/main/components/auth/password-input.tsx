@@ -97,7 +97,7 @@ export function PasswordInput({
             placeholder={placeholder}
             value={value}
             onChange={onChange}
-            className="self-stretch w-full h-11 pr-10 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
+            className="self-stretch w-full h-11 pr-10 text-sm font-medium focus:ring-0 px-4 py-2 bg-[#1b1b1b] rounded border border-[#808080] text-[#f6f6f6] focus:border-amber-400 focus:outline-none transition-colors"
             required={required}
             minLength={6}
           />
@@ -120,48 +120,40 @@ export function PasswordInput({
 
   // Default variant (for sign-up page)
   return (
-    <div className="self-stretch flex flex-col justify-start items-end gap-1">
-      <div className="self-stretch flex flex-col justify-start items-start gap-1">
-        {showLabel && (
-          <label
-            htmlFor={id}
-            className="self-stretch justify-start text-white text-sm font-medium font-['Inter']"
-          >
-            {label}
-            <span className="text-red-400 ml-1 md:inline hidden">*</span>
-          </label>
-        )}
-        <div className="relative w-full">
-          <input
-            id={id}
-            name={name}
-            type={showPassword ? "text" : "password"}
-            placeholder={placeholder}
-            required={required}
-            minLength={6}
-            value={value}
-            onChange={onChange}
-            className="self-stretch w-full h-11 pr-10 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
-          />
-          <button
-            type="button"
-            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent hover:text-gray-400 text-gray-400 z-20 cursor-pointer"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-        {errors && <p className="text-sm text-red-400 mt-1">{errors[0]}</p>}
-      </div>
-      {showHint && (
-        <div className="self-stretch justify-start text-zinc-400 text-xs font-normal font-['Inter'] leading-4 md:hidden">
-          At least 6 characters
-        </div>
+    <div className="self-stretch w-full">
+      {showLabel && (
+        <label
+          htmlFor={id}
+          className="self-stretch justify-start text-white text-sm font-medium font-['Inter']"
+        >
+          {label}
+        </label>
       )}
+      <div className="relative w-full">
+        <input
+          id={id}
+          name={name}
+          type={showPassword ? "text" : "password"}
+          placeholder={placeholder}
+          required={required}
+          minLength={6}
+          value={value}
+          onChange={onChange}
+          className="self-stretch w-full h-11 pr-10 text-sm font-medium focus:ring-0 px-4 py-2 bg-[#1b1b1b] rounded border border-[#808080] text-[#f6f6f6] focus:border-amber-400 focus:outline-none transition-colors"
+        />
+        <button
+          type="button"
+          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent hover:text-gray-400 text-gray-400 z-20 cursor-pointer"
+          onClick={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Eye className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+      {errors && <p className="text-sm text-red-400 mt-1">{errors[0]}</p>}
     </div>
   );
 }

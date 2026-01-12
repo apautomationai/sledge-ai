@@ -2,7 +2,6 @@
 
 import React, { useEffect, useActionState } from "react";
 import Link from "next/link";
-import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
@@ -12,6 +11,7 @@ import {
   forgotPasswordAction,
   ForgotPasswordFormState,
 } from "@/app/(auth)/forget-password/actions";
+import { SubmitButton } from "@/components/auth/submit-button";
 
 const initialState: ForgotPasswordFormState = {
   message: "",
