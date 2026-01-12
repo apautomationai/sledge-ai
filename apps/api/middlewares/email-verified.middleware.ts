@@ -36,7 +36,7 @@ export const requireEmailVerification = (
     }
 
     // User is verified, continue to next middleware
-    next();
+    return next();
   } catch (error) {
     return res.status(401).json({
       success: false,
