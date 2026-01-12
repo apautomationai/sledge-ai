@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Button } from "@workspace/ui/components/button";
-import { Menu, X, CreditCard, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { checkSession } from "./action";
 
@@ -169,13 +169,13 @@ export function Header() {
               </span>
             </Link>
 
-            <div className="hidden lg:flex lg:items-center lg:gap-8 2xl:gap-12 absolute left-1/2 -translate-x-1/2">
+            <div className="hidden lg:flex lg:items-center lg:gap-3 xl:gap-6 2xl:gap-12 absolute left-1/2 -translate-x-1/2">
               {navigation.map((item) =>
                 item.name === "Products" ? (
                   <div key={item.name} className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setDropdownOpen(!dropdownOpen)}
-                      className="text-white font-medium transition-colors duration-300 uppercase text-sm flex items-center gap-2 cursor-pointer"
+                      className="text-white font-bold transition-colors duration-300 uppercase text-xs xl:text-sm flex items-center gap-1 xl:gap-2 cursor-pointer"
                     >
                       {item.name}
                       <img
@@ -262,7 +262,7 @@ export function Header() {
                       onClick={() =>
                         setIndustriesDropdownOpen(!industriesDropdownOpen)
                       }
-                      className="text-white font-medium transition-colors duration-300 uppercase text-sm flex items-center gap-2 cursor-pointer"
+                      className="text-white font-bold transition-colors duration-300 uppercase text-xs xl:text-sm flex items-center gap-1 xl:gap-2 cursor-pointer"
                     >
                       {item.name}
                       <img
@@ -313,7 +313,7 @@ export function Header() {
                       onClick={() =>
                         setCompanyDropdownOpen(!companyDropdownOpen)
                       }
-                      className="text-white font-medium transition-colors duration-300 uppercase text-sm flex items-center gap-2 cursor-pointer"
+                      className="text-white font-bold transition-colors duration-300 uppercase text-xs xl:text-sm flex items-center gap-1 xl:gap-2 cursor-pointer"
                     >
                       {item.name}
                       <img
@@ -358,7 +358,7 @@ export function Header() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="text-white font-medium transition-colors duration-300 uppercase text-sm"
+                    className="text-white font-bold transition-colors duration-300 uppercase text-xs xl:text-sm"
                   >
                     {item.name}
                   </Link>
@@ -421,7 +421,14 @@ export function Header() {
                     className="flex items-center gap-3"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <CreditCard className="h-8 w-8 text-yellow-500" />
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center">
+                      <Image
+                        src={"/images/logos/logo-sledge-symbol-custom.svg"}
+                        alt="Logo"
+                        width={32}
+                        height={32}
+                      />
+                    </div>
                     <span className="text-xl font-bold text-white uppercase">
                       SLEDGE
                     </span>
