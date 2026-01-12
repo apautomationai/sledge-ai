@@ -4,7 +4,7 @@ import React, { useEffect, useActionState } from "react";
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { AtSign, Loader2, ArrowLeft } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
@@ -21,18 +21,19 @@ const initialState: ForgotPasswordFormState = {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button 
-      className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-gray-900 font-bold py-3 px-4 rounded-none transition-all duration-300 shadow-lg shadow-yellow-500/50 hover:shadow-yellow-400/60 border-2 border-yellow-600 uppercase" 
-      type="submit" 
+    <Button
+      type="submit"
       disabled={pending}
+      className="self-stretch h-11 px-4 py-2 inline-flex justify-center items-center gap-3 relative overflow-hidden hover:opacity-90 font-bold font-['Inter'] text-base leading-6 uppercase cursor-pointer transition-opacity"
+      style={{ background: '#E3B02F', borderRadius: '4px', color: '#09090B' }}
     >
       {pending ? (
         <div className="flex items-center justify-center">
           <Loader2 className="animate-spin h-5 w-5 mr-2" />
-          Sending...
+          SENDING...
         </div>
       ) : (
-        "Send Reset Link"
+        "SEND RESET LINK"
       )}
     </Button>
   );
@@ -55,54 +56,72 @@ export default function ForgotPasswordForm() {
   }, [state]);
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex flex-col items-center gap-1 text-center">
-        <div className="mb-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-none flex items-center justify-center shadow-[0_0_30px_rgba(253,176,34,0.5),inset_0_0_20px_rgba(0,0,0,0.5)] border-4 border-yellow-600/60 mx-auto mb-3 relative">
-            <AtSign className="h-8 w-8 text-gray-900 relative z-10" />
-          </div>
+    <div className="w-full flex flex-col justify-center items-center gap-5">
+      {/* Logo - Centered */}
+      <Link href="/" className="w-48 h-16 relative cursor-pointer">
+        <img
+          src="/images/logos/logo-sledge-symbol-custom.svg"
+          alt="Logo"
+          className="w-16 h-16 absolute left-0 top-0 rounded-2xl"
+        />
+        <div className="absolute left-[74.67px] top-[17.33px] justify-center text-white text-3xl font-bold font-['League_Spartan'] capitalize leading-8">
+          SLEDGE
         </div>
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent uppercase">
-          Forgot Password
-        </h1>
-        <p className="text-gray-300 text-sm text-balance">
-          Enter your email and we'll send you a link to reset your password.
-        </p>
+      </Link>
+
+      {/* Header */}
+      <div className="self-stretch text-center text-gray-200 text-xl font-bold font-['Inter'] leading-7">
+        Forgot your password?
       </div>
 
-      <form action={formAction} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-gray-300 font-medium text-sm">Email</Label>
-          <div className="relative">
-            <AtSign className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 z-20" />
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              className="pl-10 h-11 bg-gray-800 border-4 border-gray-600 text-white placeholder-gray-400 rounded-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-600 transition-all duration-300"
-            />
-          </div>
-          {state.errors?.email && (
-            <p className="text-sm text-red-400 mt-1">{state.errors.email[0]}</p>
-          )}
+      <div className="w-full flex flex-col gap-5">
+        {/* Description */}
+        <div className="self-stretch text-center text-zinc-400 text-sm font-normal font-['Inter'] leading-5">
+          Enter your email and we'll send you a link to reset your password.
         </div>
-        {state.errors?._form && (
-          <div className="p-3 bg-red-900/20 border-4 border-red-800 rounded-none">
-            <p className="text-sm text-red-400 text-center">{state.errors._form[0]}</p>
-          </div>
-        )}
-        <SubmitButton />
-      </form>
 
-      <div className="text-center pt-4 border-t-2 border-gray-600">
-        <Button variant="link" asChild className="text-yellow-400 hover:text-yellow-300">
-          <Link href="/sign-in">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Sign In
+        {/* Form */}
+        <form action={formAction} className="self-stretch flex flex-col gap-6">
+          <div className="self-stretch flex flex-col gap-1">
+            <Label htmlFor="email" className="self-stretch text-white text-sm font-medium font-['Inter']">
+              Email
+            </Label>
+            <div className="relative">
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder=""
+                className="self-stretch h-11 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
+                required
+              />
+            </div>
+            {state.errors?.email && (
+              <p className="text-sm text-red-400 mt-1">{state.errors.email[0]}</p>
+            )}
+          </div>
+
+          {state.errors?._form && (
+            <div className="p-3 bg-red-900/20 relative overflow-hidden" style={{ border: '1px solid #808080', borderRadius: '4px' }}>
+              <p className="text-sm text-red-400 text-center relative z-10">{state.errors._form[0]}</p>
+            </div>
+          )}
+
+          <SubmitButton />
+        </form>
+
+        <div className="inline-flex justify-center items-center gap-1 w-full flex-wrap">
+          <div className="text-white text-sm sm:text-base font-bold font-['Inter'] leading-6 whitespace-nowrap">
+            REMEMBER YOUR PASSWORD?
+          </div>
+          <Link
+            href="/sign-in"
+            className="text-sm sm:text-base font-bold font-['Inter'] uppercase leading-6 hover:text-amber-400 whitespace-nowrap"
+            style={{ color: '#E3B02F' }}
+          >
+            SIGN IN
           </Link>
-        </Button>
+        </div>
       </div>
     </div>
   );
