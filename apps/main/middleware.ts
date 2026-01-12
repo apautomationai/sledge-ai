@@ -10,20 +10,6 @@ const protectedRoutes = [
   "/report"
 ];
 
-// Decode JWT without verification (just to read the payload)
-function decodeJWT(token: string): any {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const payload = parts[1];
-    if (!payload) return null;
-    const decoded = Buffer.from(payload, 'base64').toString('utf-8');
-    return JSON.parse(decoded);
-  } catch (error) {
-    return null;
-  }
-}
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('token')?.value;
@@ -39,19 +25,6 @@ export async function middleware(request: NextRequest) {
     // Add the original URL as a query parameter so we can redirect back after login
     signInUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(signInUrl);
-  }
-
-  // If user has token, check if email is verified
-  if (isProtectedRoute && token) {
-    const decoded = decodeJWT(token);
-
-    // Check if email is verified
-    if (decoded && decoded.is_verified === false) {
-      // Get user email from token
-      const email = decoded.email || '';
-      // Redirect to verify-email page
-      return NextResponse.redirect(new URL(`/verify-email?email=${encodeURIComponent(email)}`, request.url));
-    }
   }
 
   // If user is logged in and tries to access auth pages, redirect to dashboard
