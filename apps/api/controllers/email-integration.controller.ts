@@ -311,7 +311,7 @@ export class EmailIntegrationController {
         // Only store scopes in metadata
         // email and providerId have dedicated fields in the integrations table
         const metadata = {
-          scopes: ["Mail.Read", "offline_access", "User.Read"],
+          scopes: ["Mail.ReadWrite", "offline_access", "User.Read"],
         };
 
         if (!existingIntegration) {

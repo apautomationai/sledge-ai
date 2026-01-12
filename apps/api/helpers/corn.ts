@@ -4,7 +4,7 @@ import nodeCron from "node-cron";
 
 const fetchEmailsForAllProviders = async () => {
   const backendUrl = process.env.BACKEND_URL || 'http://localhost:4000';
-  
+
   // Run Gmail and Outlook syncs in parallel
   const [gmailResult, outlookResult] = await Promise.allSettled([
     axios.get(`${backendUrl}/api/v1/email/gmail`).catch((error) => {
