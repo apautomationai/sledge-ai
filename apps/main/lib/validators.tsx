@@ -5,7 +5,11 @@ export const signUpSchema = z.object({
   firstName: z.string().min(2, { message: "First name is required." }),
   lastName: z.string().min(2, { message: "Last name is required." }),
   email: z.string().email({ message: "Please enter a valid email." }),
-  phone: z.string().max(20, { message: "Please enter a valid phone number." }),
+  phone: z
+    .string()
+    .min(10, { message: "Phone number must be at least 10 digits." })
+    .max(20, { message: "Phone number must not exceed 20 characters." })
+    .regex(/^[\d\s\-\+\(\)]+$/, { message: "Please enter a valid phone number." }),
   businessName: z.string().min(2, { message: "Business name is required." }),
   password: z
     .string()

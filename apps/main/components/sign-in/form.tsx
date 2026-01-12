@@ -186,40 +186,41 @@ function SignInFormComponent() {
   }, [state]);
 
   return (
-    <div className="w-full flex flex-col justify-center items-center gap-5">
+    <div className="w-full flex flex-col justify-center items-center gap-[22px]">
         {/* Logo - Centered */}
-        <Link href="/" className="w-48 h-16 relative cursor-pointer">
+        <Link href="/" className="w-[185.333px] h-16 relative cursor-pointer">
           <img
             src="/images/logos/logo-sledge-symbol-custom.svg"
             alt="Logo"
             className="w-16 h-16 absolute left-0 top-0 rounded-2xl"
           />
-          <div className="absolute left-[74.67px] top-[17.33px] justify-center text-white text-3xl font-bold font-['League_Spartan'] capitalize leading-8">
+          <div className="absolute left-[74.67px] top-[17.33px] justify-center text-white text-[32px] font-bold font-['League_Spartan'] capitalize leading-8">
             SLEDGE
           </div>
         </Link>
 
         {/* Header */}
-        <div className="self-stretch text-center text-gray-200 text-xl font-bold font-['Inter'] leading-7">
-          Log in to your account
+        <div className="self-stretch text-center text-[#edeceb] text-[22px] font-bold font-['Inter'] leading-7">
+          Log in  to your account
         </div>
 
-        <div className="w-full flex flex-col gap-5">
+        <div className="w-full flex flex-col gap-[22px]">
         {/* Social Login Buttons */}
-        <div className="self-stretch flex flex-col gap-3">
+        <div className="self-stretch flex flex-col gap-[12px]">
           <Button
             type="button"
             onClick={handleGoogleSignIn}
             className="self-stretch h-11 px-4 py-2 inline-flex justify-center items-center gap-3 relative overflow-hidden hover:text-gray-200 font-medium font-['Inter'] text-base leading-6 cursor-pointer"
-            style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#E5E5E5' }}
+            style={{ background: '#1b1b1b', border: '1px solid #808080', borderRadius: '4px', color: '#edeceb' }}
           >
             <GoogleIcon />
             <span>Continue with Google</span>
           </Button>
           <Button
+            type="button"
             onClick={handleMicrosoftSignIn}
             className="self-stretch h-11 px-4 py-2 inline-flex justify-center items-center gap-3 relative overflow-hidden hover:text-gray-200 font-medium font-['Inter'] text-base leading-6 cursor-pointer"
-            style={{ background: '#18181B', border: '1px solid #808080', borderRadius: '4px', color: '#E5E5E5' }}
+            style={{ background: '#1b1b1b', border: '1px solid #808080', borderRadius: '4px', color: '#edeceb' }}
           >
             <MicrosoftIcon />
             <span>Continue with Microsoft</span>
@@ -228,16 +229,16 @@ function SignInFormComponent() {
 
         {/* Divider */}
         <div className="self-stretch inline-flex justify-start items-center gap-1.5">
-          <div className="flex-1 h-px bg-neutral-600" />
-          <div className="text-center text-zinc-400 text-sm font-normal font-['Inter'] leading-5">
+          <div className="flex-1 h-px bg-[#505050]" />
+          <div className="text-center text-[#aeaeae] text-sm font-normal font-['Inter'] leading-5">
             OR
           </div>
-          <div className="flex-1 h-px bg-neutral-600" />
+          <div className="flex-1 h-px bg-[#505050]" />
         </div>
 
         {/* Sign In Form */}
-        <form onSubmit={handleSubmit} className="self-stretch flex flex-col gap-6">
-          <div className="self-stretch flex flex-col gap-6">
+        <form onSubmit={handleSubmit} className="self-stretch flex flex-col gap-[24px] items-center">
+          <div className="self-stretch flex flex-col gap-[24px]">
             <div className="self-stretch flex flex-col gap-1">
               <Label htmlFor="email" className="self-stretch text-white text-sm font-medium font-['Inter']">
                 Email
@@ -250,7 +251,7 @@ function SignInFormComponent() {
                   placeholder=""
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="self-stretch h-11 text-sm font-medium focus:ring-0 px-4 py-2 bg-zinc-900 rounded border border-neutral-500 text-stone-50 focus:border-amber-400 focus:outline-none transition-colors"
+                  className="self-stretch h-11 text-sm font-medium focus:ring-0 px-4 py-2 bg-[#1b1b1b] rounded border border-[#808080] text-[#f6f6f6] focus:border-amber-400 focus:outline-none transition-colors"
                   required
                 />
               </div>
@@ -275,7 +276,7 @@ function SignInFormComponent() {
               />
               <Link
                 href="/forget-password"
-                className="self-stretch text-right text-zinc-400 text-xs font-normal font-['Inter'] underline leading-4"
+                className="self-stretch text-right text-[#aeaeae] text-xs font-normal font-['Inter'] underline leading-4"
               >
                 Forgot password?
               </Link>
@@ -283,7 +284,7 @@ function SignInFormComponent() {
           </div>
 
           {state.errors?._form && (
-            <div className="p-3 bg-red-900/20 relative overflow-hidden" style={{ border: '1px solid #808080', borderRadius: '4px' }}>
+            <div className="p-3 bg-red-900/20 relative overflow-hidden w-full" style={{ border: '1px solid #808080', borderRadius: '4px' }}>
               <p className="text-sm text-red-400 text-center relative z-10">{state.errors._form[0]}</p>
             </div>
           )}
@@ -291,14 +292,14 @@ function SignInFormComponent() {
           <SubmitButton label="LOG IN" pendingLabel="Logging In..." variant="default" isLoading={isLoading} />
         </form>
 
-        <div className="inline-flex justify-center items-center gap-1 w-full">
-          <div className="text-white text-base font-bold font-['Inter'] leading-6">
+        <div className="inline-flex justify-center items-center gap-1 w-full font-['Inter'] font-bold text-base">
+          <div className="text-white leading-6">
             NEW TO SLEDGE?
           </div>
           <Link
             href="/sign-up"
-            className="text-base font-bold font-['Inter'] uppercase leading-6 hover:text-amber-400"
-            style={{ color: '#E3B02F' }}
+            className="uppercase leading-6 hover:text-amber-400"
+            style={{ color: '#e3b02f' }}
           >
             SIGN UP
           </Link>
