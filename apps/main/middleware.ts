@@ -16,6 +16,7 @@ function decodeJWT(token: string): any {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
     const payload = parts[1];
+    if (!payload) return null;
     const decoded = Buffer.from(payload, 'base64').toString('utf-8');
     return JSON.parse(decoded);
   } catch (error) {

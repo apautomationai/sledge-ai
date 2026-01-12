@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { toast } from "sonner";
+
+export const dynamic = 'force-dynamic';
 
 function VerifyEmailHeader() {
   return (
@@ -58,7 +60,7 @@ function getTokenData(): { email: string | null; isVerified: boolean } {
   }
 }
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const [verificationStatus, setVerificationStatus] = useState<"idle" | "verifying" | "success" | "error">("idle");
@@ -360,5 +362,24 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <>
+        <VerifyEmailHeader />
+        <div className="w-full flex flex-col justify-center min-h-screen px-6 md:px-8 lg:px-12 py-12 md:py-16">
+          <div className="w-full max-w-[600px] mx-auto bg-[#1B1A17] border border-[#333] rounded-2xl p-8 md:p-10 lg:p-12 flex flex-col gap-8 relative z-10">
+            <div className="text-center text-gray-200 text-xl sm:text-2xl md:text-3xl font-bold font-['Inter'] leading-tight">
+              Loading...
+            </div>
+          </div>
+        </div>
+      </>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
