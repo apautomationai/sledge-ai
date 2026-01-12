@@ -35,6 +35,11 @@ passport.use(
           return done(null, false, { message: 'Incorrect email or password' });
         }
 
+        // Check if email is verified (only for credential-based users)
+        if (user.provider === 'credentials' && !user.isVerified) {
+          return done(null, false, { message: 'Please verify your email address before logging in. Check your inbox for the verification link.' });
+        }
+
         // return safe user object (omit passwordHash)
         return done(null, { id: user.id, email: user.email });
       } catch (err) {
@@ -67,7 +72,7 @@ passport.use(
 
         if (!user) return done(null, false);
 
-        return done(null, { id: user.id, email: user.email });
+        return done(null, { id: user.id, email: user.email, isVerified: user.isVerified });
       } catch (err) {
         return done(err as Error);
       }
@@ -136,6 +141,7 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_AUTH_REDIRECT_URI) {
               passwordHash,
               isActive: true,
               isBanned: false,
+              isVerified: true,
             })
             .returning();
 
@@ -234,6 +240,7 @@ if (MICROSOFT_CLIENT_ID && MICROSOFT_CLIENT_SECRET && MICROSOFT_AUTH_REDIRECT_UR
               passwordHash,
               isActive: true,
               isBanned: false,
+              isVerified: true,
             })
             .returning();
 

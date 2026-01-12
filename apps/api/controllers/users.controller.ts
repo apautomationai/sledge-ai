@@ -35,11 +35,12 @@ export class UserController {
         promoCode,
       });
 
-      // Generate JWT token for automatic login
+      // Generate JWT token for automatic login (note: user is not verified yet for credentials signup)
       const token = signJwt({
         sub: result.user.id,
         id: result.user.id,
         email: result.user.email,
+        is_verified: false, // Credential signups start as unverified
       });
 
       // Set cookies for automatic login (same as login endpoint)
@@ -57,14 +58,15 @@ export class UserController {
         path: "/",
       });
 
-      // Send welcome email (non-blocking)
-      const ctaLink = `${process.env.FRONTEND_URL || "https://getsledge.com"}/onboarding`;
-      emailService.sendWelcomeEmail({
+      // Send verification email (non-blocking)
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const verificationLink = `${frontendUrl}/verify-email?token=${result.verificationToken}`;
+      emailService.sendVerificationEmail({
         to: result.user.email,
         firstName: result.user.firstName,
-        ctaLink,
+        verificationLink,
       }).catch((err) => {
-        console.error("Failed to send welcome email:", err);
+        console.error("Failed to send verification email:", err);
       });
 
       return res.status(200).json({
@@ -104,10 +106,14 @@ export class UserController {
             .status(401)
             .json({ message: info?.message || "Unauthorized" });
 
+        // Fetch full user data to get is_verified status
+        const [fullUser] = await userServices.getUserWithId((user as any).id);
+
         const token = signJwt({
           sub: (user as any).id,
           id: (user as any).id,
           email: (user as any).email,
+          is_verified: fullUser?.isVerified || false,
         });
         if (token) {
           await userServices.updateLastLogin(user.email);
@@ -323,6 +329,59 @@ export class UserController {
       });
     } catch (error: any) {
       throw new BadRequestError(error.message || "Unable to send password reset link");
+    }
+  };
+
+  verifyEmail = async (req: Request, res: Response) => {
+    const { token } = req.body;
+    if (!token) {
+      throw new BadRequestError("Verification token is required");
+    }
+
+    try {
+      const result = await userServices.verifyEmail(token);
+
+      // Set cookies for automatic login
+      res.cookie("token", result.token, {
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        path: "/",
+      });
+
+      res.cookie("userId", result.user.id.toString(), {
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        path: "/",
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Email verified successfully",
+        token: result.token,
+        user: result.user,
+      });
+    } catch (error: any) {
+      throw new BadRequestError(error.message || "Unable to verify email");
+    }
+  };
+
+  resendVerificationEmail = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    if (!email) {
+      throw new BadRequestError("Email is required");
+    }
+
+    try {
+      const result = await userServices.resendVerificationEmail(email);
+
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error: any) {
+      throw new BadRequestError(error.message || "Unable to resend verification email");
     }
   };
 }

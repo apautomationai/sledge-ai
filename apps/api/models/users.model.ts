@@ -20,6 +20,9 @@ export const usersModel = pgTable("users", {
   phone: varchar("phone", { length: 20 }),
   isActive: boolean("is_active").default(true).notNull(),
   isBanned: boolean("is_banned").default(false).notNull(),
+  isVerified: boolean("is_verified").default(false).notNull(),
+  verificationToken: varchar("verification_token", { length: 255 }),
+  verificationTokenExpiry: timestamp("verification_token_expiry", { withTimezone: false }),
   lastLogin: timestamp("last_login").defaultNow(),
   onboardingCompleted: boolean("onboarding_completed").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: false })

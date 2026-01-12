@@ -75,27 +75,14 @@ export async function signUpAction(
       };
     }
 
-    // Handle successful registration with automatic login
+    // Handle successful registration
     if (data.token) {
-      const cookieStore = await cookies();
-
-      // Set the token in an HTTP-only cookie (same as login)
-      cookieStore.set("token", data.token, {
-        path: "/",
-      });
-
-      // Set user ID in a separate cookie for client-side access
-      if (data.user?.id) {
-        cookieStore.set("userId", String(data.user.id), {
-          path: "/",
-        });
-      }
-
-      // Return success state - client will handle browser refresh
+      // For credential-based signup, redirect to verify-email page
+      // Do NOT set cookies until email is verified
       return {
-        message: "Account created successfully",
+        message: "Account created successfully. Please check your email to verify your account.",
         success: true,
-        redirectTo: "/onboarding",
+        redirectTo: `/verify-email?email=${encodeURIComponent(email)}`,
         timestamp,
       };
     }

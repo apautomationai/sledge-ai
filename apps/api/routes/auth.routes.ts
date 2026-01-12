@@ -3,14 +3,18 @@ import { Router } from "express";
 import { authController } from "@/controllers/auth.controller";
 import { authenticate } from "@/middlewares/auth.middleware";
 import { emailIntegrationController } from "@/controllers/email-integration.controller";
+import {
+  authRateLimiter,
+  authCallbackRateLimiter,
+} from "@/middlewares/rate-limit.middleware";
 
 const router = Router();
 
 // User authentication (login) via OAuth providers
-router.get("/google", authController.googleAuth);
-router.get("/google/callback", authController.googleCallback);
-router.get("/microsoft", authController.microsoftAuth);
-router.get("/microsoft/callback", authController.microsoftCallback);
+router.get("/google", authRateLimiter, authController.googleAuth);
+router.get("/google/callback", authCallbackRateLimiter, authController.googleCallback);
+router.get("/microsoft", authRateLimiter, authController.microsoftAuth);
+router.get("/microsoft/callback", authCallbackRateLimiter, authController.microsoftCallback);
 
 // Email integration OAuth flows (Gmail & Outlook)
 router.get(
