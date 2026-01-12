@@ -4,7 +4,7 @@ import { attachmentsModel } from "@/models/attachments.model";
 import { invoiceModel, lineItemsModel } from "@/models/invoice.model";
 import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
 import { quickbooksCustomersModel } from "@/models/quickbooks-customers.model";
-import { count, desc, eq, getTableColumns, and, sql, gte, lt, lte, inArray, ne } from "drizzle-orm";
+import { count, desc, asc, eq, getTableColumns, and, sql, gte, lt, lte, inArray, ne } from "drizzle-orm";
 import { quickbooksProductsModel } from "@/models/quickbooks-products.model";
 import { PDFDocument } from "pdf-lib";
 import { s3Client, uploadBufferToS3 } from "@/helpers/s3upload";
@@ -244,7 +244,7 @@ export class InvoiceServices {
         eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
       )
       .where(and(...whereConditions))
-      .orderBy(desc(invoiceModel.createdAt))
+      .orderBy(asc(invoiceModel.createdAt))
       .limit(limit)
       .offset(offset);
 
@@ -277,7 +277,7 @@ export class InvoiceServices {
           eq(invoiceModel.isDeleted, false)
         )
       )
-      .orderBy(desc(invoiceModel.createdAt));
+      .orderBy(asc(invoiceModel.createdAt));
 
     return invoicesList;
   }

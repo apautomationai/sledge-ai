@@ -376,7 +376,7 @@ export default function JobDetailPage() {
                 toast.success("Invoice page cloned successfully");
 
                 // Refresh the invoices list
-                const refreshResponse = await client.get(`/api/v1/invoice/invoices?attachmentId=${jobId}`);
+                const refreshResponse = await client.get(`/api/v1/invoice/invoices-list?attachmentId=${jobId}`);
                 const invoiceData = refreshResponse.data?.data?.invoices || refreshResponse.data?.invoices || [];
                 setInvoicesList(invoiceData);
 
@@ -598,7 +598,7 @@ export default function JobDetailPage() {
                     )}
 
                     {/* PDF Preview */}
-                    <div className="flex-1 min-h-0 overflow-hidden">
+                    {/* <div className="flex-1 min-h-0 overflow-hidden">
                         {activeTab === "invoice" ? (
                             // Show invoice preview
                             invoiceDetails ? (
@@ -633,7 +633,7 @@ export default function JobDetailPage() {
                                 </div>
                             )
                         )}
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Right Side - Invoice Details Form */}
