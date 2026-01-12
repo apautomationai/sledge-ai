@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -12,7 +13,6 @@ import {
   forgotPasswordAction,
   ForgotPasswordFormState,
 } from "@/app/(auth)/forget-password/actions";
-import { SubmitButton } from "@/components/auth/submit-button";
 
 const initialState: ForgotPasswordFormState = {
   message: "",
