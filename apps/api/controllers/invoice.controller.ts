@@ -2,6 +2,7 @@ import { BadRequestError, NotFoundError, ForbiddenError } from "@/helpers/errors
 import { invoiceServices } from "@/services/invoice.services";
 import { getWebSocketService } from "@/services/websocket.service";
 import { Request, Response } from "express";
+import { getStringParam, getIntParam } from "@/helpers/request-utils";
 
 class InvoiceController {
   async insertInvoice(req: Request, res: Response) {
@@ -58,9 +59,9 @@ class InvoiceController {
     try {
       //@ts-ignore
       const userId = req.user.id;
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const attachmentId = req.query.attachmentId ? parseInt(req.query.attachmentId as string) : undefined;
+      const page = getIntParam(req.query.page) || 1;
+      const limit = getIntParam(req.query.limit) || 20;
+      const attachmentId = req.query.attachmentId ? getIntParam(req.query.attachmentId) : undefined;
 
       const { invoices, totalCount } = await invoiceServices.getAllInvoices(
         userId,
@@ -94,7 +95,7 @@ class InvoiceController {
     try {
       //@ts-ignore
       const userId = req.user.id;
-      const attachmentId = req.query.attachmentId ? parseInt(req.query.attachmentId as string) : undefined;
+      const attachmentId = req.query.attachmentId ? getIntParam(req.query.attachmentId) : undefined;
 
       if (!attachmentId) {
         throw new BadRequestError("Attachment ID is required");
@@ -120,7 +121,7 @@ class InvoiceController {
     try {
       //@ts-ignore
       const userId = req.user.id;
-      const dateRange = (req.query.dateRange as 'monthly' | 'all-time') || 'monthly';
+      const dateRange = (getStringParam(req.query.dateRange) as 'monthly' | 'all-time') || 'monthly';
 
       const dashboardData = await invoiceServices.getDashboardMetrics(userId, dateRange);
 
@@ -140,7 +141,7 @@ class InvoiceController {
     try {
       //@ts-ignore
       const userId = req.user.id;
-      const dateRange = (req.query.dateRange as 'monthly' | 'all-time') || 'monthly';
+      const dateRange = (getStringParam(req.query.dateRange) as 'monthly' | 'all-time') || 'monthly';
 
       const trendData = await invoiceServices.getInvoiceTrends(userId, dateRange);
 
@@ -159,7 +160,7 @@ class InvoiceController {
   async getInvoice(req: Request, res: Response) {
     try {
       // UPDATED: Parse the 'id' from URL parameter into a number
-      const invoiceId = parseInt(req.params.id, 10);
+      const invoiceId = getIntParam(req.params.id);
       if (isNaN(invoiceId)) {
         throw new BadRequestError("Invoice ID must be a valid number.");
       }
@@ -181,7 +182,7 @@ class InvoiceController {
   async updateInvoice(req: Request, res: Response) {
     try {
       // UPDATED: Parse the 'id' from URL parameter into a number
-      const invoiceId = parseInt(req.params.id, 10);
+      const invoiceId = getIntParam(req.params.id);
       if (isNaN(invoiceId)) {
         throw new BadRequestError("Invoice ID must be a valid number.");
       }
@@ -668,7 +669,7 @@ class InvoiceController {
       }
 
       // Validate and parse invoice ID
-      const invoiceId = parseInt(req.params.id, 10);
+      const invoiceId = getIntParam(req.params.id);
       if (isNaN(invoiceId) || invoiceId <= 0) {
         throw new BadRequestError("Invoice ID must be a valid positive number");
       }
