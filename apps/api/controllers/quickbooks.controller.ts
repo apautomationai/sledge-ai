@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { quickbooksService } from "@/services/quickbooks.service";
 import { integrationsService } from "@/services/integrations.service";
 import { BadRequestError, NotFoundError } from "@/helpers/errors";
+import { getStringParam, getIntParam } from "@/helpers/request-utils";
 
 export class QuickBooksController {
   // Initiate QuickBooks OAuth flow
@@ -38,7 +39,10 @@ export class QuickBooksController {
     _next: NextFunction,
   ): Promise<void> => {
     try {
-      const { code, realmId, state, error } = req.query;
+      const code = getStringParam(req.query.code);
+      const realmId = getStringParam(req.query.realmId);
+      const state = getStringParam(req.query.state);
+      const error = getStringParam(req.query.error);
       if (error) {
         throw new BadRequestError(`QuickBooks authorization error: ${error}`);
       }
@@ -372,7 +376,7 @@ export class QuickBooksController {
     try {
       // @ts-ignore - user is added by auth middleware
       const userId = req.user?.id;
-      const { invoiceId } = req.params;
+      const invoiceId = getStringParam(req.params.invoiceId);
 
       if (!userId) {
         throw new BadRequestError("User not authenticated");
@@ -404,7 +408,7 @@ export class QuickBooksController {
     try {
       // @ts-ignore - user is added by auth middleware
       const userId = req.user?.id;
-      const { searchTerm } = req.query;
+      const searchTerm = getStringParam(req.query.searchTerm);
 
       if (!userId) {
         throw new BadRequestError("User not authenticated");
@@ -445,7 +449,8 @@ export class QuickBooksController {
     try {
       // @ts-ignore - user is added by auth middleware
       const userId = req.user?.id;
-      const { searchTerm, limit } = req.query;
+      const searchTerm = getStringParam(req.query.searchTerm);
+      const limit = getIntParam(req.query.limit);
 
       if (!userId) {
         throw new BadRequestError("User not authenticated");
@@ -480,7 +485,8 @@ export class QuickBooksController {
     try {
       // @ts-ignore - user is added by auth middleware
       const userId = req.user?.id;
-      const { searchTerm, limit } = req.query;
+      const searchTerm = getStringParam(req.query.searchTerm);
+      const limit = getIntParam(req.query.limit);
 
       if (!userId) {
         throw new BadRequestError("User not authenticated");
@@ -515,7 +521,10 @@ export class QuickBooksController {
     try {
       // @ts-ignore - user is added by auth middleware
       const userId = req.user?.id;
-      const { email, phone, address, name } = req.query;
+      const email = getStringParam(req.query.email);
+      const phone = getStringParam(req.query.phone);
+      const address = getStringParam(req.query.address);
+      const name = getStringParam(req.query.name);
 
       if (!userId) {
         throw new BadRequestError("User not authenticated");
@@ -561,7 +570,7 @@ export class QuickBooksController {
     try {
       // @ts-ignore - user is added by auth middleware
       const userId = req.user?.id;
-      const { searchTerm } = req.query;
+      const searchTerm = getStringParam(req.query.searchTerm);
 
       if (!userId) {
         throw new BadRequestError("User not authenticated");
@@ -602,7 +611,7 @@ export class QuickBooksController {
     try {
       // @ts-ignore - user is added by auth middleware
       const userId = req.user?.id;
-      const { searchTerm } = req.query;
+      const searchTerm = getStringParam(req.query.searchTerm);
 
       if (!userId) {
         throw new BadRequestError("User not authenticated");
@@ -666,9 +675,12 @@ export class QuickBooksController {
         name,
       });
 
+      // Extract the customer data from the QuickBooks response
+      const customerData = newCustomer?.Customer || newCustomer?.data?.Customer || newCustomer;
+
       res.json({
         success: true,
-        data: newCustomer,
+        data: customerData,
       });
     } catch (error) {
       next(error);
@@ -703,9 +715,59 @@ export class QuickBooksController {
         type,
       }, lineItemData);
 
+      // Extract the item data from the QuickBooks response
+      const itemData = newItem?.Item || newItem?.data?.Item || newItem;
+
       res.json({
         success: true,
-        data: newItem,
+        data: itemData,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Create account in QuickBooks
+  createAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      // @ts-ignore - user is added by auth middleware
+      const userId = req.user?.id;
+      const { name, accountType, accountSubType } = req.body;
+
+      if (!userId) {
+        throw new BadRequestError("User not authenticated");
+      }
+
+      if (!name) {
+        throw new BadRequestError("Account name is required");
+      }
+
+      if (!accountType) {
+        throw new BadRequestError("Account type is required");
+      }
+
+      if (!accountSubType) {
+        throw new BadRequestError("Account sub-type is required");
+      }
+
+      const integration = await quickbooksService.getUserIntegration(userId);
+
+      if (!integration) {
+        throw new NotFoundError("QuickBooks integration not found");
+      }
+
+      const newAccount = await quickbooksService.createAccount(integration, {
+        name,
+        accountType,
+        accountSubType,
+      });
+
+      // Extract the account data from the QuickBooks response
+      const accountData = newAccount?.Account || newAccount?.data?.Account || newAccount;
+
+      res.json({
+        success: true,
+        data: accountData,
       });
     } catch (error) {
       next(error);

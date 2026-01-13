@@ -7,6 +7,10 @@ import { Label } from "@workspace/ui/components/label";
 import { Input } from "@workspace/ui/components/input";
 import { Button } from "@workspace/ui/components/button";
 import { LineItemAutocomplete } from "./line-item-autocomplete-simple";
+import { EnhancedLineItemAutocomplete } from "./enhanced-line-item-autocomplete";
+import { AddCustomerModal } from "./add-customer-modal";
+import { AddProductModal } from "./add-product-modal";
+import { AddAccountModal } from "./add-account-modal";
 import { fetchQuickBooksAccountsFromDB, fetchQuickBooksProductsFromDB, updateLineItem } from "@/lib/services/quickbooks.service";
 import type { DBQuickBooksAccount, DBQuickBooksProduct } from "@/lib/services/quickbooks.service";
 import type { LineItem } from "@/lib/types/invoice";
@@ -48,27 +52,21 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Modal states for adding new items
+  const [addCustomerModalOpen, setAddCustomerModalOpen] = useState(false);
+  const [addProductModalOpen, setAddProductModalOpen] = useState(false);
+  const [addAccountModalOpen, setAddAccountModalOpen] = useState(false);
+
   // Editable fields state
   const [quantity, setQuantity] = useState(lineItem.quantity || "1");
   const [rate, setRate] = useState(lineItem.rate || "0");
   const [amount, setAmount] = useState(lineItem.amount || "0");
-
-  console.log(items)
-
-  console.log("🔧 LineItemEditor mounted with:", {
-    itemType: lineItem.itemType,
-    resourceId: lineItem.resourceId,
-    selectedResourceId,
-    isQuickBooksConnected
-  });
 
   // Load accounts when component mounts or when itemType changes to 'account'
   useEffect(() => {
     if (itemType === 'account' && accounts.length === 0 && !isLoadingAccounts) {
       if (isQuickBooksConnected) {
         loadAccounts();
-      } else if (isQuickBooksConnected === false) {
-        console.log("💰 Skipping accounts load - QuickBooks not connected");
       }
     }
   }, [itemType, accounts.length, isLoadingAccounts, isQuickBooksConnected]);
@@ -78,34 +76,24 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
     if (itemType === 'product' && items.length === 0 && !isLoadingItems) {
       if (isQuickBooksConnected) {
         loadItems();
-      } else if (isQuickBooksConnected === false) {
-        console.log("🛍️ Skipping products load - QuickBooks not connected");
       }
     }
   }, [itemType, items.length, isLoadingItems, isQuickBooksConnected]);
 
   // Initial load effect - ensure data is loaded on component mount if itemType is already set
   useEffect(() => {
-    console.log("🚀 Initial load effect - itemType:", itemType, "isQuickBooksConnected:", isQuickBooksConnected);
     if (itemType === 'account' && accounts.length === 0 && !isLoadingAccounts) {
       if (isQuickBooksConnected) {
-        console.log("🚀 Loading accounts on mount");
         loadAccounts();
-      } else if (isQuickBooksConnected === false) {
-        console.log("🚀 Skipping accounts load on mount - QuickBooks not connected");
       }
     } else if (itemType === 'product' && items.length === 0 && !isLoadingItems) {
       if (isQuickBooksConnected) {
-        console.log("🚀 Loading products on mount");
         loadItems();
-      } else if (isQuickBooksConnected === false) {
-        console.log("🚀 Skipping products load on mount - QuickBooks not connected");
       }
     }
   }, [isQuickBooksConnected]); // Run when connection status changes
 
   const loadAccounts = async () => {
-    console.log("💰 Loading accounts...");
     setIsLoadingAccounts(true);
     try {
       const fetchedAccounts = await fetchQuickBooksAccountsFromDB();
@@ -119,7 +107,6 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
   };
 
   const loadItems = async () => {
-    console.log("🛍️ Loading products/services...");
     setIsLoadingItems(true);
     try {
       const fetchedItems = await fetchQuickBooksProductsFromDB();
@@ -183,6 +170,25 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
 
   const getItemDisplayName = (item: DBQuickBooksProduct) => {
     return item.fullyQualifiedName || item.name || 'Unknown Product';
+  };
+
+  // Callback functions for when new items are created
+  const handleCustomerCreated = (newCustomer: any) => {
+    // Refresh the parent component to reload customers
+    if (onUpdate) {
+      // Trigger a refresh by calling onUpdate with current line item
+      onUpdate(lineItem);
+    }
+  };
+
+  const handleProductCreated = (newProduct: any) => {
+    // Refresh items list from database to ensure sync
+    loadItems();
+  };
+
+  const handleAccountCreated = (newAccount: any) => {
+    // Refresh accounts list from database to ensure sync
+    loadAccounts();
   };
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -383,7 +389,7 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
             {itemType === 'account' ? 'Indirect' : 'Job Cost'}
           </Label>
           {itemType === 'account' ? (
-            <LineItemAutocomplete
+            <EnhancedLineItemAutocomplete
               items={accounts}
               value={selectedResourceId}
               onSelect={handleAccountSelect}
@@ -391,9 +397,12 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
               isLoading={isLoadingAccounts}
               disabled={!isEditing || isSaving}
               getDisplayName={getAccountDisplayName}
+              showAddOption={true}
+              addOptionLabel="Add Account"
+              onAddClick={() => setAddAccountModalOpen(true)}
             />
           ) : (
-            <LineItemAutocomplete
+            <EnhancedLineItemAutocomplete
               items={items}
               value={selectedResourceId}
               onSelect={handleProductSelect}
@@ -401,6 +410,9 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
               isLoading={isLoadingItems}
               disabled={!isEditing || isSaving}
               getDisplayName={getItemDisplayName}
+              showAddOption={true}
+              addOptionLabel="Add Product"
+              onAddClick={() => setAddProductModalOpen(true)}
             />
           )}
         </div>
@@ -463,7 +475,7 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
           <div className="my-4">
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <div className="flex items-start">
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
@@ -497,6 +509,27 @@ export function LineItemEditor({ lineItem, onUpdate, onChange, onDelete, isEditi
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Customer Modal */}
+      <AddCustomerModal
+        isOpen={addCustomerModalOpen}
+        onClose={() => setAddCustomerModalOpen(false)}
+        onCustomerCreated={handleCustomerCreated}
+      />
+
+      {/* Add Product Modal */}
+      <AddProductModal
+        isOpen={addProductModalOpen}
+        onClose={() => setAddProductModalOpen(false)}
+        onProductCreated={handleProductCreated}
+      />
+
+      {/* Add Account Modal */}
+      <AddAccountModal
+        isOpen={addAccountModalOpen}
+        onClose={() => setAddAccountModalOpen(false)}
+        onAccountCreated={handleAccountCreated}
+      />
     </div>
   );
 }

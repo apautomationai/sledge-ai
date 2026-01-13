@@ -6,18 +6,18 @@ import Image from "next/image";
 export default function AboutPage() {
   const founders = [
     {
-      name: "DAVID CANNON",
-      title: "Co-Founder & CEO",
+      name: "DAVIS CANNON",
+      title: "Co-Founder",
       image: "/images/founders/Davis.jpg",
     },
     {
       name: "MARTIN MIRALAIE",
-      title: "Co-Founder & CTO",
+      title: "Co-Founder",
       image: "/images/founders/Matteo.jpg",
     },
     {
       name: "RAZ DANOUKH",
-      title: "Co-Founder & COO",
+      title: "Co-Founder",
       image: "/images/founders/Raz.jpg",
     },
   ];

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { BadRequestError, NotFoundError } from "@/helpers/errors";
 import { vendorsService } from "@/services/vendors.service";
+import { getStringParam, getIntParam } from "@/helpers/request-utils";
 
 class VendorsController {
     async getVendors(req: Request, res: Response) {
@@ -12,11 +13,11 @@ class VendorsController {
                 throw new BadRequestError("Need a valid userId");
             }
 
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-            const search = (req.query.search as string) || "";
-            const sortBy = (req.query.sortBy as string) || "name";
-            const sortOrder = (req.query.sortOrder as "asc" | "desc") || "asc";
+            const page = getIntParam(req.query.page) || 1;
+            const limit = getIntParam(req.query.limit) || 10;
+            const search = getStringParam(req.query.search) || "";
+            const sortBy = getStringParam(req.query.sortBy) || "name";
+            const sortOrder = (getStringParam(req.query.sortOrder) as "asc" | "desc") || "asc";
 
             const result = await vendorsService.getVendors({
                 userId,
@@ -43,7 +44,7 @@ class VendorsController {
         try {
             //@ts-ignore
             const userId = req.user.id;
-            const vendorId = parseInt(req.params.id);
+            const vendorId = getIntParam(req.params.id);
 
             if (!userId) {
                 throw new BadRequestError("Need a valid userId");
@@ -75,7 +76,7 @@ class VendorsController {
         try {
             //@ts-ignore
             const userId = req.user.id;
-            const vendorId = parseInt(req.params.id);
+            const vendorId = getIntParam(req.params.id);
             const updateData = req.body;
 
             if (!userId) {

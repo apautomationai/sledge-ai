@@ -7,6 +7,7 @@ import { outlookServices } from "@/services/outlook.services";
 import { attachmentServices } from "@/services/attachment.services";
 import { invoiceServices } from "@/services/invoice.services";
 import { google } from "googleapis";
+import { getStringParam, getIntParam } from "@/helpers/request-utils";
 
 type Provider = "gmail" | "outlook";
 
@@ -82,8 +83,8 @@ export class EmailIntegrationController {
   // Google OAuth Callback
   googleOAuthCallback = async (req: Request, res: Response) => {
     try {
-      const code = req.query.code as string;
-      const state = req.query.state as string;
+      const code = getStringParam(req.query.code);
+      const state = getStringParam(req.query.state);
 
       if (!code) {
         const frontendUrl = process.env.FRONTEND_URL || process.env.OAUTH_REDIRECT_URI || 'http://localhost:3000';
@@ -232,8 +233,8 @@ export class EmailIntegrationController {
   // Outlook OAuth Callback
   outlookOAuthCallback = async (req: Request, res: Response) => {
     try {
-      const code = req.query.code as string;
-      const state = req.query.state as string;
+      const code = getStringParam(req.query.code);
+      const state = getStringParam(req.query.state);
 
       if (!code) {
         const frontendUrl = process.env.FRONTEND_URL || process.env.OAUTH_REDIRECT_URI || 'http://localhost:3000';
@@ -311,7 +312,7 @@ export class EmailIntegrationController {
         // Only store scopes in metadata
         // email and providerId have dedicated fields in the integrations table
         const metadata = {
-          scopes: ["Mail.Read", "offline_access", "User.Read"],
+          scopes: ["Mail.ReadWrite", "offline_access", "User.Read"],
         };
 
         if (!existingIntegration) {
@@ -629,8 +630,8 @@ export class EmailIntegrationController {
         throw new BadRequestError("Need a valid userId");
       }
 
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
+      const page = getIntParam(req.query.page) || 1;
+      const limit = getIntParam(req.query.limit) || 20;
 
       try {
         const attachmentsData = await cfg.getAttachments(
@@ -672,7 +673,7 @@ export class EmailIntegrationController {
 
     return async (req: Request, res: Response) => {
       try {
-        const id = req.params.id;
+        const id = getStringParam(req.params.id);
         if (!id) {
           throw new BadRequestError("No id found");
         }
@@ -735,7 +736,7 @@ export class EmailIntegrationController {
         throw new BadRequestError("User ID is required");
       }
 
-      const attachmentId = parseInt(req.params.id, 10);
+      const attachmentId = getIntParam(req.params.id);
       if (isNaN(attachmentId) || attachmentId <= 0) {
         throw new BadRequestError(
           "Attachment ID must be a valid positive number"
@@ -793,7 +794,7 @@ export class EmailIntegrationController {
         throw new BadRequestError("User ID is required");
       }
 
-      const attachmentId = parseInt(req.params.id, 10);
+      const attachmentId = getIntParam(req.params.id);
       if (isNaN(attachmentId) || attachmentId <= 0) {
         throw new BadRequestError(
           "Attachment ID must be a valid positive number"

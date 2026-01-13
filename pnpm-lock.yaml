@@ -57,6 +57,9 @@ importers:
       '@thednp/dommatrix':
         specifier: ^2.0.12
         version: 2.0.12
+      '@types/qs':
+        specifier: ^6.14.0
+        version: 6.14.0
       axios:
         specifier: ^1.12.2
         version: 1.13.2

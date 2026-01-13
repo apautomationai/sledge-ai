@@ -54,11 +54,11 @@ export default function AuthLayout({
 
           {/* Footer - Sticky to bottom */}
           <div className="w-full text-center py-4 md:py-6 px-6 mt-auto">
-            <Link href="/terms" className="text-zinc-400 text-sm font-normal font-['Inter'] underline leading-5 hover:text-zinc-400 active:text-zinc-400 focus:text-zinc-400 focus:outline-none">
+            <Link href="/terms-conditions" className="text-zinc-400 text-sm font-normal font-['Inter'] underline leading-5 hover:text-zinc-400 active:text-zinc-400 focus:text-zinc-400 focus:outline-none">
               Terms of Service
             </Link>
             <span className="text-zinc-400 text-sm font-normal font-['Inter'] leading-5"> | </span>
-            <Link href="/privacy" className="text-zinc-400 text-sm font-normal font-['Inter'] underline leading-5 hover:text-zinc-400 active:text-zinc-400 focus:text-zinc-400 focus:outline-none">
+            <Link href="/privacy-policy" className="text-zinc-400 text-sm font-normal font-['Inter'] underline leading-5 hover:text-zinc-400 active:text-zinc-400 focus:text-zinc-400 focus:outline-none">
               Privacy Policy
             </Link>
           </div>
@@ -68,9 +68,9 @@ export default function AuthLayout({
       {/* Right Side - Image */}
       <div className="relative hidden md:block overflow-hidden flex-1 h-full">
         <img
-          src={pathname === '/sign-up' ? "/images/sign-up-test-1 2.png" : "/images/login.png"}
+          src={pathname === '/sign-up' ? "/images/Right.svg" : "/images/generative-fill 1.svg"}
           alt={pathname === '/sign-up' ? "Sign Up" : "Login"}
-          className="h-full w-full object-fill"
+          className="h-full w-full object-cover"
         />
       </div>
     </div>

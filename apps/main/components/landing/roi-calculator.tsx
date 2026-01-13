@@ -145,7 +145,7 @@ export default function RoiCalculator() {
                       className="object-contain"
                     />
                   </div>
-                  <div className="text-amber-400 text-3xl min-[375px]:text-5xl font-bold font-['League_Spartan']">
+                  <div className="text-[#e3b02f] text-3xl min-[375px]:text-5xl font-bold font-['League_Spartan']">
                     ${annualSavings.toLocaleString()}
                   </div>
                 </div>
@@ -166,7 +166,7 @@ export default function RoiCalculator() {
                       className="object-contain"
                     />
                   </div>
-                  <div className="text-amber-400 text-3xl min-[375px]:text-5xl font-bold font-['League_Spartan']">
+                  <div className="text-[#e3b02f] text-3xl min-[375px]:text-5xl font-bold font-['League_Spartan']">
                     {hoursPerYear.toLocaleString()} HOURS
                   </div>
                 </div>

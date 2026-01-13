@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { BadRequestError, NotFoundError } from "@/helpers/errors";
 import { projectsServices } from "@/services/projects.services";
+import { getStringParam, getIntParam, getFloatParam } from "@/helpers/request-utils";
 
 class ProjectsController {
     async getProjects(req: Request, res: Response) {
@@ -12,20 +13,20 @@ class ProjectsController {
                 throw new BadRequestError("Need a valid userId");
             }
 
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-            const search = (req.query.search as string) || "";
-            const sortBy = (req.query.sortBy as string) || "createdAt";
-            const sortOrder = (req.query.sortOrder as string) || "desc";
+            const page = getIntParam(req.query.page) || 1;
+            const limit = getIntParam(req.query.limit) || 10;
+            const search = getStringParam(req.query.search) || "";
+            const sortBy = getStringParam(req.query.sortBy) || "createdAt";
+            const sortOrder = getStringParam(req.query.sortOrder) || "desc";
 
             // Parse bounds if provided
             let bounds;
             if (req.query.north && req.query.south && req.query.east && req.query.west) {
                 bounds = {
-                    north: parseFloat(req.query.north as string),
-                    south: parseFloat(req.query.south as string),
-                    east: parseFloat(req.query.east as string),
-                    west: parseFloat(req.query.west as string),
+                    north: getFloatParam(req.query.north),
+                    south: getFloatParam(req.query.south),
+                    east: getFloatParam(req.query.east),
+                    west: getFloatParam(req.query.west),
                 };
             }
 
@@ -47,8 +48,8 @@ class ProjectsController {
         try {
             //@ts-ignore
             const userId = req.user.id;
-            const projectId = parseInt(req.params.id);
-            const billingCycle = req.query.billingCycle as string; // 'current', 'full', or specific cycle ID
+            const projectId = getIntParam(req.params.id);
+            const billingCycle = getStringParam(req.query.billingCycle); // 'current', 'full', or specific cycle ID
 
             if (!userId) {
                 throw new BadRequestError("Need a valid userId");
@@ -80,7 +81,7 @@ class ProjectsController {
         try {
             //@ts-ignore
             const userId = req.user.id;
-            const projectId = parseInt(req.params.id);
+            const projectId = getIntParam(req.params.id);
 
             if (!userId) {
                 throw new BadRequestError("Need a valid userId");
@@ -125,7 +126,7 @@ class ProjectsController {
         try {
             //@ts-ignore
             const userId = req.user.id;
-            const projectId = parseInt(req.params.id);
+            const projectId = getIntParam(req.params.id);
 
             if (!userId) {
                 throw new BadRequestError("Need a valid userId");
@@ -158,7 +159,7 @@ class ProjectsController {
         try {
             //@ts-ignore
             const userId = req.user.id;
-            const projectId = parseInt(req.params.id);
+            const projectId = getIntParam(req.params.id);
 
             if (!userId) {
                 throw new BadRequestError("Need a valid userId");
