@@ -67,6 +67,7 @@ function VerifyEmailContent() {
   const [isResending, setIsResending] = useState(false);
   const [userEmail, setUserEmail] = useState<string>("");
   const [isLoadingEmail, setIsLoadingEmail] = useState(true);
+  const [countdown, setCountdown] = useState<number>(0);
 
   // Extract email from JWT token on component mount and check if already verified
   useEffect(() => {
@@ -81,15 +82,46 @@ function VerifyEmailContent() {
 
     if (email) {
       setUserEmail(email);
+      // Fetch the actual cooldown status from backend
+      checkCooldownStatus(email);
     } else {
       // If no email from token, try to get from URL query params
       const emailParam = searchParams.get("email");
       if (emailParam) {
         setUserEmail(emailParam);
+        // Fetch the actual cooldown status from backend
+        checkCooldownStatus(emailParam);
       }
     }
     setIsLoadingEmail(false);
   }, [searchParams, token]);
+
+  const checkCooldownStatus = async (email: string) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/check-resend-cooldown`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Set countdown to the actual remaining seconds from backend
+        if (data.remainingSeconds > 0) {
+          setCountdown(data.remainingSeconds);
+        }
+      }
+    } catch (error) {
+      // If check fails, don't set countdown - user can try to resend
+      console.error("Failed to check cooldown status:", error);
+    }
+  };
 
   // Auto-verify if token is present in URL
   useEffect(() => {
@@ -97,6 +129,16 @@ function VerifyEmailContent() {
       handleVerification(token);
     }
   }, [token, verificationStatus]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
 
   const handleVerification = async (verificationToken: string) => {
     setVerificationStatus("verifying");
@@ -187,7 +229,14 @@ function VerifyEmailContent() {
         toast.success("Email Sent!", {
           description: "A new verification email has been sent. Please check your inbox.",
         });
+        // Start countdown using the value from backend or default to 60
+        setCountdown(data.remainingSeconds || 60);
       } else {
+        // Use remainingSeconds from response if available
+        if (data.remainingSeconds) {
+          setCountdown(data.remainingSeconds);
+        }
+
         toast.error("Failed to Send Email", {
           description: data.message || "Could not resend verification email. Please try again.",
         });
@@ -287,11 +336,11 @@ function VerifyEmailContent() {
               <div className="flex flex-col gap-4 w-full mt-4">
                 <Button
                   onClick={handleResendVerification}
-                  disabled={isResending || !userEmail}
+                  disabled={isResending || !userEmail || countdown > 0}
                   className="self-stretch h-12 md:h-14 px-6 py-3 inline-flex justify-center items-center gap-3 relative overflow-hidden hover:opacity-90 font-bold font-['Inter'] text-base md:text-lg leading-6 uppercase cursor-pointer transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ background: '#E3B02F', borderRadius: '4px', color: '#09090B' }}
                 >
-                  {isResending ? "Sending..." : "Resend Verification Email"}
+                  {isResending ? "Sending..." : countdown > 0 ? `Wait ${countdown}s` : "Resend Verification Email"}
                 </Button>
                 <Link href="/sign-up" className="w-full">
                   <Button
@@ -343,11 +392,11 @@ function VerifyEmailContent() {
             <div className="flex flex-col gap-4 w-full mt-4">
               <Button
                 onClick={handleResendVerification}
-                disabled={isResending || !userEmail}
+                disabled={isResending || !userEmail || countdown > 0}
                 className="w-full h-12 md:h-14 px-6 py-3 inline-flex justify-center items-center gap-3 relative overflow-hidden hover:opacity-90 font-bold font-['Inter'] text-base md:text-lg leading-6 uppercase cursor-pointer transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: '#E3B02F', borderRadius: '4px', color: '#09090B' }}
               >
-                {isResending ? "Sending..." : "Resend Verification Email"}
+                {isResending ? "Sending..." : countdown > 0 ? `Wait ${countdown}s` : "Resend Verification Email"}
               </Button>
               <Link href="/sign-in" className="w-full">
                 <Button
