@@ -145,7 +145,7 @@ export function JobsTable({
           setInvoicesCache((prev) => ({ ...prev, [jobId]: invoiceData }));
         } catch (error) {
           console.error("Failed to fetch invoices:", error);
-          toast.error("Failed to load invoices");
+          toast.error("Failed to load bills");
         } finally {
           setLoadingInvoices((prev) => {
             const newSet = new Set(prev);
@@ -388,7 +388,7 @@ export function JobsTable({
                     onClick={() => onSort("invoices")}
                     className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
                   >
-                    Invoices
+                    Bills
                     {sortBy === "invoices" ? (
                       sortOrder === "asc" ? (
                         <ArrowUp className="h-4 w-4" />
@@ -400,7 +400,7 @@ export function JobsTable({
                     )}
                   </button>
                 </TableHead>
-                <TableHead className="min-w-[150px]">Invoice Status</TableHead>
+                <TableHead className="min-w-[150px]">Bill Status</TableHead>
                 <TableHead className="min-w-[120px] p-0">
                   <button
                     onClick={() => onSort("status")}
@@ -555,7 +555,7 @@ export function JobsTable({
                                 job.jobStatus !== "processing" &&
                                 job.jobStatus !== "pending" && (
                                   <TooltipContent side="top" className="z-50">
-                                    No invoices available for this job
+                                    No bills available for this job
                                   </TooltipContent>
                                 )}
                             </Tooltip>
@@ -617,14 +617,14 @@ export function JobsTable({
                               <div className="flex items-center justify-center py-4">
                                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mr-2" />
                                 <span className="text-sm text-muted-foreground">
-                                  Loading invoices...
+                                  Loading bills...
                                 </span>
                               </div>
                             ) : (invoicesCache[job.id]?.length ?? 0) > 0 ? (
                               <div className="space-y-2">
                                 <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                                   <FileText className="h-4 w-4" />
-                                  Invoices ({invoicesCache[job.id]?.length || 0}
+                                  Bills ({invoicesCache[job.id]?.length || 0}
                                   )
                                 </h4>
                                 <div className="grid gap-2">
@@ -647,7 +647,7 @@ export function JobsTable({
                                           <div className="flex items-center gap-2">
                                             <span className="text-sm font-medium truncate">
                                               {invoice.invoiceNumber ||
-                                                `Invoice #${invoice.id}`}
+                                                `Bill #${invoice.id}`}
                                             </span>
                                             {invoice.status && (
                                               <Badge
@@ -685,8 +685,8 @@ export function JobsTable({
                                           </div>
                                           {invoice.isDuplicate && (
                                             <div className="mt-2 text-xs text-orange-600 font-medium flex items-center gap-1">
-                                              <AlertTriangle className="h-4 w-4 text-orange-500 flex-shrink-0" /> 
-                                              <span>Change invoice number to remove duplicate warning</span>
+                                              <AlertTriangle className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                                              <span>Change bill number to remove duplicate warning</span>
                                             </div>
                                           )}
                                         </div>
@@ -708,7 +708,7 @@ export function JobsTable({
                               </div>
                             ) : (
                               <div className="text-center py-4 text-sm text-muted-foreground">
-                                No invoices found for this job
+                                No bills found for this job
                               </div>
                             )}
                           </div>
@@ -733,7 +733,7 @@ export function JobsTable({
             <AlertDialogTitle>Delete Job</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this job? This will also delete
-              all associated invoices and cannot be undone.
+              all associated bills and cannot be undone.
               {deleteDialog.filename && (
                 <div className="mt-2 text-sm font-medium">
                   <strong>Job:</strong> {deleteDialog.filename}

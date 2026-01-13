@@ -25,8 +25,14 @@ import {
 } from "@workspace/ui/components/alert-dialog";
 import { client } from "@/lib/axios-client";
 import { toast } from "sonner";
-import InvoicePdfViewer from "@/components/invoice-process/invoice-pdf-viewer";
+import dynamic from "next/dynamic";
 import InvoiceDetailsForm from "@/components/invoice-process/invoice-details-form";
+
+// Dynamically import PDF viewer to avoid SSR issues with pdfjs-dist
+const InvoicePdfViewer = dynamic(
+    () => import("@/components/invoice-process/invoice-pdf-viewer"),
+    { ssr: false }
+);
 import { QuickBooksDataProvider } from "@/components/invoice-process/quickbooks-data-provider";
 import { ResizablePanels } from "@/components/ui/resizable-panels";
 import type { InvoiceDetails, InvoiceListItem, Attachment } from "@/lib/types/invoice";
@@ -96,8 +102,8 @@ export default function JobDetailPage() {
             setInvoicesList(updatedList);
 
             if (updatedList.length === 0) {
-                toast.info("All invoices deleted, returning to jobs list");
-                router.push("/jobs");
+                toast.info("All bills deleted, returning to bills list");
+                router.push("/bills");
             } else if (invoiceId === currentInvoiceId) {
                 // If we deleted the current invoice, move to the next or previous
                 const newIndex = currentInvoiceIndex >= updatedList.length
@@ -201,7 +207,7 @@ export default function JobDetailPage() {
             setSelectedFields(Object.keys(details));
         } catch (error) {
             console.error("Failed to fetch invoice details:", error);
-            toast.error("Failed to load invoice details");
+            toast.error("Failed to load bill details");
         } finally {
             setIsDetailsLoading(false);
         }
@@ -219,7 +225,7 @@ export default function JobDetailPage() {
     }, [currentInvoiceId]);
 
     const handleBack = () => {
-        router.push("/jobs");
+        router.push("/bills");
     };
 
     const handlePreviousInvoice = () => {
@@ -260,9 +266,9 @@ export default function JobDetailPage() {
             // Save line item changes if any
             if (lineItemChangesRef.current && lineItemChangesRef.current.hasChanges()) {
                 await lineItemChangesRef.current.saveLineItemChanges();
-                toast.success("Invoice and line items saved successfully");
+                toast.success("Bill and line items saved successfully");
             } else {
-                toast.success("Invoice saved successfully");
+                toast.success("Bill saved successfully");
             }
 
             setInvoiceDetails(updatedData);
@@ -296,9 +302,9 @@ export default function JobDetailPage() {
                 inv.id === invoiceDetails.id ? { ...inv, status: "approved" } : inv
             ));
 
-            toast.success("Invoice has been approved");
+            toast.success("Bill has been approved");
         } catch (err) {
-            toast.error("Failed to approve invoice");
+            toast.error("Failed to approve bill");
         }
     };
 
@@ -318,9 +324,9 @@ export default function JobDetailPage() {
                 inv.id === invoiceDetails.id ? { ...inv, status: "rejected" } : inv
             ));
 
-            toast.success("Invoice has been rejected");
+            toast.success("Bill has been rejected");
         } catch (err) {
-            toast.error("Failed to reject invoice");
+            toast.error("Failed to reject bill");
         }
     };
 
@@ -335,15 +341,15 @@ export default function JobDetailPage() {
         setIsDeleting(true);
         try {
             await client.delete(`/api/v1/invoice/invoices/${invoiceDetails.id}`);
-            toast.success("Invoice page deleted successfully");
+            toast.success("Bill page deleted successfully");
 
             // Remove from local list
             const updatedList = invoicesList.filter((_, index) => index !== currentInvoiceIndex);
             setInvoicesList(updatedList);
 
             if (updatedList.length === 0) {
-                // No more invoices, go back to jobs list
-                router.push("/jobs");
+                // No more invoices, go back to bills list
+                router.push("/bills");
             } else {
                 // Move to next invoice or previous if we deleted the last one
                 const newIndex = currentInvoiceIndex >= updatedList.length
@@ -359,7 +365,7 @@ export default function JobDetailPage() {
             setShowDeleteDialog(false);
         } catch (error) {
             console.error("Failed to delete invoice:", error);
-            toast.error("Failed to delete invoice page");
+            toast.error("Failed to delete bill page");
         } finally {
             setIsDeleting(false);
         }
@@ -373,7 +379,7 @@ export default function JobDetailPage() {
             const response: any = await client.post(`/api/v1/invoice/invoices/${invoiceDetails.id}/clone`);
 
             if (response.success) {
-                toast.success("Invoice page cloned successfully");
+                toast.success("Bill page cloned successfully");
 
                 // Refresh the invoices list
                 const refreshResponse = await client.get(`/api/v1/invoice/invoices?attachmentId=${jobId}`);
@@ -396,7 +402,7 @@ export default function JobDetailPage() {
             setShowCloneDialog(false);
         } catch (error) {
             console.error("Failed to clone invoice:", error);
-            toast.error("Failed to clone invoice page");
+            toast.error("Failed to clone bill page");
         } finally {
             setIsCloning(false);
         }
@@ -422,7 +428,7 @@ export default function JobDetailPage() {
                     </div>
                 </div>
                 <div className="rounded-lg border bg-card p-8 text-center">
-                    <p className="text-muted-foreground">No invoices found for this job</p>
+                    <p className="text-muted-foreground">No bills found for this job</p>
                 </div>
             </div>
         );
@@ -453,7 +459,7 @@ export default function JobDetailPage() {
                     {/* Tabs */}
                     <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "invoice" | "attachment")}>
                         <TabsList>
-                            <TabsTrigger value="invoice">Invoice</TabsTrigger>
+                            <TabsTrigger value="invoice">Bill</TabsTrigger>
                             <TabsTrigger value="attachment">Attachment</TabsTrigger>
                         </TabsList>
                     </Tabs>
@@ -501,7 +507,7 @@ export default function JobDetailPage() {
 
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm font-semibold whitespace-nowrap">
-                                            Invoice {currentInvoiceIndex + 1} of {invoicesList.length}
+                                            Bill {currentInvoiceIndex + 1} of {invoicesList.length}
                                         </span>
                                         <span className="text-muted-foreground">•</span>
                                         <Select
@@ -512,7 +518,7 @@ export default function JobDetailPage() {
                                             }}
                                         >
                                             <SelectTrigger className="h-9 w-[160px]">
-                                                <SelectValue placeholder="Select invoice" />
+                                                <SelectValue placeholder="Select bill" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {invoicesList.map((invoice, index) => (
@@ -552,12 +558,12 @@ export default function JobDetailPage() {
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm font-semibold">Invoice 1 of 1</span>
+                                    <span className="text-sm font-semibold">Bill 1 of 1</span>
                                     {invoicesList.length > 0 && (
                                         <>
                                             <span className="text-muted-foreground">•</span>
                                             <span className="text-sm text-muted-foreground">
-                                                {invoicesList[0]?.invoiceNumber || `Invoice #${invoicesList[0]?.id}`}
+                                                {invoicesList[0]?.invoiceNumber || `Bill #${invoicesList[0]?.id}`}
                                             </span>
                                         </>
                                     )}
@@ -582,14 +588,14 @@ export default function JobDetailPage() {
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem onClick={() => setShowCloneDialog(true)}>
                                             <Copy className="h-4 w-4 mr-2" />
-                                            Clone Invoice
+                                            Clone Bill
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                             className="text-destructive"
                                             onClick={() => setShowDeleteDialog(true)}
                                         >
                                             <Trash2 className="h-4 w-4 mr-2" />
-                                            Delete Invoice
+                                            Delete Bill
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -681,12 +687,12 @@ export default function JobDetailPage() {
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Invoice Page</AlertDialogTitle>
+                        <AlertDialogTitle>Delete Bill Page</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete this invoice page? This action cannot be undone.
+                            Are you sure you want to delete this bill page? This action cannot be undone.
                             {invoiceDetails && (
                                 <div className="mt-2 text-sm">
-                                    <strong>Invoice:</strong> {invoiceDetails.invoiceNumber || "N/A"}
+                                    <strong>Bill:</strong> {invoiceDetails.invoiceNumber || "N/A"}
                                 </div>
                             )}
                         </AlertDialogDescription>
@@ -715,12 +721,12 @@ export default function JobDetailPage() {
             <AlertDialog open={showCloneDialog} onOpenChange={setShowCloneDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Clone Invoice Page</AlertDialogTitle>
+                        <AlertDialogTitle>Clone Bill Page</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to clone this invoice page? This will create a duplicate with all line items.
+                            Are you sure you want to clone this bill page? This will create a duplicate with all line items.
                             {invoiceDetails && (
                                 <div className="mt-2 text-sm">
-                                    <strong>Invoice:</strong> {invoiceDetails.invoiceNumber || "N/A"}
+                                    <strong>Bill:</strong> {invoiceDetails.invoiceNumber || "N/A"}
                                 </div>
                             )}
                         </AlertDialogDescription>

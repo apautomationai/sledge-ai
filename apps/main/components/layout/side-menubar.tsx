@@ -17,9 +17,13 @@ import {
     PanelLeftClose,
     PanelRightClose,
     ChevronRight,
+    ChevronDown,
     Package2,
     FileCheck,
     Users,
+    Scale,
+    UserCog,
+    Unplug,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar";
 import { Button } from "@workspace/ui/components/button";
@@ -40,6 +44,7 @@ import { logoutAction } from "@/app/(auth)/logout/acttion";
 import { cn } from "@workspace/ui/lib/utils";
 import { clearQueryCache } from "@/lib/query-client";
 import Image from "next/image";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@workspace/ui/components/collapsible";
 
 const NavLink = ({ href, icon: Icon, children, isActive, isCollapsed }: any) => (
     <TooltipProvider delayDuration={0}>
@@ -50,7 +55,7 @@ const NavLink = ({ href, icon: Icon, children, isActive, isCollapsed }: any) => 
                         href={href}
                         className={cn(
                             "group flex justify-center rounded-xl p-3 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                            isActive && "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm border-l-4 border-l-primary"
+                            isActive && "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm"
                         )}
                     >
                         <Icon className="h-5 w-5" />
@@ -68,7 +73,7 @@ const NavLink = ({ href, icon: Icon, children, isActive, isCollapsed }: any) => 
                 href={href}
                 className={cn(
                     "group flex items-center gap-3 rounded-xl px-4 py-3 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                    isActive && "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm border-l-4 border-l-primary"
+                    isActive && "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm"
                 )}
             >
                 <Icon className={cn("h-5 w-5", isActive && "scale-110", "group-hover:scale-105")} />
@@ -155,25 +160,27 @@ export default function SideMenuBar({
         >
             <div className="flex h-full max-h-screen flex-col">
                 {/* Header */}
-                <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/40 px-4 lg:h-[60px]">
-                    <Link
-                        href="/dashboard"
-                        className={cn("flex items-center gap-2 font-bold text-xl transition-all duration-300 hover:opacity-80 active:scale-95", isCol && "justify-center w-full")}
-                    >
-                        <Image
-                            src={"/images/logos/logo-sledge-symbol-custom.svg"}
-                            alt="Logo"
-                            width={48}
-                            height={48}
-                        />
-                        {!isCol && <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent transition-all duration-300">SLEDGE</span>}
-                    </Link>
+                <div className={cn("flex h-14 shrink-0 items-center border-b border-border/40 px-4 lg:h-[60px]", isCol ? "justify-center" : "justify-between")}>
+                    {!isCol && (
+                        <Link
+                            href="/dashboard"
+                            className="flex items-center gap-2 font-bold text-xl transition-all duration-300 hover:opacity-80 active:scale-95"
+                        >
+                            <Image
+                                src={"/images/logos/logo-sledge-symbol-custom.svg"}
+                                alt="Logo"
+                                width={48}
+                                height={48}
+                            />
+                            <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent transition-all duration-300">SLEDGE</span>
+                        </Link>
+                    )}
 
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={toggleCollapse}
-                        className={cn("h-8 w-8 transition-all duration-300 hover:bg-accent hover:scale-105 hidden md:flex", isCol && "mx-auto")}
+                        className="h-8 w-8 transition-all duration-300 hover:bg-accent hover:scale-105 hidden md:flex"
                     >
                         {isCol ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
                     </Button>
@@ -187,32 +194,62 @@ export default function SideMenuBar({
 
                         {(isOnboardingComplete && !pathname.startsWith("/onboarding")) ? (
                             <>
-                                {!isFeatureDisabled('jobs') && (<NavLink href="/jobs" icon={FileText} isActive={pathname.startsWith("/jobs")} isCollapsed={isCol}>Invoices</NavLink>)}
-                                {!isFeatureDisabled('integrations') && (<NavLink href="/integrations" icon={Settings} isActive={pathname.startsWith("/integrations")} isCollapsed={isCol}>Integrations</NavLink>)}
                                 {!isFeatureDisabled('projects') && (
-                                    <NavLink href="/projects" icon={Package2} isActive={pathname.startsWith("/projects")} isCollapsed={isCol}>Projects</NavLink>
+                                    <Collapsible defaultOpen={pathname.startsWith("/bills") || pathname.startsWith("/lien-waiver") || pathname.startsWith("/vendors")}>
+                                        <div className={cn(
+                                            "group flex items-center rounded-xl hover:bg-accent hover:shadow-sm",
+                                            pathname.startsWith("/projects") && "bg-gradient-to-r from-primary/10 to-primary/5 shadow-sm"
+                                        )}>
+                                            <Link
+                                                href="/projects"
+                                                className={cn(
+                                                    "flex flex-1 items-center gap-3 rounded-l-xl px-4 py-3 text-muted-foreground group-hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                                                    pathname.startsWith("/projects") && "text-primary font-semibold",
+                                                    isCol && "justify-center p-3 rounded-xl"
+                                                )}
+                                            >
+                                                <Package2 className={cn("h-5 w-5 group-hover:scale-105", pathname.startsWith("/projects") && "scale-110")} />
+                                                {!isCol && <span className="truncate">Projects</span>}
+                                            </Link>
+                                            {!isCol && (
+                                                <CollapsibleTrigger asChild>
+                                                    <button
+                                                        className={cn(
+                                                            "flex items-center rounded-r-xl px-2 py-3 text-muted-foreground group-hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer",
+                                                            pathname.startsWith("/projects") && "text-primary"
+                                                        )}
+                                                    >
+                                                        <ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" />
+                                                    </button>
+                                                </CollapsibleTrigger>
+                                            )}
+                                        </div>
+                                        <CollapsibleContent className={cn("pl-4", isCol && "pl-0")}>
+                                            {!isFeatureDisabled('jobs') && (
+                                                <NavLink href="/bills" icon={FileText} isActive={pathname.startsWith("/bills")} isCollapsed={isCol}>Bills</NavLink>
+                                            )}
+                                            {!isFeatureDisabled('lienwaivers') && (
+                                                <NavLink href="/lien-waiver" icon={FileCheck} isActive={pathname.startsWith("/lien-waiver")} isCollapsed={isCol}>Lien Waivers</NavLink>
+                                            )}
+                                            {!isFeatureDisabled('vendors') && (
+                                                <NavLink href="/vendors" icon={Users} isActive={pathname.startsWith("/vendors")} isCollapsed={isCol}>Vendors</NavLink>
+                                            )}
+                                        </CollapsibleContent>
+                                    </Collapsible>
                                 )}
-                                {!isFeatureDisabled('lienwaivers') && (
-                                    <NavLink href="/lien-waiver" icon={FileCheck} isActive={pathname.startsWith("/lien-waiver")} isCollapsed={isCol}>Lien Waivers</NavLink>
-                                )}
-                                {!isFeatureDisabled('vendors') && (
-                                    <NavLink href="/vendors" icon={Users} isActive={pathname.startsWith("/vendors")} isCollapsed={isCol}>Vendors</NavLink>
-                                )}
+                                {!isFeatureDisabled('integrations') && (<NavLink href="/integrations" icon={Unplug} isActive={pathname.startsWith("/integrations")} isCollapsed={isCol}>Integrations</NavLink>)}
+                                <NavLink href="/legal" icon={Scale} isActive={pathname.startsWith("/legal")} isCollapsed={isCol}>Legal</NavLink>
+                                <NavLink href="/hr" icon={UserCog} isActive={pathname.startsWith("/hr")} isCollapsed={isCol}>HR</NavLink>
                             </>
                         ) : (
                             /* Show disabled state for other items during onboarding */
                             <>
-                                <DisabledNavItem icon={FileText} isCollapsed={isCol}>Invoices</DisabledNavItem>
-                                <DisabledNavItem icon={Settings} isCollapsed={isCol}>Integrations</DisabledNavItem>
                                 {!isFeatureDisabled('projects') && (
                                     <DisabledNavItem icon={Package2} isCollapsed={isCol}>Projects</DisabledNavItem>
                                 )}
-                                {!isFeatureDisabled('lienwaivers') && (
-                                    <DisabledNavItem icon={FileCheck} isCollapsed={isCol}>Lien Waivers</DisabledNavItem>
-                                )}
-                                {!isFeatureDisabled('vendors') && (
-                                    <DisabledNavItem icon={Users} isCollapsed={isCol}>Vendors</DisabledNavItem>
-                                )}
+                                <DisabledNavItem icon={Unplug} isCollapsed={isCol}>Integrations</DisabledNavItem>
+                                <DisabledNavItem icon={Scale} isCollapsed={isCol}>Legal</DisabledNavItem>
+                                <DisabledNavItem icon={UserCog} isCollapsed={isCol}>HR</DisabledNavItem>
                             </>
                         )}
                     </nav>
@@ -229,7 +266,7 @@ export default function SideMenuBar({
                             className={cn(
                                 "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-300",
                                 pathname.startsWith("/report") &&
-                                "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-normal shadow-sm border-l-4 border-l-primary",
+                                "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-normal shadow-sm",
                                 isCol && "justify-center px-3" // center icon when collapsed
                             )}
                         >
