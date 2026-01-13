@@ -699,7 +699,7 @@ export class GoogleServices {
   markEmailAsRead = async (
     tokens: any,
     messageId: string,
-    integrationId: number
+    _integrationId: number
   ): Promise<{ success: boolean; message?: string }> => {
     try {
       const auth = this.getOAuthClient(tokens);
