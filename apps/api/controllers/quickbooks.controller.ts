@@ -666,9 +666,12 @@ export class QuickBooksController {
         name,
       });
 
+      // Extract the customer data from the QuickBooks response
+      const customerData = newCustomer?.Customer || newCustomer?.data?.Customer || newCustomer;
+
       res.json({
         success: true,
-        data: newCustomer,
+        data: customerData,
       });
     } catch (error) {
       next(error);
@@ -703,9 +706,59 @@ export class QuickBooksController {
         type,
       }, lineItemData);
 
+      // Extract the item data from the QuickBooks response
+      const itemData = newItem?.Item || newItem?.data?.Item || newItem;
+
       res.json({
         success: true,
-        data: newItem,
+        data: itemData,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Create account in QuickBooks
+  createAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      // @ts-ignore - user is added by auth middleware
+      const userId = req.user?.id;
+      const { name, accountType, accountSubType } = req.body;
+
+      if (!userId) {
+        throw new BadRequestError("User not authenticated");
+      }
+
+      if (!name) {
+        throw new BadRequestError("Account name is required");
+      }
+
+      if (!accountType) {
+        throw new BadRequestError("Account type is required");
+      }
+
+      if (!accountSubType) {
+        throw new BadRequestError("Account sub-type is required");
+      }
+
+      const integration = await quickbooksService.getUserIntegration(userId);
+
+      if (!integration) {
+        throw new NotFoundError("QuickBooks integration not found");
+      }
+
+      const newAccount = await quickbooksService.createAccount(integration, {
+        name,
+        accountType,
+        accountSubType,
+      });
+
+      // Extract the account data from the QuickBooks response
+      const accountData = newAccount?.Account || newAccount?.data?.Account || newAccount;
+
+      res.json({
+        success: true,
+        data: accountData,
       });
     } catch (error) {
       next(error);
