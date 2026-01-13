@@ -9,6 +9,7 @@ interface ResizablePanelsProps {
     minLeftWidth?: number; // percentage
     maxLeftWidth?: number; // percentage
     minRightWidth?: number; // percentage
+    minRightWidthPx?: number; // minimum right panel width in pixels
     className?: string;
     onResize?: (leftWidth: number) => void;
 }
@@ -19,6 +20,7 @@ export function ResizablePanels({
     minLeftWidth = 20,
     maxLeftWidth = 80,
     minRightWidth = 20,
+    minRightWidthPx,
     className,
     onResize,
 }: ResizablePanelsProps) {
@@ -47,9 +49,39 @@ export function ResizablePanels({
         newLeftWidth = Math.min(newLeftWidth, maxLeftWidth); // Ensure left panel isn't too large
         newLeftWidth = Math.min(newLeftWidth, 100 - minRightWidth); // Ensure right panel isn't too small
 
+        // Apply pixel-based minimum width constraint for right panel
+        if (minRightWidthPx && containerWidth > 0) {
+            const minRightWidthPercent = (minRightWidthPx / containerWidth) * 100;
+            const maxLeftWidthFromPixels = 100 - minRightWidthPercent;
+            newLeftWidth = Math.min(newLeftWidth, maxLeftWidthFromPixels);
+        }
+
         setLeftWidth(newLeftWidth);
         onResize?.(newLeftWidth);
-    }, [isDragging, minLeftWidth, maxLeftWidth, minRightWidth, onResize]);
+    }, [isDragging, minLeftWidth, maxLeftWidth, minRightWidth, minRightWidthPx, onResize]);
+
+    // Handle window resize to recalculate pixel-based constraints
+    useEffect(() => {
+        const handleWindowResize = () => {
+            if (!containerRef.current || !minRightWidthPx) return;
+
+            const containerWidth = containerRef.current.getBoundingClientRect().width;
+            if (containerWidth > 0) {
+                const minRightWidthPercent = (minRightWidthPx / containerWidth) * 100;
+                const maxLeftWidthFromPixels = 100 - minRightWidthPercent;
+
+                // If current left width violates the pixel constraint, adjust it
+                if (leftWidth > maxLeftWidthFromPixels) {
+                    const newLeftWidth = Math.max(maxLeftWidthFromPixels, minLeftWidth);
+                    setLeftWidth(newLeftWidth);
+                    onResize?.(newLeftWidth);
+                }
+            }
+        };
+
+        window.addEventListener('resize', handleWindowResize);
+        return () => window.removeEventListener('resize', handleWindowResize);
+    }, [leftWidth, minLeftWidth, minRightWidthPx, onResize]);
 
     const handleMouseUp = useCallback(() => {
         setIsDragging(false);

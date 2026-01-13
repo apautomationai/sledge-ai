@@ -160,13 +160,17 @@ export default function SideMenuBar({
                         href="/dashboard"
                         className={cn("flex items-center gap-2 font-bold text-xl transition-all duration-300 hover:opacity-80 active:scale-95", isCol && "justify-center w-full")}
                     >
-                        <Image
+                        {isCol ? <Image
                             src={"/images/logos/logo-sledge-symbol-custom.svg"}
                             alt="Logo"
                             width={48}
                             height={48}
-                        />
-                        {!isCol && <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent transition-all duration-300">SLEDGE</span>}
+                        /> : <Image
+                            src={"/images/logos/logo-sledge-wordmark.svg"}
+                            alt="Logo"
+                            width={132}
+                            height={48}
+                        />}
                     </Link>
 
                     <Button

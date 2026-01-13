@@ -638,7 +638,9 @@ export default function InvoiceDetailsForm({
     'vendorEmail',
     'rejectionEmailSender',
     'rejectionReason',
-    'senderEmail'
+    'senderEmail',
+    'currency',
+    'isDuplicate'
   ];
   const fieldsToDisplay = allFields.filter(key => !hiddenFields.includes(key));
 
@@ -846,7 +848,7 @@ export default function InvoiceDetailsForm({
             <div className="relative">
               <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
                 <div className="flex items-center gap-2 flex-1">
-                  <span className="text-sm font-semibold">Line Items ({lineItems.length})</span>
+                  {<span className="text-sm font-semibold">Line Items {lineItemsViewMode === 'expand' && `(${lineItems.length})`}</span>}
                   {/* Single/Expand Toggle */}
                   <div className="flex items-center gap-2 ml-4">
                     <span className="text-xs text-muted-foreground">View:</span>

@@ -476,8 +476,9 @@ export default function JobDetailPage() {
             {/* Main Content - Resizable Two Column Layout */}
             <ResizablePanels
                 defaultLeftWidth={getInitialPanelWidth()}
-                minLeftWidth={30}
-                maxLeftWidth={80}
+                minLeftWidth={20}
+                maxLeftWidth={70}
+                minRightWidthPx={600}
                 className="h-[calc(100%-4rem)]"
                 onResize={handlePanelResize}
             >
