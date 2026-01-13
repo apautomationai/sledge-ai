@@ -50,6 +50,22 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 
+DO $$
+BEGIN
+    -- Add last_verification_email_sent column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'last_verification_email_sent'
+    ) THEN
+        ALTER TABLE "users" ADD COLUMN "last_verification_email_sent" timestamp;
+    END IF;
+EXCEPTION
+    WHEN duplicate_column THEN
+        -- Column already exists, do nothing
+        NULL;
+END $$;
+--> statement-breakpoint
+
 -- Set is_verified=true for existing OAuth users (Google and Microsoft)
 -- This ensures backward compatibility with users who signed up via OAuth
 DO $$

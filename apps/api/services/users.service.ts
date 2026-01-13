@@ -81,6 +81,7 @@ export class UserServices {
           isVerified: false,
           verificationToken,
           verificationTokenExpiry,
+          lastVerificationEmailSent: new Date(),
         })
         .returning();
 
@@ -506,6 +507,56 @@ export class UserServices {
     }
   };
 
+  checkResendCooldown = async (email: string) => {
+    try {
+      // Find user by email
+      const [user] = await db
+        .select()
+        .from(usersModel)
+        .where(eq(usersModel.email, email));
+
+      if (!user) {
+        return {
+          canResend: true,
+          remainingSeconds: 0,
+        };
+      }
+
+      if (user.isVerified) {
+        return {
+          canResend: false,
+          remainingSeconds: 0,
+          isVerified: true,
+        };
+      }
+
+      // Check if user has sent a verification email in the last minute
+      if (user.lastVerificationEmailSent) {
+        const now = new Date();
+        const lastSent = new Date(user.lastVerificationEmailSent);
+        const timeDiffInSeconds = Math.floor((now.getTime() - lastSent.getTime()) / 1000);
+
+        if (timeDiffInSeconds < 60) {
+          const remainingSeconds = 60 - timeDiffInSeconds;
+          return {
+            canResend: false,
+            remainingSeconds,
+          };
+        }
+      }
+
+      return {
+        canResend: true,
+        remainingSeconds: 0,
+      };
+    } catch (error: any) {
+      return {
+        canResend: true,
+        remainingSeconds: 0,
+      };
+    }
+  };
+
   resendVerificationEmail = async (email: string) => {
     try {
       // Find user by email
@@ -522,6 +573,18 @@ export class UserServices {
         throw new BadRequestError("Email is already verified");
       }
 
+      // Check if user has sent a verification email in the last minute
+      if (user.lastVerificationEmailSent) {
+        const now = new Date();
+        const lastSent = new Date(user.lastVerificationEmailSent);
+        const timeDiffInSeconds = Math.floor((now.getTime() - lastSent.getTime()) / 1000);
+
+        if (timeDiffInSeconds < 60) {
+          const remainingSeconds = 60 - timeDiffInSeconds;
+          throw new BadRequestError(`Please wait ${remainingSeconds} seconds before requesting another verification email`);
+        }
+      }
+
       // Generate new verification token (expires in 24 hours)
       const verificationToken = signJwt(
         { email: user.email, type: "email-verification" },
@@ -532,12 +595,13 @@ export class UserServices {
       const verificationTokenExpiry = new Date();
       verificationTokenExpiry.setHours(verificationTokenExpiry.getHours() + 24);
 
-      // Update user with new verification token and expiry
+      // Update user with new verification token, expiry, and last sent timestamp
       await db
         .update(usersModel)
         .set({
           verificationToken,
           verificationTokenExpiry,
+          lastVerificationEmailSent: new Date(),
         })
         .where(eq(usersModel.email, email));
 
@@ -553,6 +617,7 @@ export class UserServices {
       return {
         success: true,
         message: "Verification email sent successfully",
+        remainingSeconds: 60, // Start countdown from 60 seconds
       };
     } catch (error: any) {
       if (error.message) {

@@ -367,6 +367,26 @@ export class UserController {
     }
   };
 
+  checkResendCooldown = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    if (!email) {
+      throw new BadRequestError("Email is required");
+    }
+
+    try {
+      const result = await userServices.checkResendCooldown(email);
+
+      return res.status(200).json({
+        success: true,
+        canResend: result.canResend,
+        remainingSeconds: result.remainingSeconds,
+        isVerified: result.isVerified || false,
+      });
+    } catch (error: any) {
+      throw new BadRequestError(error.message || "Unable to check cooldown status");
+    }
+  };
+
   resendVerificationEmail = async (req: Request, res: Response) => {
     const { email } = req.body;
     if (!email) {
@@ -379,8 +399,19 @@ export class UserController {
       return res.status(200).json({
         success: true,
         message: result.message,
+        remainingSeconds: result.remainingSeconds,
       });
     } catch (error: any) {
+      // Check if it's a rate limit error with remaining seconds
+      const secondsMatch = error.message?.match(/wait (\d+) seconds/);
+      if (secondsMatch) {
+        const remainingSeconds = parseInt(secondsMatch[1], 10);
+        return res.status(429).json({
+          success: false,
+          message: error.message,
+          remainingSeconds,
+        });
+      }
       throw new BadRequestError(error.message || "Unable to resend verification email");
     }
   };

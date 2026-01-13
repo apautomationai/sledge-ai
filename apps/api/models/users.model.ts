@@ -23,6 +23,7 @@ export const usersModel = pgTable("users", {
   isVerified: boolean("is_verified").default(false).notNull(),
   verificationToken: varchar("verification_token", { length: 255 }),
   verificationTokenExpiry: timestamp("verification_token_expiry", { withTimezone: false }),
+  lastVerificationEmailSent: timestamp("last_verification_email_sent", { withTimezone: false }),
   lastLogin: timestamp("last_login").defaultNow(),
   onboardingCompleted: boolean("onboarding_completed").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: false })

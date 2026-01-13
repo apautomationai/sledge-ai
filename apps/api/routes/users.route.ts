@@ -38,6 +38,7 @@ router.patch("/change-password", authenticate, userController.changePassword);
 router.post("/complete-onboarding", authenticate, userController.completeOnboarding);
 router.post("/forgot-password", passwordResetRateLimiter, userController.forgotPassword);
 router.post("/verify-email", emailVerificationRateLimiter, userController.verifyEmail);
+router.post("/check-resend-cooldown", userController.checkResendCooldown);
 router.post("/resend-verification-email", emailVerificationRateLimiter, userController.resendVerificationEmail);
 
 export default router;
