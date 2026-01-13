@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useJobs } from "@/hooks/use-jobs";
 import { Button } from "@workspace/ui/components/button";
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, MoreVertical, Trash2, Copy } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
@@ -37,6 +38,11 @@ export default function JobDetailPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const jobId = params.id as string;
+
+    // Use the useJobs hook to get refetch function
+    const { refetch } = useJobs({
+        page: 1,
+    });
 
     // Get invoice ID from URL query params
     const invoiceIdFromUrl = searchParams.get('invoiceId');
@@ -219,6 +225,8 @@ export default function JobDetailPage() {
     }, [currentInvoiceId]);
 
     const handleBack = () => {
+        // Refetch jobs data before navigating back
+        refetch();
         router.push("/jobs");
     };
 
