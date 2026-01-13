@@ -599,7 +599,7 @@ export default function JobDetailPage() {
                     )}
 
                     {/* PDF Preview */}
-                    {/* <div className="flex-1 min-h-0 overflow-hidden">
+                    <div className="flex-1 min-h-0 overflow-hidden">
                         {activeTab === "invoice" ? (
                             // Show invoice preview
                             invoiceDetails ? (
@@ -634,7 +634,7 @@ export default function JobDetailPage() {
                                 </div>
                             )
                         )}
-                    </div> */}
+                    </div>
                 </div>
 
                 {/* Right Side - Invoice Details Form */}
