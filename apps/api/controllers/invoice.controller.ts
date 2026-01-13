@@ -323,7 +323,7 @@ class InvoiceController {
     try {
       //@ts-ignore
       const userId = req.user.id;
-      const { invoiceId } = req.params;
+      const invoiceId = getStringParam(req.params.invoiceId);
       const { viewType } = req.query; // Get viewType from query parameters
 
       if (!invoiceId) {
@@ -398,7 +398,7 @@ class InvoiceController {
     try {
       //@ts-ignore
       const userId = req.user.id;
-      const { id } = req.params;
+      const id = getStringParam(req.params.id);
       const { itemType, resourceId, customerId, quantity, rate, amount, item_name, description } = req.body;
 
       if (!id) {
@@ -470,7 +470,7 @@ class InvoiceController {
     try {
       //@ts-ignore
       const userId = req.user.id;
-      const { id } = req.params;
+      const id = getStringParam(req.params.id);
 
       if (!id) {
         throw new BadRequestError("Line item ID is required");
@@ -500,7 +500,7 @@ class InvoiceController {
     try {
       //@ts-ignore
       const userId = req.user.id;
-      const { id } = req.params;
+      const id = getStringParam(req.params.id);
       const { status, rejectionReason, recipientEmail, recipientEmails } = req.body;
 
       if (!id) {
@@ -595,7 +595,7 @@ class InvoiceController {
     try {
       //@ts-ignore
       const userId = req.user.id;
-      const { id } = req.params;
+      const id = getStringParam(req.params.id);
 
       if (!id) {
         throw new BadRequestError("Invoice ID is required");
@@ -626,7 +626,7 @@ class InvoiceController {
     try {
       //@ts-ignore
       const userId = req.user.id;
-      const { id } = req.params;
+      const id = getStringParam(req.params.id);
       const { lineItemIds } = req.body;
 
       if (!id) {
