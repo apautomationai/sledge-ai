@@ -112,6 +112,64 @@ const NavLink = ({
   </TooltipProvider>
 );
 
+const IndentedNavLink = ({
+  href,
+  icon: Icon,
+  children,
+  isActive,
+  isCollapsed,
+}: any) => (
+  <TooltipProvider delayDuration={0}>
+    {isCollapsed ? (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            href={href}
+            className={cn(
+              "group flex justify-center rounded-xl p-3 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+              isActive &&
+                "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
+            )}
+          >
+            <Icon className="h-5 w-5" />
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent
+          side="right"
+          sideOffset={10}
+          className="bg-popover text-popover-foreground border shadow-lg"
+        >
+          <div className="flex items-center gap-2">
+            <Icon className="h-4 w-4" />
+            {children}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    ) : (
+      <Link
+        href={href}
+        className={cn(
+          "group flex items-center gap-3 rounded-xl px-4 py-3 pl-8 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+          isActive &&
+            "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
+        )}
+      >
+        <Icon
+          className={cn(
+            "h-5 w-5",
+            isActive && "scale-110",
+            "group-hover:scale-105",
+          )}
+        />
+        <span className="truncate">{children}</span>
+        {!isActive && (
+          <ChevronRight className="ml-auto h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+        )}
+      </Link>
+    )}
+  </TooltipProvider>
+);
+
 const DisabledNavItem = ({ icon: Icon, children, isCollapsed }: any) => (
   <TooltipProvider delayDuration={0}>
     {isCollapsed ? (
@@ -256,34 +314,34 @@ export default function SideMenuBar({
                       Projects
                     </NavLink>
                     {!isFeatureDisabled("jobs") && (
-                      <NavLink
+                      <IndentedNavLink
                         href="/bills"
                         icon={FileText}
                         isActive={pathname.startsWith("/bills")}
                         isCollapsed={isCol}
                       >
                         Bills
-                      </NavLink>
+                      </IndentedNavLink>
                     )}
                     {!isFeatureDisabled("lienwaivers") && (
-                      <NavLink
+                      <IndentedNavLink
                         href="/lien-waiver"
                         icon={FileCheck}
                         isActive={pathname.startsWith("/lien-waiver")}
                         isCollapsed={isCol}
                       >
                         Lien Waivers
-                      </NavLink>
+                      </IndentedNavLink>
                     )}
                     {!isFeatureDisabled("vendors") && (
-                      <NavLink
+                      <IndentedNavLink
                         href="/vendors"
                         icon={Users}
                         isActive={pathname.startsWith("/vendors")}
                         isCollapsed={isCol}
                       >
                         Vendors
-                      </NavLink>
+                      </IndentedNavLink>
                     )}
                   </>
                 )}
