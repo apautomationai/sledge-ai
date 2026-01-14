@@ -50,6 +50,7 @@ interface LineItemsTableProps {
     invoiceDetails?: any;
     onLineItemsRefresh?: () => void;
     onSingleModeSaveRef?: React.MutableRefObject<(() => Promise<void>) | null>;
+    onSingleModeAmountChange?: (amount: string) => void;
 }
 
 export function LineItemsTable({
@@ -63,7 +64,8 @@ export function LineItemsTable({
     viewMode = 'single',
     invoiceDetails,
     onLineItemsRefresh,
-    onSingleModeSaveRef
+    onSingleModeSaveRef,
+    onSingleModeAmountChange
 }: LineItemsTableProps) {
     const router = useRouter();
     const [accounts, setAccounts] = useState<DBQuickBooksAccount[]>([]);
@@ -479,6 +481,11 @@ export function LineItemsTable({
             ...prev,
             amount: value,
         }));
+
+        // Notify parent component of amount change
+        if (onSingleModeAmountChange) {
+            onSingleModeAmountChange(value);
+        }
     };
 
     const handleSingleModeResourceSelect = (resourceId: string, type: 'account' | 'product') => {
