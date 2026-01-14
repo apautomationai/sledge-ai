@@ -4,7 +4,7 @@ import { attachmentsModel } from "@/models/attachments.model";
 import { invoiceModel, lineItemsModel } from "@/models/invoice.model";
 import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
 import { quickbooksCustomersModel } from "@/models/quickbooks-customers.model";
-import { count, desc, eq, getTableColumns, and, sql, gte, lt, lte, inArray, ne } from "drizzle-orm";
+import { count, desc, asc, eq, getTableColumns, and, sql, gte, lt, lte, inArray, ne } from "drizzle-orm";
 import { quickbooksProductsModel } from "@/models/quickbooks-products.model";
 import { PDFDocument } from "pdf-lib";
 import { s3Client, uploadBufferToS3 } from "@/helpers/s3upload";
@@ -240,7 +240,7 @@ export class InvoiceServices {
         eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
       )
       .where(and(...whereConditions))
-      .orderBy(desc(invoiceModel.createdAt))
+      .orderBy(asc(invoiceModel.createdAt))
       .limit(limit)
       .offset(offset);
 
@@ -273,7 +273,7 @@ export class InvoiceServices {
           eq(invoiceModel.isDeleted, false)
         )
       )
-      .orderBy(desc(invoiceModel.createdAt));
+      .orderBy(asc(invoiceModel.createdAt));
 
     return invoicesList;
   }
@@ -822,20 +822,33 @@ export class InvoiceServices {
         throw new BadRequestError("Invoice has already been deleted");
       }
 
-      // Perform soft delete
-      const [result] = await db
-        .update(invoiceModel)
-        .set({
-          isDeleted: true,
-          deletedAt: new Date(),
-          updatedAt: new Date()
-        })
-        .where(eq(invoiceModel.id, invoiceId))
-        .returning();
+      // Perform soft delete on invoice and line items in a transaction
+      await db.transaction(async (tx) => {
+        // Soft delete the invoice
+        const [result] = await tx
+          .update(invoiceModel)
+          .set({
+            isDeleted: true,
+            deletedAt: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(invoiceModel.id, invoiceId))
+          .returning();
 
-      if (!result) {
-        throw new BadRequestError("Failed to delete invoice");
-      }
+        if (!result) {
+          throw new BadRequestError("Failed to delete invoice");
+        }
+
+        // Soft delete all associated line items
+        await tx
+          .update(lineItemsModel)
+          .set({
+            isDeleted: true,
+            deletedAt: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(lineItemsModel.invoiceId, invoiceId));
+      });
     } catch (error) {
       console.error("Error soft deleting invoice:", error);
       throw error;
@@ -1185,7 +1198,8 @@ export class InvoiceServices {
       const lineItems = await db
         .select()
         .from(lineItemsModel)
-        .where(and(...whereConditions));
+        .where(and(...whereConditions))
+        .orderBy(asc(lineItemsModel.id));
 
       return lineItems;
     } catch (error) {

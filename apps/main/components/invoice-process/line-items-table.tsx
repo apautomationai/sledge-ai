@@ -54,6 +54,7 @@ interface LineItemsTableProps {
     invoiceDetails?: any;
     onLineItemsRefresh?: () => void;
     onSingleModeSaveRef?: React.MutableRefObject<(() => Promise<void>) | null>;
+    onSingleModeAmountChange?: (amount: string) => void;
 }
 
 export function LineItemsTable({
@@ -67,7 +68,8 @@ export function LineItemsTable({
     viewMode = 'single',
     invoiceDetails,
     onLineItemsRefresh,
-    onSingleModeSaveRef
+    onSingleModeSaveRef,
+    onSingleModeAmountChange
 }: LineItemsTableProps) {
     const router = useRouter();
     const [accounts, setAccounts] = useState<DBQuickBooksAccount[]>([]);
@@ -488,6 +490,11 @@ export function LineItemsTable({
             ...prev,
             amount: value,
         }));
+
+        // Notify parent component of amount change
+        if (onSingleModeAmountChange) {
+            onSingleModeAmountChange(value);
+        }
     };
 
     const handleSingleModeResourceSelect = (resourceId: string, type: 'account' | 'product') => {
@@ -594,7 +601,7 @@ export function LineItemsTable({
                                         <TableHead className="w-[8%] min-w-[70px] px-2 py-2">
                                             <span className="truncate block">Amount</span>
                                         </TableHead>
-                                        <TableHead className="w-[12%] min-w-[90px] px-2 py-2">
+                                        <TableHead className="w-[12%] min-w-[110px] px-2 py-2">
                                             <span className="truncate block">Cost Type</span>
                                         </TableHead>
                                         <TableHead className="w-[20%] min-w-[150px] px-2 py-2">
@@ -651,14 +658,15 @@ export function LineItemsTable({
                                                 placeholder="Amount"
                                             />
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="px-2 py-2">
                                             <Select
                                                 value={singleModeState.itemType || undefined}
                                                 onValueChange={(value) => handleSingleModeChange('itemType', value)}
                                                 disabled={!isEditing}
+
                                             >
-                                                <SelectTrigger className="h-8">
-                                                    <SelectValue placeholder="Select..." />
+                                                <SelectTrigger className="h-8 text-left overflow-x-hidden">
+                                                    <SelectValue placeholder="Select..." className="truncate" />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="account">Indirect</SelectItem>
@@ -841,7 +849,7 @@ export function LineItemsTable({
                                     <TableHead className="w-[8%] min-w-[70px] px-2 py-2">
                                         <span className="truncate block">Amount</span>
                                     </TableHead>
-                                    <TableHead className="w-[12%] min-w-[90px] px-2 py-2">
+                                    <TableHead className="w-[12%] min-w-[110px] px-2 py-2">
                                         <span className="truncate block">Cost Type</span>
                                     </TableHead>
                                     <TableHead className="w-[18%] min-w-[150px] px-2 py-2">
@@ -954,7 +962,7 @@ export function LineItemsTable({
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="px-2 py-2">
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <div>
@@ -976,8 +984,8 @@ export function LineItemsTable({
                                                                     onValueChange={(value) => handleItemTypeChange(lineItem.id, value as 'account' | 'product')}
                                                                     disabled={!isEditing}
                                                                 >
-                                                                    <SelectTrigger className="h-8">
-                                                                        <SelectValue placeholder="Select..." />
+                                                                    <SelectTrigger className="h-8 text-left">
+                                                                        <SelectValue placeholder="Select..." className="truncate" />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         <SelectItem value="account">Indirect</SelectItem>

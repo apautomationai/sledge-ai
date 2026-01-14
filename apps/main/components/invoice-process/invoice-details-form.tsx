@@ -99,9 +99,6 @@ const FormField = ({
       >
         {label}
         {highlighted && <span className="text-red-500 ml-1">*</span>}
-        {isTotalAmountField && (
-          <span className="ml-1 text-xs text-muted-foreground font-normal">(Auto-calculated)</span>
-        )}
       </Label>
 
       {isDateField && isEditing ? (
@@ -116,7 +113,7 @@ const FormField = ({
           id={fieldKey}
           name={fieldKey}
           value={isDateField ? (formatDate(value as string) ?? "") : inputValue}
-          readOnly={!isEditing || isArrayField || isBooleanField || isTotalAmountField}
+          readOnly={!isEditing || isArrayField || isBooleanField}
           onChange={handleChange}
           onBlur={handleBlur}
           className="h-8 read-only:bg-muted/50 read-only:border-dashed read-only:cursor-not-allowed"
@@ -230,6 +227,26 @@ export default function InvoiceDetailsForm({
     if (onFieldChange) {
       onFieldChange();
     }
+  };
+
+  // Handle single mode amount change
+  const handleSingleModeAmountChange = (amount: string) => {
+    // Update the total amount in the invoice details
+    const formattedTotal = parseFloat(amount || '0').toFixed(2);
+    setLocalInvoiceDetails(prev => ({
+      ...prev,
+      totalAmount: formattedTotal
+    }));
+
+    // Create a synthetic event to update parent state
+    const syntheticEvent = {
+      target: {
+        name: 'totalAmount',
+        value: formattedTotal
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+
+    onDetailsChange(syntheticEvent);
   };
 
   const handleLineItemDelete = (lineItemId: number) => {
@@ -528,7 +545,10 @@ export default function InvoiceDetailsForm({
     fetchLineItems(lineItemsViewMode);
   }, [invoiceDetails?.id, lineItemsViewMode]);
 
-  // Calculate and update total amount whenever line items change
+  // Track the sum of line item amounts to detect actual changes (not just view switches)
+  const previousLineItemsSumRef = useRef<number | null>(null);
+
+  // Calculate and update total amount only when line item amounts actually change
   useEffect(() => {
     const calculateTotal = () => {
       const total = lineItems.reduce((sum, item) => {
@@ -536,26 +556,34 @@ export default function InvoiceDetailsForm({
         return sum + (isNaN(amount) ? 0 : amount);
       }, 0);
 
-      // Update local invoice details with the new total
-      const formattedTotal = total.toFixed(2);
-      setLocalInvoiceDetails(prev => ({
-        ...prev,
-        totalAmount: formattedTotal
-      }));
-
-      // Create a synthetic event to update parent state
-      const syntheticEvent = {
-        target: {
-          name: 'totalAmount',
-          value: formattedTotal
-        }
-      } as React.ChangeEvent<HTMLInputElement>;
-
-      onDetailsChange(syntheticEvent);
+      return total;
     };
 
     if (lineItems.length > 0) {
-      calculateTotal();
+      const currentSum = calculateTotal();
+
+      // Only update if the sum has actually changed (not just a view switch)
+      if (previousLineItemsSumRef.current !== null && previousLineItemsSumRef.current !== currentSum) {
+        // Update local invoice details with the new total
+        const formattedTotal = currentSum.toFixed(2);
+        setLocalInvoiceDetails(prev => ({
+          ...prev,
+          totalAmount: formattedTotal
+        }));
+
+        // Create a synthetic event to update parent state
+        const syntheticEvent = {
+          target: {
+            name: 'totalAmount',
+            value: formattedTotal
+          }
+        } as React.ChangeEvent<HTMLInputElement>;
+
+        onDetailsChange(syntheticEvent);
+      }
+
+      // Update the reference for next comparison
+      previousLineItemsSumRef.current = currentSum;
     }
   }, [lineItems]);
 
@@ -663,7 +691,9 @@ export default function InvoiceDetailsForm({
     'vendorEmail',
     'rejectionEmailSender',
     'rejectionReason',
-    'senderEmail'
+    'senderEmail',
+    'currency',
+    'isDuplicate'
   ];
   const fieldsToDisplay = allFields.filter(key => !hiddenFields.includes(key));
 
@@ -871,7 +901,7 @@ export default function InvoiceDetailsForm({
             <div className="relative">
               <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
                 <div className="flex items-center gap-2 flex-1">
-                  <span className="text-sm font-semibold">Line Items ({lineItems.length})</span>
+                  <span className="text-sm font-semibold">Line Items {lineItemsViewMode === 'expand' && `(${lineItems.length})`}</span>
                 </div>
                 {isLoadingLineItems && (
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -952,6 +982,7 @@ export default function InvoiceDetailsForm({
                       invoiceDetails={invoiceDetails}
                       onLineItemsRefresh={() => fetchLineItems(lineItemsViewMode)}
                       onSingleModeSaveRef={singleModeSaveRef}
+                      onSingleModeAmountChange={handleSingleModeAmountChange}
                     />
                   )}
                 </ScrollArea>

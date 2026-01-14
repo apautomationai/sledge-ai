@@ -70,7 +70,7 @@ const NavLink = ({
             className={cn(
               "group flex justify-center rounded-xl p-3 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
               isActive &&
-                "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
+              "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
             )}
           >
             <Icon className="h-5 w-5" />
@@ -93,7 +93,7 @@ const NavLink = ({
         className={cn(
           "group flex items-center gap-3 rounded-xl px-4 py-3 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
           isActive &&
-            "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
+          "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
         )}
       >
         <Icon
@@ -128,7 +128,7 @@ const IndentedNavLink = ({
             className={cn(
               "group flex justify-center rounded-xl p-3 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
               isActive &&
-                "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
+              "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
             )}
           >
             <Icon className="h-5 w-5" />
@@ -151,7 +151,7 @@ const IndentedNavLink = ({
         className={cn(
           "group flex items-center gap-3 rounded-xl px-4 py-3 pl-8 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
           isActive &&
-            "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
+          "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
         )}
       >
         <Icon
@@ -404,7 +404,7 @@ export default function SideMenuBar({
               className={cn(
                 "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-300",
                 pathname.startsWith("/report") &&
-                  "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-normal shadow-sm",
+                "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-normal shadow-sm",
                 isCol && "justify-center px-3", // center icon when collapsed
               )}
             >
@@ -540,6 +540,6 @@ export default function SideMenuBar({
       </div>
 
       <form id="logout-form" action={logoutAction} className="hidden" />
-    </div>
+    </div >
   );
 }

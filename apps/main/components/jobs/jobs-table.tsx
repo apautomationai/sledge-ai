@@ -67,12 +67,12 @@ export interface Job {
   created_at: string;
   invoiceCount: number;
   jobStatus:
-    | "pending"
-    | "processing"
-    | "processed"
-    | "approved"
-    | "rejected"
-    | "failed";
+  | "pending"
+  | "processing"
+  | "processed"
+  | "approved"
+  | "rejected"
+  | "failed";
   invoiceStatusCounts?: {
     approved: number;
     rejected: number;
@@ -138,7 +138,7 @@ export function JobsTable({
         setLoadingInvoices((prev) => new Set(prev).add(jobId));
         try {
           const response = await client.get(
-            `/api/v1/invoice/invoices?attachmentId=${jobId}`,
+            `/api/v1/invoice/invoices-list?attachmentId=${jobId}`,
           );
           const invoiceData =
             response.data?.data?.invoices || response.data?.invoices || [];
@@ -546,11 +546,11 @@ export function JobsTable({
                               </TooltipTrigger>
                               {(job.jobStatus === "processing" ||
                                 job.jobStatus === "pending") && (
-                                <TooltipContent side="top" className="z-50">
-                                  Job is still {job.jobStatus}. Please wait for
-                                  it to complete.
-                                </TooltipContent>
-                              )}
+                                  <TooltipContent side="top" className="z-50">
+                                    Job is still {job.jobStatus}. Please wait for
+                                    it to complete.
+                                  </TooltipContent>
+                                )}
                               {job.invoiceCount === 0 &&
                                 job.jobStatus !== "processing" &&
                                 job.jobStatus !== "pending" && (
@@ -631,11 +631,10 @@ export function JobsTable({
                                   {invoicesCache[job.id]?.map((invoice) => (
                                     <div
                                       key={invoice.id}
-                                      className={`flex items-center justify-between p-3 bg-background rounded-lg border transition-colors cursor-pointer ${
-                                        invoice.isDuplicate
-                                          ? "border-orange-500/50 bg-orange-500/5 hover:border-orange-500"
-                                          : "hover:border-primary/50"
-                                      }`}
+                                      className={`flex items-center justify-between p-3 bg-background rounded-lg border transition-colors cursor-pointer ${invoice.isDuplicate
+                                        ? "border-orange-500/50 bg-orange-500/5 hover:border-orange-500"
+                                        : "hover:border-primary/50"
+                                        }`}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         onReviewJob(job.id, invoice.id);
@@ -656,7 +655,7 @@ export function JobsTable({
                                                   invoice.status === "approved"
                                                     ? "bg-green-500/10 text-green-500 border-green-500/20"
                                                     : invoice.status ===
-                                                        "rejected"
+                                                      "rejected"
                                                       ? "bg-red-500/10 text-red-500 border-red-500/20"
                                                       : "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
                                                 }
@@ -673,7 +672,7 @@ export function JobsTable({
                                               <span className="truncate">
                                                 {invoice.vendorData
                                                   ? (invoice?.vendorData
-                                                      ?.displayName ?? "")
+                                                    ?.displayName ?? "")
                                                   : ""}
                                               </span>
                                             )}

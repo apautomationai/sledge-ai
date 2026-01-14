@@ -4,7 +4,7 @@ import { projectVendorsModel } from "@/models/project-vendors.model";
 import { projectsModel } from "@/models/projects.model";
 import { invoiceModel } from "@/models/invoice.model";
 import { eq, and, ilike, count, or } from "drizzle-orm";
-const { v4: uuidv4 } = require("uuid");
+import { QuickBooksService } from "@/services/quickbooks.service";
 
 interface GetVendorsParams {
     userId: number;
@@ -298,6 +298,13 @@ class VendorsService {
         };
     }
 
+    /**
+     * Find existing vendor by name or create a new one in QuickBooks
+     * Requires QuickBooks integration to be connected
+     * @param userId - The user ID who owns the vendor
+     * @param vendorData - Vendor data from invoice
+     * @returns Vendor ID (existing or newly created)
+     */
     async findOrCreateVendor(
         userId: number,
         vendorData: {
@@ -329,55 +336,46 @@ class VendorsService {
             return existingVendors[0].id;
         }
 
-        // Vendor not found, create a new one
-        // Generate a shorter unique ID that fits in varchar(50)
-        // Format: LOCAL_<timestamp>_<short-uuid> (max 50 chars)
-        const shortUuid = uuidv4().replace(/-/g, '').substring(0, 20); // 20 chars
-        const quickbooksId = `LOCAL_${Date.now()}_${shortUuid}`; // ~35 chars total
+        // Vendor not found, create in QuickBooks
+        const quickbooksService = new QuickBooksService();
+        const integration = await quickbooksService.getUserIntegration(userId);
 
-        try {
-            const [newVendor] = await db
-                .insert(quickbooksVendorsModel)
-                .values({
-                    userId: userId,
-                    quickbooksId: quickbooksId,
-                    displayName: trimmedVendorName,
-                    companyName: trimmedVendorName,
-                    primaryEmail: vendorData.vendor_email || null,
-                    primaryPhone: vendorData.vendor_phone || null,
-                    billAddrLine1: vendorData.vendor_address || null,
-                    projectId: null,
-                    active: true,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                })
-                .returning();
-
-            return newVendor.id;
-        } catch (error: any) {
-            // If insert fails (likely due to race condition), query again to get the existing vendor
-            // This handles the case where another concurrent request created the vendor
-            const retryVendors = await db
-                .select()
-                .from(quickbooksVendorsModel)
-                .where(
-                    and(
-                        eq(quickbooksVendorsModel.userId, userId),
-                        or(
-                            ilike(quickbooksVendorsModel.displayName, trimmedVendorName),
-                            ilike(quickbooksVendorsModel.companyName, trimmedVendorName)
-                        )
-                    )
-                )
-                .limit(1);
-
-            if (retryVendors.length > 0) {
-                return retryVendors[0].id;
-            }
-
-            // If still not found, rethrow the original error
-            throw error;
+        if (!integration) {
+            throw new Error("QuickBooks integration not found. Please connect your QuickBooks account.");
         }
+
+        // Create vendor in QuickBooks
+        const qbResult = await quickbooksService.createVendor(integration, {
+            name: trimmedVendorName,
+            email: vendorData.vendor_email,
+            phone: vendorData.vendor_phone,
+            address: vendorData.vendor_address
+        });
+
+        // Extract the created vendor data
+        const newVendor = qbResult?.Vendor || qbResult?.QueryResponse?.Vendor?.[0];
+
+        if (!newVendor || !newVendor.Id) {
+            throw new Error("Failed to create vendor in QuickBooks");
+        }
+
+        // Find the synced vendor in our database
+        const syncedVendors = await db
+            .select()
+            .from(quickbooksVendorsModel)
+            .where(
+                and(
+                    eq(quickbooksVendorsModel.userId, userId),
+                    eq(quickbooksVendorsModel.quickbooksId, newVendor.Id.toString())
+                )
+            )
+            .limit(1);
+
+        if (syncedVendors.length > 0) {
+            return syncedVendors[0].id;
+        }
+
+        throw new Error("Vendor was created in QuickBooks but failed to sync to database");
     }
 
     async updateVendor(vendorId: number, updateData: any) {
