@@ -298,7 +298,7 @@ export default function JobDetailPage() {
       const dataToSave = {
         ...invoiceDetails,
         ...(invoiceDetails.status === "approved" ||
-        invoiceDetails.status === "rejected"
+          invoiceDetails.status === "rejected"
           ? { status: "pending" }
           : {}),
         // Include vendor data if provided
@@ -585,12 +585,13 @@ export default function JobDetailPage() {
         maxLeftWidth={80}
         className="h-[calc(100%-4rem)]"
         onResize={handlePanelResize}
+        minRightWidthPx={600}
       >
         {/* Left Side - Preview with Carousel */}
         <div className="flex flex-col h-full gap-4 min-w-0 overflow-hidden pr-2">
           {/* Carousel Controls - Only show for invoice tab */}
           {activeTab === "invoice" && (
-            <div className="flex items-center justify-between gap-4 bg-card rounded-lg border px-4 py-3">
+            <div className="flex items-center justify-between gap-4 bg-card rounded-lg border px-4 py-3 overflow-x-hidden">
               {/* Left: Navigation */}
               {invoicesList.length > 1 ? (
                 <div className="flex items-center gap-3">
@@ -626,13 +627,12 @@ export default function JobDetailPage() {
                               <span className="font-medium">{index + 1}</span>
                               {invoice.status && (
                                 <span
-                                  className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
-                                    invoice.status === "approved"
-                                      ? "bg-green-100 text-green-700"
-                                      : invoice.status === "rejected"
-                                        ? "bg-red-100 text-red-700"
-                                        : "bg-yellow-100 text-yellow-700"
-                                  }`}
+                                  className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${invoice.status === "approved"
+                                    ? "bg-green-100 text-green-700"
+                                    : invoice.status === "rejected"
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-yellow-100 text-yellow-700"
+                                    }`}
                                 >
                                   {invoice.status.charAt(0).toUpperCase() +
                                     invoice.status.slice(1)}
@@ -722,25 +722,25 @@ export default function JobDetailPage() {
                 </div>
               )
             ) : // Show attachment preview
-            isLoading ? (
-              <div className="flex items-center justify-center h-full rounded-lg border bg-card">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : attachment && attachment.fileUrl ? (
-              <InvoicePdfViewer
-                fileUrl={attachment.fileUrl}
-                sourcePdfUrl={null}
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full rounded-lg border bg-card gap-2">
-                <p className="text-muted-foreground">No attachment available</p>
-                {attachment && (
-                  <p className="text-xs text-muted-foreground">
-                    Attachment ID: {jobId}
-                  </p>
-                )}
-              </div>
-            )}
+              isLoading ? (
+                <div className="flex items-center justify-center h-full rounded-lg border bg-card">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : attachment && attachment.fileUrl ? (
+                <InvoicePdfViewer
+                  fileUrl={attachment.fileUrl}
+                  sourcePdfUrl={null}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full rounded-lg border bg-card gap-2">
+                  <p className="text-muted-foreground">No attachment available</p>
+                  {attachment && (
+                    <p className="text-xs text-muted-foreground">
+                      Attachment ID: {jobId}
+                    </p>
+                  )}
+                </div>
+              )}
           </div>
         </div>
 
@@ -760,7 +760,7 @@ export default function JobDetailPage() {
                 onReject={handleReject}
                 onApprove={handleApprove}
                 onCancel={handleCancelEdit}
-                onFieldChange={() => {}}
+                onFieldChange={() => { }}
                 lineItemChangesRef={lineItemChangesRef}
                 setInvoicesList={setInvoicesList}
                 onApprovalSuccess={() => {
