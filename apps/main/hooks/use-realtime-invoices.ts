@@ -185,7 +185,10 @@ export const useRealtimeInvoices = ({
             connect();
         }
 
-    }, [autoConnect, connect]);
+        return () => {
+            disconnect();
+        };
+    }, [autoConnect, connect, disconnect]);
 
     return {
         connect,
