@@ -1189,7 +1189,8 @@ export class InvoiceServices {
       const lineItems = await db
         .select()
         .from(lineItemsModel)
-        .where(and(...whereConditions));
+        .where(and(...whereConditions))
+        .orderBy(asc(lineItemsModel.id));
 
       return lineItems;
     } catch (error) {
