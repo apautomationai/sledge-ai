@@ -127,6 +127,19 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+
+  /* SVG rendering optimization for crisp edges on mobile Safari */
+  svg {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    -webkit-font-smoothing: antialiased;
+    -webkit-backface-visibility: hidden;
+  }
+
+  img[src*=".svg"] {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
 }
 
 @keyframes accordion-down {

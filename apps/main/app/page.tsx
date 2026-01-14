@@ -12,13 +12,13 @@ import { Testimonial } from "@/components/landing/testimonial";
 import RoiCalculator from "@/components/landing/roi-calculator";
 
 export const metadata: Metadata = {
-  title: "AI Accounts Payable Software for Construction | Sledge",
+  title: "AI Construction Management Software | Sledge",
   description:
-    "Sledge is an AI-powered accounts payable platform built for construction companies to automate invoice processing and back-office workflows.",
+    "Sledge is an AI-powered construction management software built to automate invoice processing and back-office workflows.",
   openGraph: {
-    title: "AI Accounts Payable Software for Construction | Sledge",
+    title: "AI Construction Management Software | Sledge",
     description:
-      "Sledge is an AI-powered accounts payable platform built for construction companies to automate invoice processing and back-office workflows.",
+      "Sledge is an AI-powered construction management software built to automate invoice processing and back-office workflows.",
     images: [
       {
         url: "/images/hero-visual.png",
@@ -30,9 +30,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Accounts Payable Software for Construction | Sledge",
+    title: "AI Construction Management Software | Sledge",
     description:
-      "Sledge is an AI-powered accounts payable platform built for construction companies to automate invoice processing and back-office workflows.",
+      "Sledge is an AI-powered construction management software built to automate invoice processing and back-office workflows.",
     images: ["/images/hero-visual.png"],
   },
 };

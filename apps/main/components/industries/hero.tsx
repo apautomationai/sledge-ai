@@ -18,7 +18,7 @@ interface HeroProps {
 
 export function Hero({ subtitle, title, description, image }: HeroProps) {
   return (
-    <section className="w-full px-6 md:px-8 lg:px-12 pt-12 md:pt-16">
+    <section className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-center lg:gap-12 w-full max-w-[1400px] mx-auto gap-8">
         {/* Left Section */}
         <div className="flex-1 min-w-0 flex flex-col justify-start items-start gap-2 max-w-2xl">

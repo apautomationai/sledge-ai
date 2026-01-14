@@ -51,7 +51,7 @@ const contactCards: ContactCardData[] = [
 
 function ContactCard({ card }: { card: ContactCardData }) {
   const content = (
-    <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-700 transition-all duration-300 hover:border-zinc-600 flex-1">
+    <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-700 transition-all duration-300 hover:border-zinc-600 h-full">
       <div className="flex items-start gap-4">
         <div className="p-3 rounded-lg bg-zinc-800">
           <card.icon className="w-6 h-6 text-zinc-400" />
@@ -94,7 +94,7 @@ function ContactCard({ card }: { card: ContactCardData }) {
     );
   }
 
-  return content;
+  return <div className="flex-1">{content}</div>;
 }
 
 export default function ContactPage() {
