@@ -2,6 +2,7 @@
 
 import React, { useEffect, useActionState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
@@ -19,7 +20,7 @@ const initialState: ForgotPasswordFormState = {
 export default function ForgotPasswordForm() {
   const [state, formAction] = useActionState(
     forgotPasswordAction,
-    initialState
+    initialState,
   );
 
   useEffect(() => {
@@ -36,10 +37,12 @@ export default function ForgotPasswordForm() {
     <div className="w-full flex flex-col justify-center items-center gap-[22px]">
       {/* Logo - Centered */}
       <Link href="/" className="w-[185.333px] h-16 relative cursor-pointer">
-        <img
+        <Image
           src="/images/logos/logo-sledge-symbol-custom.svg"
           alt="Logo"
           className="w-16 h-16 absolute left-0 top-0 rounded-2xl"
+          width={64}
+          height={64}
         />
         <div className="absolute left-[74.67px] top-[17.33px] justify-center text-white text-[32px] font-bold font-['League_Spartan'] capitalize leading-8">
           SLEDGE
@@ -57,10 +60,16 @@ export default function ForgotPasswordForm() {
         </p>
 
         {/* Forgot Password Form */}
-        <form action={formAction} className="self-stretch flex flex-col gap-[24px] items-center">
+        <form
+          action={formAction}
+          className="self-stretch flex flex-col gap-[24px] items-center"
+        >
           <div className="self-stretch flex flex-col gap-[24px]">
             <div className="self-stretch flex flex-col gap-1">
-              <Label htmlFor="email" className="self-stretch text-white text-sm font-medium font-['Inter']">
+              <Label
+                htmlFor="email"
+                className="self-stretch text-white text-sm font-medium font-['Inter']"
+              >
                 Email
               </Label>
               <Input
@@ -72,25 +81,36 @@ export default function ForgotPasswordForm() {
                 required
               />
               {state.errors?.email && (
-                <p className="text-sm text-red-400 mt-1">{state.errors.email[0]}</p>
+                <p className="text-sm text-red-400 mt-1">
+                  {state.errors.email[0]}
+                </p>
               )}
             </div>
           </div>
 
           {state.errors?._form && (
-            <div className="p-3 bg-red-900/20 relative overflow-hidden w-full" style={{ border: '1px solid #808080', borderRadius: '4px' }}>
-              <p className="text-sm text-red-400 text-center relative z-10">{state.errors._form[0]}</p>
+            <div
+              className="p-3 bg-red-900/20 relative overflow-hidden w-full"
+              style={{ border: "1px solid #808080", borderRadius: "4px" }}
+            >
+              <p className="text-sm text-red-400 text-center relative z-10">
+                {state.errors._form[0]}
+              </p>
             </div>
           )}
 
-          <SubmitButton label="SEND RESET LINK" pendingLabel="Sending..." variant="default" />
+          <SubmitButton
+            label="SEND RESET LINK"
+            pendingLabel="Sending..."
+            variant="default"
+          />
         </form>
 
         <div className="inline-flex justify-center items-center gap-1 w-full font-['Inter'] font-bold text-base">
           <Link
             href="/sign-in"
             className="uppercase leading-6 hover:text-amber-400 transition-colors"
-            style={{ color: '#e3b02f' }}
+            style={{ color: "#e3b02f" }}
           >
             ← BACK TO SIGN IN
           </Link>
