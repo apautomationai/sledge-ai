@@ -826,20 +826,33 @@ export class InvoiceServices {
         throw new BadRequestError("Invoice has already been deleted");
       }
 
-      // Perform soft delete
-      const [result] = await db
-        .update(invoiceModel)
-        .set({
-          isDeleted: true,
-          deletedAt: new Date(),
-          updatedAt: new Date()
-        })
-        .where(eq(invoiceModel.id, invoiceId))
-        .returning();
+      // Perform soft delete on invoice and line items in a transaction
+      await db.transaction(async (tx) => {
+        // Soft delete the invoice
+        const [result] = await tx
+          .update(invoiceModel)
+          .set({
+            isDeleted: true,
+            deletedAt: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(invoiceModel.id, invoiceId))
+          .returning();
 
-      if (!result) {
-        throw new BadRequestError("Failed to delete invoice");
-      }
+        if (!result) {
+          throw new BadRequestError("Failed to delete invoice");
+        }
+
+        // Soft delete all associated line items
+        await tx
+          .update(lineItemsModel)
+          .set({
+            isDeleted: true,
+            deletedAt: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(lineItemsModel.invoiceId, invoiceId));
+      });
     } catch (error) {
       console.error("Error soft deleting invoice:", error);
       throw error;
