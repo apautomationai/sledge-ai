@@ -117,7 +117,7 @@ export function EnhancedLineItemAutocomplete<T extends Record<string, any> = any
                     avoidCollisions={true}
                     collisionPadding={8}
                 >
-                    <div className="flex flex-col max-h-[300px]">
+                    <div className="flex flex-col max-h-[300px] bg-red-500">
                         {/* Search Input */}
                         <div className="p-2 border-b flex-shrink-0">
                             <input

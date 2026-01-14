@@ -984,7 +984,7 @@ export function LineItemsTable({
                                                                     onValueChange={(value) => handleItemTypeChange(lineItem.id, value as 'account' | 'product')}
                                                                     disabled={!isEditing}
                                                                 >
-                                                                    <SelectTrigger className="h-8 text-left">
+                                                                    <SelectTrigger className="h-8 text-left overflow-x-hidden">
                                                                         <SelectValue placeholder="Select..." className="truncate" />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
