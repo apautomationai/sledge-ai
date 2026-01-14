@@ -56,7 +56,11 @@ export default function JobsPage() {
   const handleSyncEmails = async () => {
     setIsSyncing(true);
     try {
-      await client.get("/api/v1/email/gmail/my");
+      await Promise.all(
+        ["/api/v1/email/gmail/my", "/api/v1/email/outlook/my"].map((endpoint) =>
+          client.get(endpoint)
+        )
+      );
       toast.success("Emails synced successfully");
       refetch();
       router.refresh();
