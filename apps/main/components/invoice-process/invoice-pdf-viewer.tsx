@@ -1,13 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
 import { Button } from "@workspace/ui/components/button";
 import { ZoomIn, ZoomOut, Loader2, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
-
-// Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface InvoicePdfViewerProps {
   fileUrl: string;
@@ -23,6 +19,30 @@ export default function InvoicePdfViewer({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [key, setKey] = useState<string>(fileUrl);
+  const [isMounted, setIsMounted] = useState(false);
+  const [PdfComponents, setPdfComponents] = useState<{
+    Document: React.ComponentType<any>;
+    Page: React.ComponentType<any>;
+  } | null>(null);
+
+  // Only load react-pdf on the client side after mount
+  useEffect(() => {
+    setIsMounted(true);
+
+    const loadPdfComponents = async () => {
+      const reactPdf = await import("react-pdf");
+
+      // Configure worker only on client
+      reactPdf.pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${reactPdf.pdfjs.version}/build/pdf.worker.min.mjs`;
+
+      setPdfComponents({
+        Document: reactPdf.Document,
+        Page: reactPdf.Page,
+      });
+    };
+
+    loadPdfComponents();
+  }, []);
 
   // Reset state when fileUrl changes
   useEffect(() => {
@@ -147,8 +167,12 @@ export default function InvoicePdfViewer({
       {/* PDF Viewer */}
       <ScrollArea className="flex-1 bg-muted/20">
         <div className="flex flex-col items-center gap-4 p-4">
-          {fileUrl ? (
-            <Document
+          {!isMounted || !PdfComponents ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : fileUrl ? (
+            <PdfComponents.Document
               key={key}
               file={fileUrl}
               onLoadSuccess={onDocumentLoadSuccess}
@@ -170,7 +194,7 @@ export default function InvoicePdfViewer({
                   className="mb-4"
                   ref={(el) => { pageRefs.current[index] = el; }}
                 >
-                  <Page
+                  <PdfComponents.Page
                     pageNumber={index + 1}
                     scale={scale}
                     renderTextLayer={false}
@@ -189,7 +213,7 @@ export default function InvoicePdfViewer({
                   )}
                 </div>
               ))}
-            </Document>
+            </PdfComponents.Document>
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground py-20">
               <p>No PDF available.</p>

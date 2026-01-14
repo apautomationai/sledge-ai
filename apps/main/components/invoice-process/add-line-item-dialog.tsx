@@ -20,6 +20,10 @@ import { client } from "@/lib/axios-client";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/types/invoice";
 import { LineItemAutocomplete } from "./line-item-autocomplete-simple";
+import { EnhancedLineItemAutocomplete } from "./enhanced-line-item-autocomplete";
+import { AddCustomerModal } from "./add-customer-modal";
+import { AddProductModal } from "./add-product-modal";
+import { AddAccountModal } from "./add-account-modal";
 import { fetchQuickBooksAccountsFromDB, fetchQuickBooksProductsFromDB, fetchQuickBooksCustomers } from "@/lib/services/quickbooks.service";
 import type { DBQuickBooksAccount, DBQuickBooksProduct, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
 
@@ -48,6 +52,11 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
         resourceId: null as string | null,
         customerId: null as string | null,
     });
+
+    // Modal states for adding new items
+    const [addCustomerModalOpen, setAddCustomerModalOpen] = useState(false);
+    const [addProductModalOpen, setAddProductModalOpen] = useState(false);
+    const [addAccountModalOpen, setAddAccountModalOpen] = useState(false);
 
     // Load accounts, items, and customers when dialog opens
     useEffect(() => {
@@ -182,6 +191,22 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
         return customer.displayName || customer.companyName || 'Unknown';
     };
 
+    // Callback functions for when new items are created
+    const handleCustomerCreated = (newCustomer: any) => {
+        // Refresh customers list from database to ensure sync
+        loadCustomers();
+    };
+
+    const handleProductCreated = (newProduct: any) => {
+        // Refresh items list from database to ensure sync
+        loadItems();
+    };
+
+    const handleAccountCreated = (newAccount: any) => {
+        // Refresh accounts list from database to ensure sync
+        loadAccounts();
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
@@ -312,7 +337,7 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                                         Select type first
                                     </div>
                                 ) : formData.itemType === 'account' ? (
-                                    <LineItemAutocomplete
+                                    <EnhancedLineItemAutocomplete
                                         items={accounts}
                                         value={formData.resourceId}
                                         onSelect={(id, account) => {
@@ -322,9 +347,12 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                                         isLoading={isLoadingAccounts}
                                         disabled={isSubmitting}
                                         getDisplayName={getAccountDisplayName}
+                                        showAddOption={true}
+                                        addOptionLabel="Add Account"
+                                        onAddClick={() => setAddAccountModalOpen(true)}
                                     />
                                 ) : (
-                                    <LineItemAutocomplete
+                                    <EnhancedLineItemAutocomplete
                                         items={items}
                                         value={formData.resourceId}
                                         onSelect={(id, item) => {
@@ -334,6 +362,9 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                                         isLoading={isLoadingItems}
                                         disabled={isSubmitting}
                                         getDisplayName={getItemDisplayName}
+                                        showAddOption={true}
+                                        addOptionLabel="Add Product"
+                                        onAddClick={() => setAddProductModalOpen(true)}
                                     />
                                 )}
                             </div>
@@ -351,7 +382,7 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                                     Loading...
                                 </div>
                             ) : (
-                                <LineItemAutocomplete<QuickBooksCustomer>
+                                <EnhancedLineItemAutocomplete<QuickBooksCustomer>
                                     items={customers}
                                     value={formData.customerId}
                                     onSelect={(id, customer) => {
@@ -362,6 +393,9 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                                     disabled={isSubmitting}
                                     getDisplayName={getCustomerDisplayName}
                                     placeholder="Select job..."
+                                    showAddOption={true}
+                                    addOptionLabel="Add Customer"
+                                    onAddClick={() => setAddCustomerModalOpen(true)}
                                 />
                             )}
                         </div>
@@ -388,6 +422,27 @@ export function AddLineItemDialog({ invoiceId, onLineItemAdded, isQuickBooksConn
                     </DialogFooter>
                 </form>
             </DialogContent>
+
+            {/* Add Customer Modal */}
+            <AddCustomerModal
+                isOpen={addCustomerModalOpen}
+                onClose={() => setAddCustomerModalOpen(false)}
+                onCustomerCreated={handleCustomerCreated}
+            />
+
+            {/* Add Product Modal */}
+            <AddProductModal
+                isOpen={addProductModalOpen}
+                onClose={() => setAddProductModalOpen(false)}
+                onProductCreated={handleProductCreated}
+            />
+
+            {/* Add Account Modal */}
+            <AddAccountModal
+                isOpen={addAccountModalOpen}
+                onClose={() => setAddAccountModalOpen(false)}
+                onAccountCreated={handleAccountCreated}
+            />
         </Dialog>
     );
 }

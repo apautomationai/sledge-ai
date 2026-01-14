@@ -6,12 +6,13 @@ import { projectsServices } from "@/services/projects.services";
 import { vendorsService } from "@/services/vendors.service";
 import { customersService } from "@/services/customers.service";
 import { getWebSocketService } from "@/services/websocket.service";
+import { getStringParam } from "@/helpers/request-utils";
 
 // import fs from 'fs';
 
 class ProcessorController {
   async getAttachmentInfo(req: Request, res: Response) {
-    const { attachmentId } = req.params;
+    const attachmentId = getStringParam(req.params.attachmentId);
     const attachmentIdNumber = parseInt(attachmentId, 10);
 
     if (isNaN(attachmentIdNumber)) {
@@ -283,7 +284,7 @@ class ProcessorController {
 
 
   async updateAttachment(req: Request, res: Response) {
-    const { attachmentId } = req.params;
+    const attachmentId = getStringParam(req.params.attachmentId);
     const attachmentIdNumber = parseInt(attachmentId, 10);
 
     if (isNaN(attachmentIdNumber)) {

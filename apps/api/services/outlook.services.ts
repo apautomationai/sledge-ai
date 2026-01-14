@@ -13,43 +13,43 @@ import axios from "axios";
 
 
 export class OutlookServices {
-    private clientId: string;
-    private clientSecret: string;
-    private redirectUri: string;
-    private pca: ConfidentialClientApplication;
+  private clientId: string;
+  private clientSecret: string;
+  private redirectUri: string;
+  private pca: ConfidentialClientApplication;
 
-    constructor() {
-        this.clientId = process.env.MICROSOFT_CLIENT_ID || '';
-        this.clientSecret = process.env.MICROSOFT_CLIENT_SECRET || '';
-        this.redirectUri = process.env.MICROSOFT_REDIRECT_URI || 'http://localhost:3000/api/callback/outlook';
-        
-        // Validate required environment variables
-        if (!this.clientId) {
-            throw new Error('MICROSOFT_CLIENT_ID environment variable is required');
-        }
-        if (!this.clientSecret) {
-            throw new Error('MICROSOFT_CLIENT_SECRET environment variable is required');
-        }
-        
-        // Warn if client secret looks like a UUID (secret ID instead of secret value)
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (uuidRegex.test(this.clientSecret)) {
-            console.warn('WARNING: MICROSOFT_CLIENT_SECRET appears to be a secret ID (UUID) rather than the actual secret value. Please use the secret VALUE from Azure AD, not the secret ID.');
-        }
+  constructor() {
+    this.clientId = process.env.MICROSOFT_CLIENT_ID || '';
+    this.clientSecret = process.env.MICROSOFT_CLIENT_SECRET || '';
+    this.redirectUri = process.env.MICROSOFT_REDIRECT_URI || 'http://localhost:3000/api/callback/outlook';
 
-        const msalConfig = {
-          auth: {
-            clientId: this.clientId,
-            clientSecret: this.clientSecret,
-            authority: "https://login.microsoftonline.com/common",
-          },
-        };
-        
-        this.pca = new ConfidentialClientApplication(msalConfig);
+    // Validate required environment variables
+    if (!this.clientId) {
+      throw new Error('MICROSOFT_CLIENT_ID environment variable is required');
+    }
+    if (!this.clientSecret) {
+      throw new Error('MICROSOFT_CLIENT_SECRET environment variable is required');
     }
 
+    // Warn if client secret looks like a UUID (secret ID instead of secret value)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(this.clientSecret)) {
+      console.warn('WARNING: MICROSOFT_CLIENT_SECRET appears to be a secret ID (UUID) rather than the actual secret value. Please use the secret VALUE from Azure AD, not the secret ID.');
+    }
+
+    const msalConfig = {
+      auth: {
+        clientId: this.clientId,
+        clientSecret: this.clientSecret,
+        authority: "https://login.microsoftonline.com/common",
+      },
+    };
+
+    this.pca = new ConfidentialClientApplication(msalConfig);
+  }
+
   generateAuthUrl = async (state?: string): Promise<string> => {
-    const scopes = ["Mail.Read", "offline_access", "User.Read"];
+    const scopes = ["Mail.ReadWrite", "offline_access", "User.Read"];
     const redirectUri = this.redirectUri;
 
     const authCodeUrlParameters = {
@@ -63,7 +63,7 @@ export class OutlookServices {
 
   getTokensFromCode = async (code: string): Promise<any> => {
     const redirectUri = this.redirectUri;
-    
+
     // Use direct OAuth2 token endpoint to get refresh token
     const tokenEndpoint = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
     const params = new URLSearchParams();
@@ -72,7 +72,7 @@ export class OutlookServices {
     params.append("code", code);
     params.append("redirect_uri", redirectUri);
     params.append("grant_type", "authorization_code");
-    params.append("scope", "Mail.Read offline_access User.Read");
+    params.append("scope", "Mail.ReadWrite offline_access User.Read");
 
     try {
       const response = await axios.post(tokenEndpoint, params, {
@@ -102,13 +102,13 @@ export class OutlookServices {
         }
         throw new Error(`Microsoft OAuth error: ${errorDescription || error.response.data.error}`);
       }
-      
+
       // Re-throw with more context
       if (error.response?.data) {
         const errorDescription = error.response.data.error_description || error.response.data.error || 'Unknown error';
         throw new Error(`Failed to exchange authorization code for tokens: ${errorDescription}`);
       }
-      
+
       throw error;
     }
   };
@@ -309,7 +309,7 @@ export class OutlookServices {
       params.append("client_secret", this.clientSecret);
       params.append("refresh_token", tokens.refresh_token);
       params.append("grant_type", "refresh_token");
-      params.append("scope", "Mail.Read offline_access User.Read");
+      params.append("scope", "Mail.ReadWrite offline_access User.Read");
 
       const response = await axios.post(tokenEndpoint, params, {
         headers: {
@@ -449,8 +449,6 @@ export class OutlookServices {
           .top(100)
           .get();
 
-        // console.log(messagesResponse);
-
         const allMessages = messagesResponse.value || [];
         // Filter for "invoice" in subject or body
         messages = allMessages.filter((msg: any) => {
@@ -488,11 +486,12 @@ export class OutlookServices {
           );
           const receiver = extractEmail(
             message.toRecipients?.[0]?.emailAddress?.address ||
-              message.toRecipients?.[0]?.emailAddress?.name ||
-              ""
+            message.toRecipients?.[0]?.emailAddress?.name ||
+            ""
           );
 
           const attachments = message.attachments || [];
+          let messageHasEligibleAttachments = false;
 
           for (const attachment of attachments) {
             // Only process file attachments (not item attachments)
@@ -561,6 +560,7 @@ export class OutlookServices {
                 provider: "outlook",
               });
               metadata.storedAttachments++;
+              messageHasEligibleAttachments = true;
             } catch (partError: any) {
               metadata.failures++;
               metadata.errors.push({
@@ -593,6 +593,37 @@ export class OutlookServices {
                   metadata,
                 };
               }
+            }
+          }
+
+          // Mark email as read if it had eligible attachments that were processed
+          if (messageHasEligibleAttachments) {
+            try {
+              const markReadResult = await this.markEmailAsRead(
+                tokens,
+                msg.id!,
+                integrationId
+              );
+              if (!markReadResult.success) {
+                metadata.errors.push({
+                  stage: "markAsRead",
+                  messageId: msg.id || undefined,
+                  error: markReadResult.message || "Failed to mark email as read",
+                });
+              }
+            } catch (markReadError: any) {
+              metadata.errors.push({
+                stage: "markAsRead",
+                messageId: msg.id || undefined,
+                error: this.extractErrorMessage(
+                  markReadError,
+                  "Failed to mark email as read"
+                ),
+                stack:
+                  process.env.NODE_ENV === "development"
+                    ? markReadError?.stack
+                    : undefined,
+              });
             }
           }
         } catch (messageError: any) {
@@ -759,6 +790,47 @@ export class OutlookServices {
       return response;
     } catch (error: any) {
       throw new BadRequestError(error.message || "No attachment found");
+    }
+  };
+
+  // Mark email as read
+  markEmailAsRead = async (
+    tokens: any,
+    messageId: string,
+    integrationId: number
+  ): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const authResult = await this.ensureValidAccessToken(
+        tokens,
+        integrationId,
+        {
+          tokenRefreshed: false,
+          failures: 0,
+          errorMessage: null,
+          integrationStatus: null,
+          errors: [],
+        }
+      );
+
+      if (!authResult.success || !authResult.client) {
+        return {
+          success: false,
+          message: "Unable to authenticate with Outlook",
+        };
+      }
+
+      const client = authResult.client;
+
+      await client.api(`/me/messages/${messageId}`).patch({
+        isRead: true,
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: this.extractErrorMessage(error, "Failed to mark email as read"),
+      };
     }
   };
 }

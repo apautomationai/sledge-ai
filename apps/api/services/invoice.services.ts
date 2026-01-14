@@ -19,6 +19,12 @@ const { v4: uuidv4 } = require("uuid");
 
 const quickbooksService = new QuickBooksService();
 
+interface InvoiceDuplicateCheckData {
+  userId: number;
+  vendorId: number;
+  invoiceNumber: string;
+}
+
 export class InvoiceServices {
   async insertInvoice(data: typeof invoiceModel.$inferInsert) {
     try {
@@ -101,23 +107,13 @@ export class InvoiceServices {
           }
         } else {
           // Check for duplicates: same invoice number + same vendor + same user
-          let isDuplicate = false;
-          if (invoiceData.vendorId && invoiceData.invoiceNumber) {
-            const duplicates = await tx
-              .select()
-              .from(invoiceModel)
-              .where(
-                and(
-                  eq(invoiceModel.userId, invoiceData.userId),
-                  eq(invoiceModel.vendorId, invoiceData.vendorId),
-                  eq(invoiceModel.invoiceNumber, invoiceData.invoiceNumber),
-                  eq(invoiceModel.isDeleted, false),
-                  ne(invoiceModel.status, "rejected")
-                )
-              );
-
-            isDuplicate = duplicates.length > 0;
+          const invoiceDuplicateCheckPayload: InvoiceDuplicateCheckData = {
+            userId: invoiceData.userId,
+            vendorId: invoiceData.vendorId!,
+            invoiceNumber: invoiceData.invoiceNumber!,
           }
+          const isDuplicate = await this.isInvoiceDuplicate(invoiceDuplicateCheckPayload);
+
 
           // Create new invoice with duplicate flag if needed
           const [newInvoice] = await tx
@@ -1355,6 +1351,13 @@ export class InvoiceServices {
         newInvoiceNumber = `${originalNumber}-001`;
       }
 
+      const invoiceDuplicateCheckPayload: InvoiceDuplicateCheckData = {
+        userId: userId,
+        vendorId: originalInvoice.vendorId!,
+        invoiceNumber: newInvoiceNumber,
+      };
+      const isDuplicate = await this.isInvoiceDuplicate(invoiceDuplicateCheckPayload);
+
       // Create new invoice
       const [newInvoice] = await db
         .insert(invoiceModel)
@@ -1375,6 +1378,7 @@ export class InvoiceServices {
           s3JsonKey: originalInvoice.s3JsonKey,
           status: "pending",
           isDeleted: false,
+          isDuplicate: isDuplicate,
         })
         .returning();
 
@@ -2161,5 +2165,23 @@ export class InvoiceServices {
       throw error;
     }
   }
+
+  private async isInvoiceDuplicate(data: InvoiceDuplicateCheckData): Promise<boolean> {
+    const duplicates = await db
+      .select()
+      .from(invoiceModel)
+      .where(
+        and(
+          eq(invoiceModel.userId, data.userId),
+          eq(invoiceModel.vendorId, data.vendorId),
+          eq(invoiceModel.invoiceNumber, data.invoiceNumber),
+          eq(invoiceModel.isDeleted, false),
+          ne(invoiceModel.status, "rejected")
+        )
+      );
+
+    return duplicates.length > 0;
+  }
+
 }
 export const invoiceServices = new InvoiceServices();

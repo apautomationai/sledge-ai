@@ -3,13 +3,14 @@ import { BadRequestError, NotFoundError } from "@/helpers/errors";
 import { googleServices } from "@/services/google.services";
 import { invoiceServices } from "@/services/invoice.services";
 import { attachmentServices } from "@/services/attachment.services";
+import { getStringParam, getIntParam } from "@/helpers/request-utils";
 
 class JobsController {
     async getJobById(req: Request, res: Response) {
         try {
             //@ts-ignore
             const userId = req.user.id;
-            const jobId = parseInt(req.params.id);
+            const jobId = getIntParam(req.params.id);
 
             if (!userId) {
                 throw new BadRequestError("Need a valid userId");
@@ -120,12 +121,12 @@ class JobsController {
                 throw new BadRequestError("Need a valid userId");
             }
 
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 20;
-            const statusFilter = (req.query.status as string) || "all";
-            const sortBy = (req.query.sortBy as string) || "received";
-            const sortOrder = (req.query.sortOrder as string) || "desc";
-            const searchQuery = (req.query.search as string) || "";
+            const page = getIntParam(req.query.page) || 1;
+            const limit = getIntParam(req.query.limit) || 20;
+            const statusFilter = getStringParam(req.query.status) || "all";
+            const sortBy = getStringParam(req.query.sortBy) || "received";
+            const sortOrder = getStringParam(req.query.sortOrder) || "desc";
+            const searchQuery = getStringParam(req.query.search) || "";
 
             // Get attachments (jobs)
             const attachmentsData = await googleServices.getAttachments(

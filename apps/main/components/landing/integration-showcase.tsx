@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function IntegrationShowcase() {
   return (
     <div className="w-full px-6 md:px-8 lg:px-12 py-12 md:py-16">
@@ -13,25 +15,33 @@ export default function IntegrationShowcase() {
           </p>
         </div>
         <div className="mt-6 flex flex-wrap justify-center items-center gap-3 md:gap-16">
-          <img
+          <Image
             className="w-16 h-6 md:w-36 md:h-12 object-contain"
             src="/images/Stripe wordmark - White 1.svg"
             alt="Stripe"
+            width={144}
+            height={48}
           />
-          <img
+          <Image
             className="w-8 h-6 md:w-16 md:h-12 object-contain"
             src="/images/128px-Gmail_icon_(2020).svg 1.svg"
             alt="Gmail"
+            width={64}
+            height={48}
           />
-          <img
+          <Image
             className="w-8 h-6 md:w-16 md:h-12 object-contain"
             src="/images/1024px-Microsoft_Outlook_logo_(2024–2025).svg 1.svg"
             alt="Microsoft Outlook"
+            width={64}
+            height={48}
           />
-          <img
+          <Image
             className="w-20 h-6 md:w-48 md:h-12 object-contain"
             src="/images/quickbooks-brand-preferred-logo-50-50-white-external 1.svg"
             alt="QuickBooks"
+            width={192}
+            height={48}
           />
         </div>
       </div>

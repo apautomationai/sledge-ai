@@ -14,6 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@workspace/ui/components/input";
 import { Button } from "@workspace/ui/components/button";
 import { LineItemAutocomplete } from "./line-item-autocomplete-simple";
+import { EnhancedLineItemAutocomplete } from "./enhanced-line-item-autocomplete";
+import { AddCustomerModal } from "./add-customer-modal";
+import { AddProductModal } from "./add-product-modal";
+import { AddAccountModal } from "./add-account-modal";
 import { fetchQuickBooksAccountsFromDB, fetchQuickBooksProductsFromDB, fetchQuickBooksCustomers } from "@/lib/services/quickbooks.service";
 import type { DBQuickBooksAccount, DBQuickBooksProduct, QuickBooksCustomer } from "@/lib/services/quickbooks.service";
 import type { LineItem } from "@/lib/types/invoice";
@@ -78,6 +82,11 @@ export function LineItemsTable({
     const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; lineItem?: LineItem }>({ open: false });
     const [isDeleting, setIsDeleting] = useState(false);
     const [internalSelectedItems, setInternalSelectedItems] = useState<Set<number>>(new Set());
+
+    // Modal states for adding new items
+    const [addCustomerModalOpen, setAddCustomerModalOpen] = useState(false);
+    const [addProductModalOpen, setAddProductModalOpen] = useState(false);
+    const [addAccountModalOpen, setAddAccountModalOpen] = useState(false);
 
     // Single mode state for the summary row
     const [singleModeState, setSingleModeState] = useState({
@@ -554,6 +563,22 @@ export function LineItemsTable({
         return customer.displayName || customer.companyName || 'Unknown';
     };
 
+    // Callback functions for when new items are created
+    const handleCustomerCreated = (newCustomer: any) => {
+        // Refresh customers list from database to ensure sync
+        loadCustomers();
+    };
+
+    const handleProductCreated = (newProduct: any) => {
+        // Refresh items list from database to ensure sync
+        loadItems();
+    };
+
+    const handleAccountCreated = (newAccount: any) => {
+        // Refresh accounts list from database to ensure sync
+        loadAccounts();
+    };
+
     // Single mode: Always show one row
     if (viewMode === 'single') {
         return (
@@ -652,22 +677,28 @@ export function LineItemsTable({
                                         <TableCell className="px-2 py-2">
                                             <div className="relative">
                                                 {singleModeState.itemType === 'account' ? (
-                                                    <LineItemAutocomplete
+                                                    <EnhancedLineItemAutocomplete
                                                         items={accounts}
                                                         value={singleModeState.resourceId}
                                                         onSelect={(id, account) => handleSingleModeResourceSelect(id, 'account')}
                                                         isLoading={isLoadingAccounts}
                                                         disabled={!isEditing}
                                                         getDisplayName={getAccountDisplayName}
+                                                        showAddOption={true}
+                                                        addOptionLabel="Add Account"
+                                                        onAddClick={() => setAddAccountModalOpen(true)}
                                                     />
                                                 ) : singleModeState.itemType === 'product' ? (
-                                                    <LineItemAutocomplete
+                                                    <EnhancedLineItemAutocomplete
                                                         items={items}
                                                         value={singleModeState.resourceId}
                                                         onSelect={(id, item) => handleSingleModeResourceSelect(id, 'product')}
                                                         isLoading={isLoadingItems}
                                                         disabled={!isEditing}
                                                         getDisplayName={getItemDisplayName}
+                                                        showAddOption={true}
+                                                        addOptionLabel="Add Product"
+                                                        onAddClick={() => setAddProductModalOpen(true)}
                                                     />
                                                 ) : (
                                                     <div className="text-xs text-muted-foreground">Select type first</div>
@@ -689,13 +720,16 @@ export function LineItemsTable({
                                                         Loading...
                                                     </div>
                                                 ) : (
-                                                    <LineItemAutocomplete<QuickBooksCustomer>
+                                                    <EnhancedLineItemAutocomplete<QuickBooksCustomer>
                                                         items={customers}
                                                         value={singleModeState.customerId}
                                                         onSelect={(id) => handleSingleModeChange('customerId', id)}
                                                         isLoading={isLoadingCustomers}
                                                         disabled={!isEditing}
                                                         getDisplayName={getCustomerDisplayName}
+                                                        showAddOption={true}
+                                                        addOptionLabel="Add Customer"
+                                                        onAddClick={() => setAddCustomerModalOpen(true)}
                                                     />
                                                 )}
                                             </div>
@@ -754,6 +788,27 @@ export function LineItemsTable({
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+
+                {/* Add Customer Modal */}
+                <AddCustomerModal
+                    isOpen={addCustomerModalOpen}
+                    onClose={() => setAddCustomerModalOpen(false)}
+                    onCustomerCreated={handleCustomerCreated}
+                />
+
+                {/* Add Product Modal */}
+                <AddProductModal
+                    isOpen={addProductModalOpen}
+                    onClose={() => setAddProductModalOpen(false)}
+                    onProductCreated={handleProductCreated}
+                />
+
+                {/* Add Account Modal */}
+                <AddAccountModal
+                    isOpen={addAccountModalOpen}
+                    onClose={() => setAddAccountModalOpen(false)}
+                    onAccountCreated={handleAccountCreated}
+                />
             </>
         );
     }
@@ -950,22 +1005,28 @@ export function LineItemsTable({
                                                     <TooltipTrigger asChild>
                                                         <div className="relative">
                                                             {state.itemType === 'account' ? (
-                                                                <LineItemAutocomplete
+                                                                <EnhancedLineItemAutocomplete
                                                                     items={accounts}
                                                                     value={state.resourceId}
                                                                     onSelect={(id, account) => handleResourceSelect(lineItem.id, id, 'account')}
                                                                     isLoading={isLoadingAccounts}
                                                                     disabled={!isEditing}
                                                                     getDisplayName={getAccountDisplayName}
+                                                                    showAddOption={true}
+                                                                    addOptionLabel="Add Account"
+                                                                    onAddClick={() => setAddAccountModalOpen(true)}
                                                                 />
                                                             ) : state.itemType === 'product' ? (
-                                                                <LineItemAutocomplete
+                                                                <EnhancedLineItemAutocomplete
                                                                     items={items}
                                                                     value={state.resourceId}
                                                                     onSelect={(id, item) => handleResourceSelect(lineItem.id, id, 'product')}
                                                                     isLoading={isLoadingItems}
                                                                     disabled={!isEditing}
                                                                     getDisplayName={getItemDisplayName}
+                                                                    showAddOption={true}
+                                                                    addOptionLabel="Add Product"
+                                                                    onAddClick={() => setAddProductModalOpen(true)}
                                                                 />
                                                             ) : (
                                                                 <div className="text-xs text-muted-foreground">Select type first</div>
@@ -998,13 +1059,16 @@ export function LineItemsTable({
                                                                     Loading...
                                                                 </div>
                                                             ) : (
-                                                                <LineItemAutocomplete<QuickBooksCustomer>
+                                                                <EnhancedLineItemAutocomplete<QuickBooksCustomer>
                                                                     items={customers}
                                                                     value={state.customerId}
                                                                     onSelect={(id) => handleCustomerSelect(lineItem.id, id)}
                                                                     isLoading={isLoadingCustomers}
                                                                     disabled={!isEditing}
                                                                     getDisplayName={getCustomerDisplayName}
+                                                                    showAddOption={true}
+                                                                    addOptionLabel="Add Customer"
+                                                                    onAddClick={() => setAddCustomerModalOpen(true)}
                                                                 />
                                                             )}
                                                         </div>
@@ -1128,6 +1192,27 @@ export function LineItemsTable({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Add Customer Modal */}
+            <AddCustomerModal
+                isOpen={addCustomerModalOpen}
+                onClose={() => setAddCustomerModalOpen(false)}
+                onCustomerCreated={handleCustomerCreated}
+            />
+
+            {/* Add Product Modal */}
+            <AddProductModal
+                isOpen={addProductModalOpen}
+                onClose={() => setAddProductModalOpen(false)}
+                onProductCreated={handleProductCreated}
+            />
+
+            {/* Add Account Modal */}
+            <AddAccountModal
+                isOpen={addAccountModalOpen}
+                onClose={() => setAddAccountModalOpen(false)}
+                onAccountCreated={handleAccountCreated}
+            />
         </>
     );
 }

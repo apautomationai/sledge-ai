@@ -56,7 +56,11 @@ export default function JobsPage() {
   const handleSyncEmails = async () => {
     setIsSyncing(true);
     try {
-      await client.get("/api/v1/email/gmail/my");
+      await Promise.all(
+        ["/api/v1/email/gmail/my", "/api/v1/email/outlook/my"].map((endpoint) =>
+          client.get(endpoint)
+        )
+      );
       toast.success("Emails synced successfully");
       refetch();
       router.refresh();
@@ -70,9 +74,9 @@ export default function JobsPage() {
 
   const handleReviewJob = (jobId: string, invoiceId?: number) => {
     if (invoiceId) {
-      router.push(`/jobs/${jobId}?invoiceId=${invoiceId}`);
+      router.push(`/bills/${jobId}?invoiceId=${invoiceId}`);
     } else {
-      router.push(`/jobs/${jobId}`);
+      router.push(`/bills/${jobId}`);
     }
   };
 
