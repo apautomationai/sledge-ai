@@ -103,7 +103,7 @@ export default function ForgotPasswordForm() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Sign In
           </Link>
-        </div>
+        </Button>
       </div>
     </div>
   );
