@@ -103,21 +103,17 @@ export default function AboutPage() {
                 ABOUT US
               </h1>
               <p className="text-2xl md:text-3xl text-[#e3b02f] font-bold uppercase font-['League_Spartan']">
-                The Builder's AI Office.
+                SLEDGE: THE BUILDER'S AI OFFICE
               </p>
-              <div className="text-lg text-zinc-300 max-w-4xl mx-auto mt-6 leading-relaxed space-y-4">
-                <p>
-                  Sledge is{" "}
-                  <strong className="text-white">
-                    modern construction management software
-                  </strong>{" "}
-                  built to automate the construction back office.
+              <div className="text-lg text-white max-w-4xl mx-auto mt-6 leading-relaxed space-y-4">
+                <p className="font-semibold">
+                  Sledge is AI construction management software that automates the construction back office.
                 </p>
                 <p>
-                  We help construction companies replace manual workflows with{" "}
-                  <strong className="text-white">AI-powered systems</strong> —
-                  so builders can run their business smarter, faster, and with
-                  less overhead.
+                  We replace manual, outdated workflows with AI-powered systems — so builders can run their businesses faster, with fewer tools and less overhead.
+                </p>
+                <p className="text-white font-bold">
+                  Built by builders. For builders.
                 </p>
               </div>
             </div>
@@ -128,35 +124,33 @@ export default function AboutPage() {
                 <Target className="w-8 h-8" />
                 Why We Exist
               </h2>
-              <div className="space-y-4 text-zinc-200 text-base md:text-lg leading-relaxed">
-                <p>
-                  Construction runs the real world — but the software running
-                  construction businesses is outdated and broken.
+              <div className="space-y-4 text-white text-base md:text-lg leading-relaxed">
+                <p className="font-bold">
+                  Construction runs the real world — but the software running construction is broken.
                 </p>
                 <p>
-                  Most construction management and construction accounting
-                  software today is:
+                  Most construction management and accounting tools today are:
                 </p>
                 <div className="space-y-2 pl-4">
-                  <p className="flex items-start gap-3">
-                    <span className="text-[#e3b02f] font-bold mt-1">•</span>
-                    <span>Overpriced and bloated</span>
+                  <p className="flex items-center gap-3">
+                    <span className="text-[#e3b02f] font-bold">•</span>
+                    <span>Overpriced</span>
                   </p>
-                  <p className="flex items-start gap-3">
-                    <span className="text-[#e3b02f] font-bold mt-1">•</span>
-                    <span>
-                      Built for enterprise executives, not construction
-                      operators
-                    </span>
+                  <p className="flex items-center gap-3">
+                    <span className="text-[#e3b02f] font-bold">•</span>
+                    <span>Bloated</span>
                   </p>
-                  <p className="flex items-start gap-3">
-                    <span className="text-[#e3b02f] font-bold mt-1">•</span>
-                    <span>
-                      Designed around extracting fees instead of improving
-                      efficiency
-                    </span>
+                  <p className="flex items-center gap-3">
+                    <span className="text-[#e3b02f] font-bold">•</span>
+                    <span>Built for executives, not builders.</span>
                   </p>
                 </div>
+                <p>
+                  Builders shouldn't need enterprise contracts, long implementations, or complicated systems just to run their business.
+                </p>
+                <p className="font-bold">
+                  Sledge exists to automate the construction back office — and give builders tools that actually meet their real needs.
+                </p>
               </div>
             </div>
 
@@ -172,13 +166,11 @@ export default function AboutPage() {
                     Vision
                   </h2>
                 </div>
-                <p className="text-zinc-200 text-base leading-relaxed">
-                  Our vision is to democratize construction management software
-                  and bring the industry into modern times. To create the first
-                  truly all-in-one, AI-native construction management platform
-                  where anyone — from a first-time builder to an enterprise
-                  contractor — can start, run, and scale an entire construction
-                  business in one place.
+                <p className="text-white text-base leading-relaxed font-bold">
+                  Our vision is to make modern construction management software accessible to every builder.
+                </p>
+                <p className="text-white text-base leading-relaxed mt-4">
+                  From first-time contractors to large firms, anyone should be able to start, run, and scale a construction business without expensive, overcomplicated tools.
                 </p>
               </div>
 
@@ -192,10 +184,11 @@ export default function AboutPage() {
                     Mission
                   </h2>
                 </div>
-                <p className="text-zinc-200 text-base leading-relaxed">
-                  To use AI to eliminate construction back-office work and put
-                  the power of running a construction company back in the hands
-                  of the builder.
+                <p className="text-white text-base leading-relaxed font-bold">
+                  Our mission is to eliminate construction back-office work using AI.
+                </p>
+                <p className="text-white text-base leading-relaxed mt-4">
+                  We put the power of running a construction company back where it belongs — in the hands of the builder.
                 </p>
               </div>
             </div>
