@@ -39,6 +39,7 @@ export class InvoiceServices {
     invoiceData: Omit<typeof invoiceModel.$inferInsert, 'id' | 'createdAt' | 'updatedAt'>,
     lineItemsData: Array<{
       item_name: string;
+      item_description?: string;
       quantity: number;
       rate: number;
       amount: number;
@@ -47,7 +48,7 @@ export class InvoiceServices {
     try {
       return await db.transaction(async (tx) => {
         // Check if invoice already exists with same invoice_number and attachment_id
-        const [existingInvoice] = await tx
+        const existingInvoices = await tx
           .select()
           .from(invoiceModel)
           .where(
@@ -56,7 +57,10 @@ export class InvoiceServices {
               eq(invoiceModel.attachmentId, invoiceData.attachmentId),
               eq(invoiceModel.isDeleted, false)
             )
-          );
+          )
+          .limit(1);
+
+        const existingInvoice = existingInvoices[0];
 
         let invoice: typeof invoiceModel.$inferSelect;
         let isUpdate = false;
@@ -130,8 +134,19 @@ export class InvoiceServices {
           invoice = newInvoice;
         }
 
-        // Handle line items - always add new line items to existing invoice
+        // Handle line items
         if (lineItemsData && lineItemsData.length > 0) {
+          // If updating an existing invoice, delete old line items first to avoid duplicates
+          if (existingInvoice) {
+            await tx
+              .update(lineItemsModel)
+              .set({ 
+                isDeleted: true, 
+                deletedAt: new Date() 
+              })
+              .where(eq(lineItemsModel.invoiceId, invoice.id));
+          }
+
           // Search for each line item in QuickBooks products to get quickbooks_id
           const lineItemsToInsert = await Promise.all(
             lineItemsData.map(async (item) => {
@@ -163,6 +178,7 @@ export class InvoiceServices {
               return {
                 invoiceId: invoice.id,
                 item_name: item.item_name,
+                description: item.item_description || null,
                 quantity: item.quantity.toString(),
                 rate: item.rate.toString(),
                 amount: item.amount.toString(),
