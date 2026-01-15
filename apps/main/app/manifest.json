@@ -1,6 +1,6 @@
 {
-  "name": "Sledge",
-  "short_name": "Sledge",
+  "name": "Sledge: The Builder's AI Office",
+  "short_name": "Sledge AI",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -15,7 +15,7 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#000000",
-  "background_color": "#000000",
+  "theme_color": "#1b1a17",
+  "background_color": "#1b1a17",
   "display": "standalone"
 }

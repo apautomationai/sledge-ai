@@ -17,18 +17,36 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://getsledge.com"),
   title: "Sledge: The Builder's AI Office",
   description:
-    "A modern dashboard to manage and process invoices with AI-powered data extraction.",
+    "AI construction management software that automates the construction back office. Built by builders, for builders.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon1.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
-    siteName: "SLEDGE AI",
+    siteName: "Sledge AI",
     type: "website",
+    title: "Sledge: The Builder's AI Office",
+    description:
+      "AI construction management software that automates the construction back office. Built by builders, for builders.",
     images: [
       {
-        url: "/images/icon.svg",
-        width: 48,
-        height: 48,
+        url: "/web-app-manifest-512x512.png",
+        width: 512,
+        height: 512,
         alt: "Sledge: The Builder's AI Office",
+        type: "image/png",
       },
     ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Sledge: The Builder's AI Office",
+    description:
+      "AI construction management software that automates the construction back office. Built by builders, for builders.",
+    images: ["/web-app-manifest-512x512.png"],
   },
 };
 
