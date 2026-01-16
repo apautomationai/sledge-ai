@@ -3,6 +3,7 @@ import { uploadServices } from "@/services/upload.services";
 import { sendAttachmentMessage } from "@/helpers/sqs";
 import { attachmentServices } from "@/services/attachment.services";
 import { getWebSocketService } from "@/services/websocket.service";
+import { uploadBufferToS3 } from "@/helpers/s3upload";
 import { Request, Response } from "express";
 
 export class UploadController {
@@ -32,7 +33,7 @@ export class UploadController {
           error: response.error,
         });
       }
-      
+
       return res.status(200).json(response.data);
     } catch (error: any) {
       if (error.isOperational) {
@@ -68,7 +69,7 @@ export class UploadController {
       };
 
       const [response] = await uploadServices.createDbRecord(attInfo);
-      
+
       // Send SQS message with attachment ID
       if (response && response.id) {
         try {
@@ -78,7 +79,7 @@ export class UploadController {
           console.error("Failed to send SQS message for attachment:", response.id, sqsError);
         }
       }
-      
+
       const result = {
         success: true,
         data: response,
@@ -171,6 +172,49 @@ export class UploadController {
         });
       }
       console.error("UNEXPECTED_ERROR in regenerate:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  };
+
+  uploadProjectImage = async (req: Request, res: Response) => {
+    try {
+      //@ts-ignore
+      const userId = req.user.id;
+
+      if (!userId) {
+        throw new BadRequestError("User not authenticated");
+      }
+
+      if (!req.file) {
+        throw new BadRequestError("No file uploaded");
+      }
+
+      const file = req.file;
+      const timestamp = Date.now();
+      const key = `projects/${userId}/${timestamp}-${file.originalname}`;
+
+      // Upload to S3
+      const imageUrl = await uploadBufferToS3(file.buffer, key, file.mimetype);
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          imageUrl,
+          key,
+        },
+      });
+    } catch (error: any) {
+      if (error.isOperational) {
+        const statusCode = error.statusCode || 400;
+        return res.status(statusCode).json({
+          success: false,
+          message: error.message,
+        });
+      }
+      console.error("UNEXPECTED_ERROR in uploadProjectImage:", error);
       return res.status(500).json({
         success: false,
         message: "Internal server error",

@@ -4,6 +4,80 @@ import { projectsServices } from "@/services/projects.services";
 import { getStringParam, getIntParam, getFloatParam } from "@/helpers/request-utils";
 
 class ProjectsController {
+    async createProject(req: Request, res: Response) {
+        try {
+            //@ts-ignore
+            const userId = req.user.id;
+
+            if (!userId) {
+                throw new BadRequestError("Need a valid userId");
+            }
+
+            const {
+                name,
+                address,
+                city,
+                state,
+                postalCode,
+                country,
+                latitude,
+                longitude,
+                projectStartDate,
+                billingCycleStartDate,
+                billingCycleEndDate,
+                imageUrl,
+                vendorIds,
+                invoiceIds
+            } = req.body;
+
+            if (!name) {
+                throw new BadRequestError("Project name is required");
+            }
+
+            if (!projectStartDate) {
+                throw new BadRequestError("Project start date is required");
+            }
+
+            if (!billingCycleStartDate || !billingCycleEndDate) {
+                throw new BadRequestError("Billing cycle dates are required");
+            }
+
+            const projectData = {
+                userId,
+                name,
+                address: address || "",
+                city: city || null,
+                state: state || null,
+                postalCode: postalCode || null,
+                country: country || null,
+                latitude: latitude || null,
+                longitude: longitude || null,
+                projectStartDate: new Date(projectStartDate),
+                billingCycleStartDate: new Date(billingCycleStartDate),
+                billingCycleEndDate: new Date(billingCycleEndDate),
+                imageUrl: imageUrl || null,
+                status: 'active',
+            };
+
+            const project = await projectsServices.createProject(
+                projectData,
+                vendorIds || [],
+                invoiceIds || []
+            );
+
+            return res.status(201).json({
+                success: true,
+                message: "Project created successfully",
+                data: project,
+            });
+        } catch (error: any) {
+            return res.status(error.statusCode || 500).json({
+                success: false,
+                error: error.message || "Failed to create project",
+            });
+        }
+    }
+
     async getProjects(req: Request, res: Response) {
         try {
             //@ts-ignore

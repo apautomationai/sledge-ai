@@ -55,15 +55,17 @@ export function DatePicker({
     disabled = false,
     className,
 }: DatePickerProps) {
+    const [open, setOpen] = React.useState(false);
     const date = stringToDate(value);
 
     const handleDateSelect = (selectedDate: Date | undefined) => {
         const dateString = dateToString(selectedDate);
         onDateChange?.(dateString);
+        setOpen(false); // Close the popover after selection
     };
 
     return (
-        <Popover>
+        <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
                     variant={"outline"}

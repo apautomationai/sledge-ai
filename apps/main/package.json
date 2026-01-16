@@ -19,6 +19,7 @@
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@react-google-maps/api": "^2.20.8",
     "@sentry/nextjs": "^10.32.1",
     "@tanstack/react-query": "^5.90.12",
     "@workspace/ui": "workspace:*",

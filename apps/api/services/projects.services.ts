@@ -11,6 +11,51 @@ class ProjectsServices {
     private readonly FALLBACK_IMAGE_URL = '/images/project-placeholder.jpg'; // Professional project placeholder image
 
     /**
+     * Create a new project with vendors and invoices
+     */
+    async createProject(
+        projectData: typeof projectsModel.$inferInsert,
+        vendorIds: number[],
+        invoiceIds: number[]
+    ) {
+        return await db.transaction(async (tx) => {
+            // Create the project
+            const [project] = await tx
+                .insert(projectsModel)
+                .values(projectData)
+                .returning();
+
+            // Create project-vendor relationships
+            if (vendorIds.length > 0) {
+                const projectVendorRecords = vendorIds.map(vendorId => ({
+                    projectId: project.id,
+                    vendorId: vendorId,
+                }));
+
+                await tx.insert(projectVendorsModel).values(projectVendorRecords);
+            }
+
+            // Update invoices to link them to this project by setting deliveryAddress
+            if (invoiceIds.length > 0 && project.address) {
+                await tx
+                    .update(invoiceModel)
+                    .set({
+                        deliveryAddress: project.address,
+                        updatedAt: new Date(),
+                    })
+                    .where(
+                        and(
+                            sql`${invoiceModel.id} IN (${sql.join(invoiceIds.map(id => sql`${id}`), sql`, `)})`,
+                            eq(invoiceModel.userId, projectData.userId)
+                        )
+                    );
+            }
+
+            return project;
+        });
+    }
+
+    /**
      * Get image URL with fallback
      */
     private getImageUrlWithFallback(imageUrl: string | null): string {
