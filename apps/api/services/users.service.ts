@@ -56,6 +56,16 @@ export class UserServices {
       // Hash the password
       const passwordHash = await hashPassword(password);
 
+      // Generate verification token (expires in 24 hours)
+      const verificationToken = signJwt(
+        { email, type: "email-verification" },
+        "24h"
+      );
+
+      // Calculate expiry time (24 hours from now)
+      const verificationTokenExpiry = new Date();
+      verificationTokenExpiry.setHours(verificationTokenExpiry.getHours() + 24);
+
       // Insert the new user
       const inserted = await db
         .insert(usersModel)
@@ -68,6 +78,10 @@ export class UserServices {
           email,
           phone,
           passwordHash,
+          isVerified: false,
+          verificationToken,
+          verificationTokenExpiry,
+          lastVerificationEmailSent: new Date(),
         })
         .returning();
 
@@ -81,8 +95,12 @@ export class UserServices {
         // Note: In production, you might want to add this to a retry queue
       }
 
-      // Issue JWT
-      const token = signJwt({ sub: createdUser.id, email: createdUser.email });
+      // Issue JWT (with is_verified flag)
+      const token = signJwt({
+        sub: createdUser.id,
+        email: createdUser.email,
+        is_verified: createdUser.isVerified || false
+      });
 
       return {
         user: {
@@ -94,6 +112,7 @@ export class UserServices {
           phone: createdUser.phone,
         },
         token,
+        verificationToken,
       };
     } catch (error: any) {
       throw new BadRequestError(error.message || "Registration failed");
@@ -184,6 +203,7 @@ export class UserServices {
         sub: updatedUser.id,
         id: updatedUser.id,
         email: updatedUser.email,
+        is_verified: updatedUser.isVerified || false,
       });
 
       return {
@@ -307,6 +327,7 @@ export class UserServices {
           passwordHash,
           isActive: true,
           isBanned: false,
+          isVerified: true,
         })
         .returning();
 
@@ -376,6 +397,233 @@ export class UserServices {
       return decodedToken;
     } catch (error) {
       throw new BadRequestError("Invalid token");
+    }
+  };
+
+  verifyEmail = async (token: string) => {
+    try {
+      // Verify the token
+      const decodedToken = verifyJwt(token);
+
+      if (decodedToken.type !== "email-verification") {
+        throw new BadRequestError("Invalid verification token");
+      }
+
+      const email = decodedToken.email;
+
+      // Find user by email and verification token
+      const [user] = await db
+        .select()
+        .from(usersModel)
+        .where(eq(usersModel.email, email));
+
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      // If user is already verified, generate a new login token and return success
+      if (user.isVerified) {
+        const loginToken = signJwt({
+          sub: user.id,
+          id: user.id,
+          email: user.email,
+          is_verified: true,
+        });
+
+        return {
+          user: {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            avatar: user.avatar,
+            email: user.email,
+            phone: user.phone,
+          },
+          token: loginToken,
+        };
+      }
+
+      // Check if verification token has expired
+      if (user.verificationTokenExpiry) {
+        const now = new Date();
+        const expiryDate = new Date(user.verificationTokenExpiry);
+
+        if (now > expiryDate) {
+          throw new BadRequestError("Verification token has expired. Please request a new verification email.");
+        }
+      }
+
+      // Verify the token matches the stored token
+      if (user.verificationToken !== token) {
+        throw new BadRequestError("Invalid verification token");
+      }
+
+      // Update user to mark as verified and clear verification token
+      const [updatedUser] = await db
+        .update(usersModel)
+        .set({
+          isVerified: true,
+          verificationToken: null,
+          verificationTokenExpiry: null
+        })
+        .where(eq(usersModel.email, email))
+        .returning();
+
+      // Send welcome email after verification
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const ctaLink = `${frontendUrl}/onboarding`;
+      emailService.sendWelcomeEmail({
+        to: updatedUser.email,
+        firstName: updatedUser.firstName,
+        ctaLink,
+      }).catch((err) => {
+        console.error("Failed to send welcome email:", err);
+      });
+
+      // Generate JWT token for automatic login (user is now verified)
+      const loginToken = signJwt({
+        sub: updatedUser.id,
+        id: updatedUser.id,
+        email: updatedUser.email,
+        is_verified: true, // User just verified their email
+      });
+
+      return {
+        user: {
+          id: updatedUser.id,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          avatar: updatedUser.avatar,
+          email: updatedUser.email,
+          phone: updatedUser.phone,
+        },
+        token: loginToken,
+      };
+    } catch (error: any) {
+      if (error.message) {
+        throw error;
+      }
+      throw new BadRequestError("Invalid or expired verification token");
+    }
+  };
+
+  checkResendCooldown = async (email: string) => {
+    try {
+      // Find user by email
+      const [user] = await db
+        .select()
+        .from(usersModel)
+        .where(eq(usersModel.email, email));
+
+      if (!user) {
+        return {
+          canResend: true,
+          remainingSeconds: 0,
+        };
+      }
+
+      if (user.isVerified) {
+        return {
+          canResend: false,
+          remainingSeconds: 0,
+          isVerified: true,
+        };
+      }
+
+      // Check if user has sent a verification email in the last minute
+      if (user.lastVerificationEmailSent) {
+        const now = new Date();
+        const lastSent = new Date(user.lastVerificationEmailSent);
+        const timeDiffInSeconds = Math.floor((now.getTime() - lastSent.getTime()) / 1000);
+
+        if (timeDiffInSeconds < 60) {
+          const remainingSeconds = 60 - timeDiffInSeconds;
+          return {
+            canResend: false,
+            remainingSeconds,
+          };
+        }
+      }
+
+      return {
+        canResend: true,
+        remainingSeconds: 0,
+      };
+    } catch (error: any) {
+      return {
+        canResend: true,
+        remainingSeconds: 0,
+      };
+    }
+  };
+
+  resendVerificationEmail = async (email: string) => {
+    try {
+      // Find user by email
+      const [user] = await db
+        .select()
+        .from(usersModel)
+        .where(eq(usersModel.email, email));
+
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      if (user.isVerified) {
+        throw new BadRequestError("Email is already verified");
+      }
+
+      // Check if user has sent a verification email in the last minute
+      if (user.lastVerificationEmailSent) {
+        const now = new Date();
+        const lastSent = new Date(user.lastVerificationEmailSent);
+        const timeDiffInSeconds = Math.floor((now.getTime() - lastSent.getTime()) / 1000);
+
+        if (timeDiffInSeconds < 60) {
+          const remainingSeconds = 60 - timeDiffInSeconds;
+          throw new BadRequestError(`Please wait ${remainingSeconds} seconds before requesting another verification email`);
+        }
+      }
+
+      // Generate new verification token (expires in 24 hours)
+      const verificationToken = signJwt(
+        { email: user.email, type: "email-verification" },
+        "24h"
+      );
+
+      // Calculate new expiry time (24 hours from now)
+      const verificationTokenExpiry = new Date();
+      verificationTokenExpiry.setHours(verificationTokenExpiry.getHours() + 24);
+
+      // Update user with new verification token, expiry, and last sent timestamp
+      await db
+        .update(usersModel)
+        .set({
+          verificationToken,
+          verificationTokenExpiry,
+          lastVerificationEmailSent: new Date(),
+        })
+        .where(eq(usersModel.email, email));
+
+      // Send verification email
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const verificationLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
+      await emailService.sendVerificationEmail({
+        to: user.email,
+        firstName: user.firstName,
+        verificationLink,
+      });
+
+      return {
+        success: true,
+        message: "Verification email sent successfully",
+        remainingSeconds: 60, // Start countdown from 60 seconds
+      };
+    } catch (error: any) {
+      if (error.message) {
+        throw error;
+      }
+      throw new BadRequestError("Unable to resend verification email");
     }
   };
 }

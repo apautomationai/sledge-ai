@@ -237,6 +237,7 @@ export class SubscriptionService {
             currentPeriodStart?: Date;
             currentPeriodEnd?: Date;
             cancelAtPeriodEnd?: boolean;
+            promoCode?: string | null;
         }
     ): Promise<any> {
         const [updatedSubscription] = await db

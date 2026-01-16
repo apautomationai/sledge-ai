@@ -5,6 +5,12 @@ import {
   registerUserValidator,
   validate,
 } from "@/middlewares/validate";
+import {
+  loginRateLimiter,
+  registerRateLimiter,
+  passwordResetRateLimiter,
+  emailVerificationRateLimiter,
+} from "@/middlewares/rate-limit.middleware";
 import { Router } from "express";
 
 const router = Router();
@@ -12,18 +18,27 @@ const router = Router();
 router.get("/", userController.getUsers);
 router.post(
   "/register",
+  registerRateLimiter,
   validate(registerUserValidator),
   userController.registerUser
 );
-router.post("/login", validate(loginUserValidator), userController.loginUser);
+router.post(
+  "/login",
+  loginRateLimiter,
+  validate(loginUserValidator),
+  userController.loginUser
+);
 router
   .route("/me")
   .get(authenticate, userController.getUserWithId)
   .patch(authenticate, userController.updateUser);
 // router.patch("/me", authenticate, userController.updateUser);
-router.patch("/reset-password", userController.resetPassword);
+router.patch("/reset-password", passwordResetRateLimiter, userController.resetPassword);
 router.patch("/change-password", authenticate, userController.changePassword);
 router.post("/complete-onboarding", authenticate, userController.completeOnboarding);
-router.post("/forgot-password", userController.forgotPassword);
+router.post("/forgot-password", passwordResetRateLimiter, userController.forgotPassword);
+router.post("/verify-email", emailVerificationRateLimiter, userController.verifyEmail);
+router.post("/check-resend-cooldown", userController.checkResendCooldown);
+router.post("/resend-verification-email", emailVerificationRateLimiter, userController.resendVerificationEmail);
 
 export default router;
