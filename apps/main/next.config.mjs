@@ -3,6 +3,13 @@ import { withSentryConfig } from "@sentry/nextjs";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@workspace/ui"],
+  webpack: (config) => {
+    // Disable canvas and encoding for PDF.js compatibility
+    config.resolve.alias.canvas = false;
+    config.resolve.alias.encoding = false;
+
+    return config;
+  },
 };
 
 export default withSentryConfig(nextConfig, {
