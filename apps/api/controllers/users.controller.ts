@@ -104,7 +104,13 @@ export class UserController {
         if (!user)
           return res
             .status(401)
-            .json({ message: info?.message || "Unauthorized" });
+            .json({
+              message: info?.message || "Unauthorized",
+              ...(info?.requiresEmailVerification && {
+                requiresEmailVerification: true,
+                email: info.email
+              })
+            });
 
         // Fetch full user data to get is_verified status
         const [fullUser] = await userServices.getUserWithId((user as any).id);

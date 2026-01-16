@@ -37,7 +37,11 @@ passport.use(
 
         // Check if email is verified (only for credential-based users)
         if (user.provider === 'credentials' && !user.isVerified) {
-          return done(null, false, { message: 'Please verify your email address before logging in. Check your inbox for the verification link.' });
+          return done(null, false, {
+            message: 'Please verify your email address before logging in.',
+            requiresEmailVerification: true,
+            email: user.email
+          } as any);
         }
 
         // return safe user object (omit passwordHash)
