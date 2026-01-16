@@ -13,13 +13,13 @@ import Benefits from "@/components/product/benefits";
 import WhatIsIt from "@/components/landing/what-is-it";
 
 export const metadata: Metadata = {
-  title: "AI Accounts Payable Software for Construction | Invoice Automation",
+  title: "Finance Management Software for Construction | Invoice Automation",
   description:
-    "Automate construction invoice processing with AI accounts payable software that captures, validates, routes, and syncs bills automatically.",
+    "Automate construction invoice processing with AI Finance Management software that captures, validates, routes, and syncs bills automatically.",
   openGraph: {
-    title: "AI Accounts Payable Software for Construction | Invoice Automation",
+    title: "Finance Management Software for Construction | Invoice Automation",
     description:
-      "Automate construction invoice processing with AI accounts payable software that captures, validates, routes, and syncs bills automatically.",
+      "Automate construction invoice processing with AI Finance Management software that captures, validates, routes, and syncs bills automatically.",
     images: [
       {
         url: "/images/hero-visual.png",
@@ -31,14 +31,14 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Accounts Payable Software for Construction | Invoice Automation",
+    title: "Finance Management Software for Construction | Invoice Automation",
     description:
-      "Automate construction invoice processing with AI accounts payable software that captures, validates, routes, and syncs bills automatically.",
+      "Automate construction invoice processing with AI Finance Management software that captures, validates, routes, and syncs bills automatically.",
     images: ["/images/hero-visual.png"],
   },
 };
 
-const whatIsItTitle = "Autonomous AI Accounts Payable for Construction";
+const whatIsItTitle = "Autonomous Finance Management for Construction";
 const whatIsItDescription =
   "Sledge’s AI runs continuously in the background. When an invoice arrives by email, AI automatically pulls the attachment, reads the invoice, recognizes fields and line items, and prepares it for approval — without user input.";
 const whatIsItSubDescription =
@@ -51,14 +51,14 @@ const builtToRunDescription =
 
 const faqs: FAQItem[] = [
   {
-    question: "What is Sledge AI Accounts Payable?",
+    question: "What is Sledge Finance Management?",  
     answer:
-      "Sledge AI Accounts Payable is an AI-powered accounts payable solution for construction that automates invoice intake, data extraction, approvals, and accounting sync — eliminating manual invoice processing and data entry.",
+      "Sledge Finance Management is an AI-powered finance management solution for construction that automates invoice intake, data extraction, approvals, and accounting sync — eliminating manual invoice processing and data entry.",
   },
   {
-    question: "Who is Sledge AI Accounts Payable built for?",
+    question: "Who is Sledge Finance Management built for?",
     answer:
-      "Sledge AI Accounts Payable is built for:",
+      "Sledge Finance Management is built for:",
     listItems: [
       "General contractors",
       "Trade and service contractors",
@@ -69,9 +69,9 @@ const faqs: FAQItem[] = [
       "Anyone responsible for processing, approving, or paying construction invoices will benefit.",
   },
   {
-    question: "How does Sledge automate accounts payable with AI?",
+    question: "How does Sledge automate finance management with AI?",
     answer:
-      "Sledge uses AI to automate the entire accounts payable workflow, including:",
+      "Sledge uses AI to automate the entire finance management workflow, including:",
     listItems: [
       "Automatically ingesting invoices",
       "Reading and parsing invoice data",
@@ -133,9 +133,9 @@ const faqs: FAQItem[] = [
       "Yes. Sledge is built to handle high invoice volume without slowing down — whether you process dozens or thousands of invoices per month. Automation scales as your business grows.",
   },
   {
-    question: "How is Sledge AI Accounts Payable different from traditional construction AP tools?",
+    question: "How is Sledge Finance Management different from traditional construction AP tools?",
     answer:
-      "Traditional construction AP tools rely on manual data entry, complex workflows, and outdated interfaces that slow teams down. Sledge AI Accounts Payable is different:",
+      "Traditional construction AP tools rely on manual data entry, complex workflows, and outdated interfaces that slow teams down. Sledge Finance Management is different:",
     listItems: [
       "AI-first, not manual-first",
       "Eliminates repetitive AP work instead of shifting it",

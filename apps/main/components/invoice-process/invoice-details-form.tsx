@@ -725,7 +725,7 @@ export default function InvoiceDetailsForm({
         >
           {/* Section 1: Invoice Information - 50% height when expanded */}
           <AccordionItem value="invoice-info" className="border rounded-lg bg-card flex-1 min-h-0 flex flex-col data-[state=closed]:flex-none overflow-hidden">
-            <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
+            <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0 cursor-pointer">
               <span className="text-sm font-semibold">Invoice Information</span>
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-3 flex-1 min-h-0 overflow-hidden data-[state=open]:flex data-[state=open]:flex-col h-full">
@@ -899,7 +899,7 @@ export default function InvoiceDetailsForm({
           {/* Section 2: Line Items - 50% height when expanded */}
           <AccordionItem value="line-items" className="border rounded-lg bg-card flex-1 min-h-0 flex flex-col data-[state=closed]:flex-none overflow-hidden">
             <div className="relative">
-              <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
+              <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0 cursor-pointer">
                 <div className="flex items-center gap-2 flex-1">
                   <span className="text-sm font-semibold">Line Items {lineItemsViewMode === 'expand' && `(${lineItems.length})`}</span>
                 </div>
@@ -914,7 +914,7 @@ export default function InvoiceDetailsForm({
                   <button
                     type="button"
                     onClick={() => setLineItemsViewMode('single')}
-                    className={`px-2 py-1 text-xs rounded transition-colors ${lineItemsViewMode === 'single'
+                    className={`px-2 py-1 text-xs rounded transition-colors cursor-pointer ${lineItemsViewMode === 'single'
                       ? 'bg-background text-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                       }`}
@@ -924,7 +924,7 @@ export default function InvoiceDetailsForm({
                   <button
                     type="button"
                     onClick={() => setLineItemsViewMode('expand')}
-                    className={`px-2 py-1 text-xs rounded transition-colors ${lineItemsViewMode === 'expand'
+                    className={`px-2 py-1 text-xs rounded transition-colors cursor-pointer ${lineItemsViewMode === 'expand'
                       ? 'bg-background text-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                       }`}
@@ -939,7 +939,7 @@ export default function InvoiceDetailsForm({
                   <span className="text-xs text-muted-foreground">({selectedLineItems.size} selected)</span>
                   <Button
                     size="sm"
-                    className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
+                    className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowDeleteDialog(true);
@@ -949,7 +949,7 @@ export default function InvoiceDetailsForm({
                   </Button>
                   <Button
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-7 text-xs cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowChangeTypeDialog(true);
@@ -961,35 +961,33 @@ export default function InvoiceDetailsForm({
               )}
             </div>
             <AccordionContent className="px-2 pb-3 flex-1 min-h-0 overflow-hidden data-[state=open]:flex data-[state=open]:flex-col h-full">
-              <div className="flex flex-col flex-1 min-h-0 h-full">
-                <ScrollArea className="flex-1">
-                  {isLoadingLineItems ? (
-                    <div className="text-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
-                    </div>
-                  ) : (
-                    <LineItemsTable
-                      key={lineItems.map(item => `${item.id}-${item.itemType}-${item.resourceId}`).join(',')}
-                      lineItems={lineItems}
-                      onUpdate={handleLineItemUpdate}
-                      onChange={handleLineItemChange}
-                      onDelete={handleLineItemDelete}
-                      isEditing={!isInvoiceFinalized}
-                      isQuickBooksConnected={isQuickBooksConnected}
-                      selectedItems={selectedLineItems}
-                      onSelectionChange={setSelectedLineItems}
-                      viewMode={lineItemsViewMode}
-                      invoiceDetails={invoiceDetails}
-                      onLineItemsRefresh={() => fetchLineItems(lineItemsViewMode)}
-                      onSingleModeSaveRef={singleModeSaveRef}
-                      onSingleModeAmountChange={handleSingleModeAmountChange}
-                    />
-                  )}
-                </ScrollArea>
+              <div className="flex flex-col flex-1 min-h-0 h-full gap-2">
+                {isLoadingLineItems ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                  </div>
+                ) : (
+                  <LineItemsTable
+                    key={lineItems.map(item => item.id).join(',')}
+                    lineItems={lineItems}
+                    onUpdate={handleLineItemUpdate}
+                    onChange={handleLineItemChange}
+                    onDelete={handleLineItemDelete}
+                    isEditing={!isInvoiceFinalized}
+                    isQuickBooksConnected={isQuickBooksConnected}
+                    selectedItems={selectedLineItems}
+                    onSelectionChange={setSelectedLineItems}
+                    viewMode={lineItemsViewMode}
+                    invoiceDetails={invoiceDetails}
+                    onLineItemsRefresh={() => fetchLineItems(lineItemsViewMode)}
+                    onSingleModeSaveRef={singleModeSaveRef}
+                    onSingleModeAmountChange={handleSingleModeAmountChange}
+                  />
+                )}
 
                 {/* Add Line Item Button - Only show in expand mode */}
                 {invoiceDetails?.id && lineItemsViewMode === 'expand' && (
-                  <div className="mt-2 flex-shrink-0">
+                  <div className="flex-shrink-0">
                     <AddLineItemDialog
                       invoiceId={invoiceDetails.id}
                       onLineItemAdded={handleLineItemAdded}
@@ -1178,12 +1176,14 @@ export default function InvoiceDetailsForm({
                 setBulkCustomerId(null);
               }}
               disabled={isApplyingBulkChange}
+              className="cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               onClick={handleApplyBulkChange}
               disabled={!bulkItemType || isApplyingBulkChange}
+              className="cursor-pointer"
             >
               {isApplyingBulkChange ? (
                 <>

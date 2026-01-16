@@ -64,13 +64,13 @@ export default function NewProjectPage() {
 
     const handleSave = () => {
         if (!projectName.trim()) {
-            toast.error("Please enter a project name");
+            toast.error("Please enter a project bill name");
             return;
         }
 
         // In real app, this would save to API
-        toast.success("Project created successfully");
-        router.push("/projects");
+        toast.success("Project bill created successfully");
+        router.push("/project-bills");
     };
 
     return (
@@ -81,13 +81,13 @@ export default function NewProjectPage() {
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => router.push("/projects")}
+                        onClick={() => router.push("/project-bills")}
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Projects
+                        Back to Project Bills
                     </Button>
                     <Button onClick={handleSave}>
-                        Save Project
+                        Save Project Bill
                     </Button>
                 </div>
 
@@ -116,7 +116,7 @@ export default function NewProjectPage() {
                                     <ImagePlus className="h-10 w-10 text-muted-foreground" />
                                 </div>
                                 <span className="text-muted-foreground text-sm">
-                                    Click to upload project image
+                                    Click to upload project bill image
                                 </span>
                                 <input
                                     type="file"
@@ -133,7 +133,7 @@ export default function NewProjectPage() {
                 <div className="flex items-center gap-4">
                     <Plus className="h-6 w-6 text-muted-foreground" />
                     <Input
-                        placeholder="Add Project Name"
+                        placeholder="Add Project Bill Name"
                         value={projectName}
                         onChange={(e) => setProjectName(e.target.value)}
                         className="text-2xl font-semibold !bg-transparent border-gray-300 dark:border-gray-600 placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:border-gray-300 dark:focus:border-gray-600 px-4 py-2 rounded-md"

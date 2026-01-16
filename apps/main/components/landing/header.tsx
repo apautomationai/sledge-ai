@@ -119,15 +119,14 @@ export function Header() {
     }
 
     return isLoggedIn ? (
-      <Button
-        asChild
-        className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-gray-900 font-bold px-6 shadow-lg shadow-yellow-500/30 hover:shadow-xl hover:shadow-yellow-400/40 transition-all duration-300 group uppercase border-2 border-yellow-600"
-      >
-        <Link href={"/dashboard"}>
-          Go To Dashboard
-          <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-        </Link>
-      </Button>
+      <Link href="/dashboard">
+        <div className="px-4 py-3 bg-[#e3b02f] rounded flex justify-start items-center gap-2 overflow-hidden hover:bg-amber-500 transition-colors group">
+          <div className="text-center justify-start text-stone-800 text-base font-bold font-['Inter'] uppercase leading-6">
+            Go To Dashboard
+          </div>
+          <ArrowRight className="w-4 h-4 text-stone-800 group-hover:translate-x-1 transition-transform duration-300" />
+        </div>
+      </Link>
     ) : (
       <div
         data-state="Default"
@@ -210,7 +209,7 @@ export function Header() {
                           </div>
                         </Link>
                         <Link
-                          href="/product/ai-accounts-payable"
+                          href="/product/finance-management"
                           onClick={(e) => {
                             setDropdownOpen(false);
                           }}
@@ -226,7 +225,7 @@ export function Header() {
                             }}
                           />
                           <div className="justify-start text-amber-400 text-base font-medium font-sans capitalize leading-6">
-                            AI Accounts Payable
+                            Finance Management
                           </div>
                         </Link>
                         <Link
@@ -487,7 +486,7 @@ export function Header() {
                                 Product overview
                               </Link>
                               <Link
-                                href="/product/ai-accounts-payable"
+                                href="/product/finance-management"
                                 onClick={() => {
                                   setMobileMenuOpen(false);
                                   setMobileDropdownOpen(false);
@@ -503,7 +502,7 @@ export function Header() {
                                       "brightness(0) saturate(100%) invert(72%) sepia(68%) saturate(1455%) hue-rotate(4deg)",
                                   }}
                                 />
-                                AI Accounts Payable
+                                Finance Management
                               </Link>
                               <Link
                                 href="/integration"

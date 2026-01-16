@@ -137,7 +137,7 @@ export default function ProjectsPage() {
                 setTotalProjects(response.data.pagination.total);
             }
         } catch (error: any) {
-            toast.error("Failed to load projects");
+            toast.error("Failed to load project bills");
             console.error("Error fetching projects:", error);
         } finally {
             setIsLoading(false);
@@ -232,7 +232,7 @@ export default function ProjectsPage() {
             const response: any = await client.put(`/api/v1/projects/${projectId}/activate`, data);
 
             if (response.status === "success") {
-                toast.success("Project activated successfully");
+                toast.success("Project bill activated successfully");
 
                 // Refresh the projects list
                 fetchProjects();
@@ -242,7 +242,7 @@ export default function ProjectsPage() {
                 setProjectToActivate(null);
             }
         } catch (error: any) {
-            toast.error(error.message || "Failed to activate project");
+            toast.error(error.message || "Failed to activate project bill");
             console.error("Error activating project:", error);
             throw error;
         }
@@ -263,13 +263,13 @@ export default function ProjectsPage() {
                 // Update total count
                 setTotalProjects((prev) => prev - 1);
 
-                toast.success("Project deleted successfully");
+                toast.success("Project bill deleted successfully");
 
                 // Refresh the list to get updated data
                 fetchProjects();
             }
         } catch (error: any) {
-            toast.error(error.message || "Failed to delete project");
+            toast.error(error.message || "Failed to delete project bill");
             console.error("Error deleting project:", error);
         } finally {
             setIsDeleting(false);
@@ -312,17 +312,17 @@ export default function ProjectsPage() {
             <div className="w-1/2 flex flex-col">
                 <div className="mb-4 flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
+                        <h1 className="text-2xl font-bold tracking-tight">Project Bills</h1>
                         <p className="text-muted-foreground">
                             {isMapFiltering
-                                ? `${totalProjects} project${Number(totalProjects) !== 1 ? "s" : ""} in map area`
-                                : `${totalProjects} project${Number(totalProjects) !== 1 ? "s" : ""} total`
+                                ? `${totalProjects} project bill${Number(totalProjects) !== 1 ? "s" : ""} in map area`
+                                : `${totalProjects} project bill${Number(totalProjects) !== 1 ? "s" : ""} total`
                             }
                         </p>
                     </div>
-                    <Button onClick={() => router.push("/projects/new")}>
+                    <Button onClick={() => router.push("/project-bills/new")}>
                         <Plus className="h-4 w-4 mr-2" />
-                        Add Project
+                        Add Project Bill
                     </Button>
                 </div>
 
@@ -331,7 +331,7 @@ export default function ProjectsPage() {
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search projects by name, address, city..."
+                            placeholder="Search project bills by name, address, city..."
                             value={searchInput}
                             onChange={(e) => handleSearch(e.target.value)}
                             className="pl-10"
@@ -355,7 +355,7 @@ export default function ProjectsPage() {
                         variant={isMapFiltering ? "default" : "outline"}
                         size="icon"
                         onClick={toggleMapFiltering}
-                        title={isMapFiltering ? "Show all projects" : "Filter by map area"}
+                        title={isMapFiltering ? "Show all project bills" : "Filter by map area"}
                     >
                         {isMapFiltering ? <Map className="h-4 w-4" /> : <List className="h-4 w-4" />}
                     </Button>
@@ -363,20 +363,20 @@ export default function ProjectsPage() {
 
                 {isLoading ? (
                     <div className="flex-1 flex items-center justify-center">
-                        <p className="text-muted-foreground">Loading projects...</p>
+                        <p className="text-muted-foreground">Loading project bills...</p>
                     </div>
                 ) : projects.length === 0 ? (
                     <div className="flex-1 flex items-center justify-center">
                         <div className="text-center">
                             <p className="text-muted-foreground mb-2">
                                 {isMapFiltering
-                                    ? "No projects visible in current map area"
-                                    : "No projects found"
+                                    ? "No project bills visible in current map area"
+                                    : "No project bills found"
                                 }
                             </p>
                             {isMapFiltering && (
                                 <p className="text-sm text-muted-foreground">
-                                    Try zooming out or panning the map to see more projects
+                                    Try zooming out or panning the map to see more project bills
                                 </p>
                             )}
                         </div>

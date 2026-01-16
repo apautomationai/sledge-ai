@@ -30,7 +30,7 @@ export default function RoiCalculator() {
         {/* Header */}
         <div className="text-center">
           <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
-            Save Hours Every Week with AI Accounts Payable.
+            Save Hours Every Week with Finance Management.
           </h2>
           <p className="mt-2 text-lg md:text-2xl text-white">
             This calculator estimates how much time and money your team can save

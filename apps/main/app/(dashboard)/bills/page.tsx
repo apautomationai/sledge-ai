@@ -74,7 +74,7 @@ export default function JobsPage() {
 
   const handleReviewJob = (jobId: string, invoiceId?: number) => {
     if (invoiceId) {
-      router.push(`/bills/${jobId}?invoiceId=${invoiceId}`);
+      router.push(`/bills/${jobId}?billId=${invoiceId}`);
     } else {
       router.push(`/bills/${jobId}`);
     }

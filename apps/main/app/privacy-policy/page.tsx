@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   Shield,
   FileText,
@@ -22,6 +23,20 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy - Sledge",
+  description:
+    "Learn how Sledge collects, uses, discloses, and safeguards your information. Effective Date: January 6, 2026.",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+};
 
 const sections = [
   { id: "introduction", title: "Introduction", icon: FileText },
