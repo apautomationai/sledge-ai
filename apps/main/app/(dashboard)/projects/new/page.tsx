@@ -243,7 +243,7 @@ export default function NewProjectPage() {
                 const formData = new FormData();
                 formData.append("image", imageFile);
 
-                const uploadResponse = await client.post('/api/v1/upload/project-image', formData, {
+                const uploadResponse: any = await client.post('/api/v1/upload/project-image', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                     },
@@ -258,7 +258,7 @@ export default function NewProjectPage() {
             // use the name as the address
             const finalAddress = projectAddress || projectName;
 
-            const response = await client.post('/api/v1/projects', {
+            const response: any = await client.post('/api/v1/projects', {
                 name: projectName,
                 address: finalAddress,
                 city: projectCity,
