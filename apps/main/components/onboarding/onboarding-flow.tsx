@@ -160,12 +160,23 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
             return;
         }
         try {
-            localStorage.setItem("onboarding_mode", "true");
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/quickbooks/auth`;
-            const res: any = await client.get(url);
-            if (res.url) {
-                window.location.href = res.url;
-            }
+            // First, open QuickBooks logout in a hidden iframe to clear session
+            const logoutFrame = document.createElement('iframe');
+            logoutFrame.style.display = 'none';
+            logoutFrame.src = 'https://accounts.intuit.com/app/sign-out';
+            document.body.appendChild(logoutFrame);
+
+            // Wait a moment for logout to process, then connect
+            setTimeout(async () => {
+                document.body.removeChild(logoutFrame);
+
+                localStorage.setItem("onboarding_mode", "true");
+                const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/quickbooks/auth`;
+                const res: any = await client.get(url);
+                if (res.url) {
+                    window.location.href = res.url;
+                }
+            }, 1000);
         } catch (error) {
             toast.error("Failed to connect QuickBooks");
         }

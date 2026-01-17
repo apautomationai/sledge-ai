@@ -93,6 +93,7 @@ export function IntegrationCard({
 
   const handleConnect = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+
     const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/${path}`;
     try {
       const res: any = await client.get(url);

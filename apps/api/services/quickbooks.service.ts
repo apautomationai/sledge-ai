@@ -57,9 +57,13 @@ export class QuickBooksService {
       redirect_uri: this.redirectUri,
       response_type: "code",
       access_type: "offline",
-      prompt: "login", // Force login screen every time
       ...(state && { state }),
     });
+
+    // Add a timestamp to force QuickBooks to treat each request as unique
+    // This helps prevent automatic re-authentication
+    const timestamp = Date.now();
+    params.append('nonce', timestamp.toString());
 
     return `https://appcenter.intuit.com/connect/oauth2?${params.toString()}`;
   }
