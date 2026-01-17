@@ -15,8 +15,7 @@ class ProjectsServices {
      */
     async createProject(
         projectData: typeof projectsModel.$inferInsert,
-        vendorIds: number[],
-        invoiceIds: number[]
+        vendorIds: number[]
     ) {
         return await db.transaction(async (tx) => {
             // Create the project
