@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { quickbooksService } from "@/services/quickbooks.service";
-import { integrationsService } from "@/services/integrations.service";
 import { BadRequestError, NotFoundError } from "@/helpers/errors";
 import { getStringParam, getIntParam } from "@/helpers/request-utils";
 
