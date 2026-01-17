@@ -27,7 +27,6 @@ class ProjectsController {
                 billingCycleEndDate,
                 imageUrl,
                 vendorIds,
-                invoiceIds
             } = req.body;
 
             if (!name) {
@@ -61,8 +60,7 @@ class ProjectsController {
 
             const project = await projectsServices.createProject(
                 projectData,
-                vendorIds || [],
-                invoiceIds || []
+                vendorIds || []
             );
 
             return res.status(201).json({
