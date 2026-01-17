@@ -18,8 +18,11 @@ export class QuickBooksController {
         throw new BadRequestError("User not authenticated");
       }
 
-      // Generate state parameter for security
-      const state = Buffer.from(JSON.stringify({ userId })).toString("base64");
+      // Check if this is from onboarding flow
+      const isOnboarding = req.query.onboarding === 'true';
+
+      // Generate state parameter for security, include onboarding flag
+      const state = Buffer.from(JSON.stringify({ userId, isOnboarding })).toString("base64");
 
       const authUrl = quickbooksService.generateAuthUrl(state);
 
@@ -52,11 +55,13 @@ export class QuickBooksController {
 
       // Verify state parameter
       let userId: number;
+      let isOnboarding = false;
       try {
         const stateData = JSON.parse(
           Buffer.from(state as string, "base64").toString(),
         );
         userId = stateData.userId;
+        isOnboarding = stateData.isOnboarding || false;
       } catch {
         throw new BadRequestError("Invalid state parameter");
       }
@@ -116,7 +121,8 @@ export class QuickBooksController {
 
       // Redirect to frontend integrations page with success
       const frontendUrl = process.env.FRONTEND_URL || process.env.OAUTH_REDIRECT_URI || 'http://localhost:3000';
-      const redirectUrl = `${frontendUrl}/integrations?message=QuickBooks connected successfully&type=success`;
+      const redirectPath = isOnboarding ? '/dashboard' : '/integrations';
+      const redirectUrl = `${frontendUrl}${redirectPath}?message=QuickBooks connected successfully&type=success`;
       res.redirect(redirectUrl);
     } catch (error: any) {
       // Redirect to frontend integrations page with error

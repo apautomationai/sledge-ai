@@ -84,13 +84,14 @@ export class AuthController {
     passport.authenticate("microsoft", {
       scope: ["User.Read"],
       session: false,
+      prompt: "login",
     })(req, res, next);
   };
 
   microsoftCallback = (req: Request, res: Response, next: NextFunction) => {
     passport.authenticate("microsoft", { session: false },
       async (err: any, user: any, info: any) => {
-          if (err) {
+        if (err) {
           const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
           return res.redirect(
             `${frontendUrl}/auth/callback?error=${encodeURIComponent(err.message || "Authentication failed")}`

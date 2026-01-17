@@ -67,8 +67,11 @@ export class EmailIntegrationController {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // Generate state parameter for security (like QuickBooks)
-    const state = Buffer.from(JSON.stringify({ userId })).toString("base64");
+    // Check if this is from onboarding flow
+    const isOnboarding = req.query.onboarding === 'true';
+
+    // Generate state parameter for security, include onboarding flag
+    const state = Buffer.from(JSON.stringify({ userId, isOnboarding })).toString("base64");
     const url = googleServices.generateAuthUrl(state);
 
     // @ts-ignore
@@ -93,8 +96,9 @@ export class EmailIntegrationController {
         return res.redirect(redirectUrl);
       }
 
-      // Verify state parameter to get userId
+      // Verify state parameter to get userId and onboarding flag
       let userId: number;
+      let isOnboarding = false;
       try {
         if (!state) {
           throw new BadRequestError("Missing state parameter");
@@ -103,6 +107,7 @@ export class EmailIntegrationController {
           Buffer.from(state, "base64").toString()
         );
         userId = stateData.userId;
+        isOnboarding = stateData.isOnboarding || false;
         if (!userId) {
           throw new BadRequestError("Invalid state parameter: missing userId");
         }
@@ -187,7 +192,8 @@ export class EmailIntegrationController {
 
       // Redirect to frontend integrations page with success
       const frontendUrl = process.env.FRONTEND_URL || process.env.OAUTH_REDIRECT_URI || 'http://localhost:3000';
-      const redirectUrl = `${frontendUrl}/integrations?message=Gmail successfully integrated&type=success`;
+      const redirectPath = isOnboarding ? '/dashboard' : '/integrations';
+      const redirectUrl = `${frontendUrl}${redirectPath}?message=Gmail successfully integrated&type=success`;
       return res.redirect(redirectUrl);
     } catch (error: any) {
       console.error("Integration insert error:", error);
@@ -208,8 +214,11 @@ export class EmailIntegrationController {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // Generate state parameter for security
-    const state = Buffer.from(JSON.stringify({ userId })).toString("base64");
+    // Check if this is from onboarding flow
+    const isOnboarding = req.query.onboarding === 'true';
+
+    // Generate state parameter for security, include onboarding flag
+    const state = Buffer.from(JSON.stringify({ userId, isOnboarding })).toString("base64");
     const url = await outlookServices.generateAuthUrl(state);
 
     // @ts-ignore
@@ -234,8 +243,9 @@ export class EmailIntegrationController {
         return res.redirect(redirectUrl);
       }
 
-      // Verify state parameter to get userId
+      // Verify state parameter to get userId and onboarding flag
       let userId: number;
+      let isOnboarding = false;
       try {
         if (!state) {
           throw new BadRequestError("Missing state parameter");
@@ -244,6 +254,7 @@ export class EmailIntegrationController {
           Buffer.from(state, "base64").toString()
         );
         userId = stateData.userId;
+        isOnboarding = stateData.isOnboarding || false;
         if (!userId) {
           throw new BadRequestError("Invalid state parameter: missing userId");
         }
@@ -335,7 +346,8 @@ export class EmailIntegrationController {
 
       // Redirect to frontend integrations page with success
       const frontendUrl = process.env.FRONTEND_URL || process.env.OAUTH_REDIRECT_URI || 'http://localhost:3000';
-      const redirectUrl = `${frontendUrl}/integrations?message=Outlook successfully integrated&type=success`;
+      const redirectPath = isOnboarding ? '/dashboard' : '/integrations';
+      const redirectUrl = `${frontendUrl}${redirectPath}?message=Outlook successfully integrated&type=success`;
       return res.redirect(redirectUrl);
     } catch (error: any) {
       console.error("Integration insert error:", error);
