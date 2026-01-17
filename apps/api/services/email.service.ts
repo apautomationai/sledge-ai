@@ -90,7 +90,7 @@ export class EmailService {
         `;
         const textBody = `Hello,\n\nCopy and paste this link to reset your password: ${resetLink}`;
 
-        return this.sendEmail({ to, subject, htmlBody, textBody });
+        return this.sendEmail({ to, subject, htmlBody, textBody, from: this.notificationFrom });
     };
 
     // send invoice rejection email to one or multiple recipients
@@ -203,7 +203,7 @@ If you didn't create an account with Sledge, you can safely ignore this email.
 Sledge
 The Builder's AI Office`;
 
-        return this.sendEmail({ to, subject, htmlBody, textBody });
+        return this.sendEmail({ to, subject, htmlBody, textBody, from: this.notificationFrom });
     };
 
     // Generate verification email HTML
@@ -336,7 +336,7 @@ The Builder's AI Office
 
 This is an automated message. Replies are monitored by our support team.`;
 
-        return this.sendEmail({ to, subject, htmlBody, textBody });
+        return this.sendEmail({ to, subject, htmlBody, textBody, from: this.notificationFrom });
     };
 
     // Generate welcome email HTML for preview (without sending)

@@ -36,12 +36,13 @@ export class AuthController {
           // Fetch full user data to get is_verified status
           const [fullUser] = await userServices.getUserWithId(user.id);
 
-          // Generate JWT token with is_verified flag
+          // Generate JWT token with is_verified and onboarding_completed flags
           const token = signJwt({
             sub: user.id,
             id: user.id,
             email: user.email,
             is_verified: fullUser?.isVerified || false,
+            onboarding_completed: fullUser?.onboardingCompleted || false,
           });
 
           // Update last login
@@ -107,12 +108,13 @@ export class AuthController {
           // Fetch full user data to get is_verified status
           const [fullUser] = await userServices.getUserWithId(user.id);
 
-          // Generate JWT token with is_verified flag
+          // Generate JWT token with is_verified and onboarding_completed flags
           const token = signJwt({
             sub: user.id,
             id: user.id,
             email: user.email,
             is_verified: fullUser?.isVerified || false,
+            onboarding_completed: fullUser?.onboardingCompleted || false,
           });
 
           // Update last login

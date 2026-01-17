@@ -95,11 +95,12 @@ export class UserServices {
         // Note: In production, you might want to add this to a retry queue
       }
 
-      // Issue JWT (with is_verified flag)
+      // Issue JWT (with is_verified and onboarding_completed flags)
       const token = signJwt({
         sub: createdUser.id,
         email: createdUser.email,
-        is_verified: createdUser.isVerified || false
+        is_verified: createdUser.isVerified || false,
+        onboarding_completed: createdUser.onboardingCompleted || false
       });
 
       return {
@@ -204,6 +205,7 @@ export class UserServices {
         id: updatedUser.id,
         email: updatedUser.email,
         is_verified: updatedUser.isVerified || false,
+        onboarding_completed: updatedUser.onboardingCompleted || false,
       });
 
       return {
@@ -356,13 +358,25 @@ export class UserServices {
         throw new NotFoundError("User not found");
       }
 
-      const updatedUser = await db
+      const [updatedUser] = await db
         .update(usersModel)
         .set({ onboardingCompleted: true })
         .where(eq(usersModel.id, userId))
         .returning();
 
-      return updatedUser;
+      // Generate new JWT token with updated onboarding_completed flag
+      const token = signJwt({
+        sub: updatedUser.id,
+        id: updatedUser.id,
+        email: updatedUser.email,
+        is_verified: updatedUser.isVerified || false,
+        onboarding_completed: true,
+      });
+
+      return {
+        user: updatedUser,
+        token,
+      };
     } catch (error: any) {
       throw new BadRequestError(error.message || "Unable to complete onboarding");
     }
@@ -428,6 +442,7 @@ export class UserServices {
           id: user.id,
           email: user.email,
           is_verified: true,
+          onboarding_completed: user.onboardingCompleted || false,
         });
 
         return {
@@ -486,6 +501,7 @@ export class UserServices {
         id: updatedUser.id,
         email: updatedUser.email,
         is_verified: true, // User just verified their email
+        onboarding_completed: updatedUser.onboardingCompleted || false,
       });
 
       return {
