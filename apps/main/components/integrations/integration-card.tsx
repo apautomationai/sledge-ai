@@ -57,6 +57,7 @@ interface IntegrationCardProps {
   ) => Promise<ActionState>;
   shouldOpenConfigDialog?: boolean;
   onConfigDialogClose?: () => void;
+  onQuickBooksConnect?: (connectFn: () => void) => void;
 }
 
 export function IntegrationCard({
@@ -65,6 +66,7 @@ export function IntegrationCard({
   updateStartTimeAction,
   shouldOpenConfigDialog,
   onConfigDialogClose,
+  onQuickBooksConnect,
 }: IntegrationCardProps) {
   const router = useRouter();
   const {
@@ -94,16 +96,25 @@ export function IntegrationCard({
   const handleConnect = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/${path}`;
-    try {
-      const res: any = await client.get(url);
-      window.location.href = res.url;
-    } catch (error: unknown) {
-      const connectErrorMessage =
-        error && typeof error === "object" && "response" in error
-          ? ((error.response as any)?.data?.message as string) || "Failed to connect!"
-          : "Failed to connect!";
-      toast.error(connectErrorMessage);
+    const connectAction = async () => {
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/${path}`;
+      try {
+        const res: any = await client.get(url);
+        window.location.href = res.url;
+      } catch (error: unknown) {
+        const connectErrorMessage =
+          error && typeof error === "object" && "response" in error
+            ? ((error.response as any)?.data?.message as string) || "Failed to connect!"
+            : "Failed to connect!";
+        toast.error(connectErrorMessage);
+      }
+    };
+
+    // For QuickBooks, show warning dialog first
+    if (isQuickBooks && onQuickBooksConnect) {
+      onQuickBooksConnect(connectAction);
+    } else {
+      await connectAction();
     }
   };
 

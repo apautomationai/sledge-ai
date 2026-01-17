@@ -15,8 +15,7 @@ class ProjectsServices {
      */
     async createProject(
         projectData: typeof projectsModel.$inferInsert,
-        vendorIds: number[],
-        invoiceIds: number[]
+        vendorIds: number[]
     ) {
         return await db.transaction(async (tx) => {
             // Create the project
@@ -33,22 +32,6 @@ class ProjectsServices {
                 }));
 
                 await tx.insert(projectVendorsModel).values(projectVendorRecords);
-            }
-
-            // Update invoices to link them to this project by setting deliveryAddress
-            if (invoiceIds.length > 0 && project.address) {
-                await tx
-                    .update(invoiceModel)
-                    .set({
-                        deliveryAddress: project.address,
-                        updatedAt: new Date(),
-                    })
-                    .where(
-                        and(
-                            sql`${invoiceModel.id} IN (${sql.join(invoiceIds.map(id => sql`${id}`), sql`, `)})`,
-                            eq(invoiceModel.userId, projectData.userId)
-                        )
-                    );
             }
 
             return project;
