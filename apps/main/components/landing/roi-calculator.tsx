@@ -71,13 +71,15 @@ export default function RoiCalculator() {
                 <input
                   type="text"
                   value={timePerInvoice}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const cleaned = e.target.value
+                      .replace(/[^0-9]/g, "")
+                      .replace(/^0+/, "") || "";
+                    const numValue = Number(cleaned);
                     setTimePerInvoice(
-                      e.target.value
-                        .replace(/[^0-9]/g, "")
-                        .replace(/^0+/, "") || "",
-                    )
-                  }
+                      numValue > 300 ? "300" : cleaned
+                    );
+                  }}
                   className="w-full h-full px-4 bg-transparent text-neutral-100 text-sm md:text-base font-medium font-sans outline-none"
                 />
               </div>

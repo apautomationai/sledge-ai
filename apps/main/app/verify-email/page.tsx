@@ -33,34 +33,35 @@ function VerifyEmailHeader() {
   );
 }
 
-// Helper function to decode JWT and extract email and verification status
-function getTokenData(): { email: string | null; isVerified: boolean } {
+// Helper function to decode JWT and extract email, verification status, and onboarding status
+function getTokenData(): { email: string | null; isVerified: boolean; onboardingCompleted: boolean } {
   if (typeof document === "undefined")
-    return { email: null, isVerified: false };
+    return { email: null, isVerified: false, onboardingCompleted: false };
 
   const cookies = document.cookie.split(";");
   const tokenCookie = cookies.find((cookie) =>
     cookie.trim().startsWith("token="),
   );
 
-  if (!tokenCookie) return { email: null, isVerified: false };
+  if (!tokenCookie) return { email: null, isVerified: false, onboardingCompleted: false };
 
   const token = tokenCookie.split("=")[1];
-  if (!token) return { email: null, isVerified: false };
+  if (!token) return { email: null, isVerified: false, onboardingCompleted: false };
 
   try {
     // Decode JWT payload (second part of the token)
     const parts = token.split(".");
     if (parts.length < 2 || !parts[1])
-      return { email: null, isVerified: false };
+      return { email: null, isVerified: false, onboardingCompleted: false };
 
     const payload = JSON.parse(atob(parts[1]));
     return {
       email: payload.email || null,
       isVerified: payload.is_verified || false,
+      onboardingCompleted: payload.onboarding_completed || false,
     };
   } catch (error) {
-    return { email: null, isVerified: false };
+    return { email: null, isVerified: false, onboardingCompleted: false };
   }
 }
 
@@ -75,14 +76,16 @@ function VerifyEmailContent() {
   const [isLoadingEmail, setIsLoadingEmail] = useState(true);
   const [countdown, setCountdown] = useState<number>(0);
 
+  // Check if this is the email link tab (has token in URL)
+  const isEmailLinkTab = !!token;
+
   // Extract email from JWT token on component mount and check if already verified
   useEffect(() => {
-    const { email, isVerified } = getTokenData();
+    const { email, isVerified, onboardingCompleted } = getTokenData();
 
-    // Only check if already verified when there's NO verification token in URL
-    // (if there's a token, let the verification process handle it)
-    if (isVerified && !token) {
-      window.location.href = "/onboarding";
+    // If user is already verified and on this page, show success state
+    if (isVerified && verificationStatus !== "success") {
+      setVerificationStatus("success");
       return;
     }
 
@@ -100,7 +103,23 @@ function VerifyEmailContent() {
       }
     }
     setIsLoadingEmail(false);
-  }, [searchParams, token]);
+  }, [searchParams]);
+
+  // Poll for verification status changes (detects when verified in another tab)
+  useEffect(() => {
+    const checkVerificationInterval = setInterval(() => {
+      const { isVerified } = getTokenData();
+      if (isVerified && verificationStatus !== "success") {
+        // Show success message instead of auto-redirecting
+        setVerificationStatus("success");
+        toast.success("Email Verified!", {
+          description: "Your email has been verified in another tab.",
+        });
+      }
+    }, 2000); // Check every 2 seconds
+
+    return () => clearInterval(checkVerificationInterval);
+  }, [verificationStatus]);
 
   const checkCooldownStatus = async (email: string) => {
     try {
@@ -183,16 +202,36 @@ function VerifyEmailContent() {
           }
         }
 
-        // Redirect to onboarding immediately
-        window.location.href = "/onboarding";
+        // If this is the email link tab, auto-redirect to onboarding
+        // If this is the original waiting tab, show success with button
+        if (isEmailLinkTab) {
+          const { onboardingCompleted } = getTokenData();
+          setTimeout(() => {
+            if (onboardingCompleted) {
+              window.location.href = "/dashboard";
+            } else {
+              window.location.href = "/onboarding";
+            }
+          }, 1500);
+        }
       } else {
         // Check if error is "Email already verified"
         if (data.message && data.message.includes("already verified")) {
-          // User is already verified, just redirect them
-          toast.success("Already Verified", {
-            description: "Your email is already verified. Redirecting...",
-          });
-          window.location.href = "/onboarding";
+          // User is already verified
+          // If email link tab, redirect. If original tab, show success state
+          if (isEmailLinkTab) {
+            const { onboardingCompleted } = getTokenData();
+            if (onboardingCompleted) {
+              window.location.href = "/dashboard";
+            } else {
+              window.location.href = "/onboarding";
+            }
+          } else {
+            setVerificationStatus("success");
+            toast.success("Already Verified", {
+              description: "Your email is already verified.",
+            });
+          }
         } else {
           setVerificationStatus("error");
           toast.error("Verification Failed", {
@@ -206,6 +245,16 @@ function VerifyEmailContent() {
       toast.error("Verification Failed", {
         description: "Could not verify your email. Please try again.",
       });
+    }
+  };
+
+  const handleContinue = () => {
+    // Check onboarding status and redirect accordingly
+    const { onboardingCompleted } = getTokenData();
+    if (onboardingCompleted) {
+      window.location.href = "/dashboard";
+    } else {
+      window.location.href = "/onboarding";
     }
   };
 
@@ -334,10 +383,31 @@ function VerifyEmailContent() {
                 </svg>
               </div>
 
-              <p className="text-center text-zinc-400 text-base md:text-lg font-normal font-['Inter'] leading-6">
-                Your email has been successfully verified. Redirecting to your
-                dashboard...
-              </p>
+              {isEmailLinkTab ? (
+                <p className="text-center text-zinc-400 text-base md:text-lg font-normal font-['Inter'] leading-6">
+                  Your email has been successfully verified. Redirecting...
+                </p>
+              ) : (
+                <>
+                  <p className="text-center text-zinc-400 text-base md:text-lg font-normal font-['Inter'] leading-6">
+                    Your email has been successfully verified!
+                  </p>
+
+                  <div className="flex flex-col gap-4 w-full mt-4">
+                    <Button
+                      onClick={handleContinue}
+                      className="self-stretch h-12 md:h-14 px-6 py-3 inline-flex justify-center items-center gap-3 relative overflow-hidden hover:opacity-90 font-bold font-['Inter'] text-base md:text-lg leading-6 uppercase cursor-pointer transition-opacity"
+                      style={{
+                        background: "#E3B02F",
+                        borderRadius: "4px",
+                        color: "#09090B",
+                      }}
+                    >
+                      Continue to Dashboard
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

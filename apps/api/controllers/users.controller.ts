@@ -120,6 +120,7 @@ export class UserController {
           id: (user as any).id,
           email: (user as any).email,
           is_verified: fullUser?.isVerified || false,
+          onboarding_completed: fullUser?.onboardingCompleted || false,
         });
         if (token) {
           await userServices.updateLastLogin(user.email);
@@ -305,11 +306,21 @@ export class UserController {
       if (!response) {
         throw new BadRequestError("Unable to complete onboarding");
       }
+
+      // Set new JWT token with updated onboarding_completed flag
+      res.cookie("token", response.token, {
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        path: "/",
+      });
+
       const result = {
         status: "success",
         data: {
           message: "Onboarding completed successfully",
         },
+        token: response.token,
       };
       return res.status(200).send(result);
     } catch (error: any) {
