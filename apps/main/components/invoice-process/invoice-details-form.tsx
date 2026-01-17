@@ -99,9 +99,6 @@ const FormField = ({
       >
         {label}
         {highlighted && <span className="text-red-500 ml-1">*</span>}
-        {isTotalAmountField && (
-          <span className="ml-1 text-xs text-muted-foreground font-normal">(Auto-calculated)</span>
-        )}
       </Label>
 
       {isDateField && isEditing ? (
@@ -116,7 +113,7 @@ const FormField = ({
           id={fieldKey}
           name={fieldKey}
           value={isDateField ? (formatDate(value as string) ?? "") : inputValue}
-          readOnly={!isEditing || isArrayField || isBooleanField || isTotalAmountField}
+          readOnly={!isEditing || isArrayField || isBooleanField}
           onChange={handleChange}
           onBlur={handleBlur}
           className="h-8 read-only:bg-muted/50 read-only:border-dashed read-only:cursor-not-allowed"
@@ -230,6 +227,26 @@ export default function InvoiceDetailsForm({
     if (onFieldChange) {
       onFieldChange();
     }
+  };
+
+  // Handle single mode amount change
+  const handleSingleModeAmountChange = (amount: string) => {
+    // Update the total amount in the invoice details
+    const formattedTotal = parseFloat(amount || '0').toFixed(2);
+    setLocalInvoiceDetails(prev => ({
+      ...prev,
+      totalAmount: formattedTotal
+    }));
+
+    // Create a synthetic event to update parent state
+    const syntheticEvent = {
+      target: {
+        name: 'totalAmount',
+        value: formattedTotal
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+
+    onDetailsChange(syntheticEvent);
   };
 
   const handleLineItemDelete = (lineItemId: number) => {
@@ -528,7 +545,10 @@ export default function InvoiceDetailsForm({
     fetchLineItems(lineItemsViewMode);
   }, [invoiceDetails?.id, lineItemsViewMode]);
 
-  // Calculate and update total amount whenever line items change
+  // Track the sum of line item amounts to detect actual changes (not just view switches)
+  const previousLineItemsSumRef = useRef<number | null>(null);
+
+  // Calculate and update total amount only when line item amounts actually change
   useEffect(() => {
     const calculateTotal = () => {
       const total = lineItems.reduce((sum, item) => {
@@ -536,26 +556,34 @@ export default function InvoiceDetailsForm({
         return sum + (isNaN(amount) ? 0 : amount);
       }, 0);
 
-      // Update local invoice details with the new total
-      const formattedTotal = total.toFixed(2);
-      setLocalInvoiceDetails(prev => ({
-        ...prev,
-        totalAmount: formattedTotal
-      }));
-
-      // Create a synthetic event to update parent state
-      const syntheticEvent = {
-        target: {
-          name: 'totalAmount',
-          value: formattedTotal
-        }
-      } as React.ChangeEvent<HTMLInputElement>;
-
-      onDetailsChange(syntheticEvent);
+      return total;
     };
 
     if (lineItems.length > 0) {
-      calculateTotal();
+      const currentSum = calculateTotal();
+
+      // Only update if the sum has actually changed (not just a view switch)
+      if (previousLineItemsSumRef.current !== null && previousLineItemsSumRef.current !== currentSum) {
+        // Update local invoice details with the new total
+        const formattedTotal = currentSum.toFixed(2);
+        setLocalInvoiceDetails(prev => ({
+          ...prev,
+          totalAmount: formattedTotal
+        }));
+
+        // Create a synthetic event to update parent state
+        const syntheticEvent = {
+          target: {
+            name: 'totalAmount',
+            value: formattedTotal
+          }
+        } as React.ChangeEvent<HTMLInputElement>;
+
+        onDetailsChange(syntheticEvent);
+      }
+
+      // Update the reference for next comparison
+      previousLineItemsSumRef.current = currentSum;
     }
   }, [lineItems]);
 
@@ -663,7 +691,9 @@ export default function InvoiceDetailsForm({
     'vendorEmail',
     'rejectionEmailSender',
     'rejectionReason',
-    'senderEmail'
+    'senderEmail',
+    'currency',
+    'isDuplicate'
   ];
   const fieldsToDisplay = allFields.filter(key => !hiddenFields.includes(key));
 
@@ -695,7 +725,7 @@ export default function InvoiceDetailsForm({
         >
           {/* Section 1: Invoice Information - 50% height when expanded */}
           <AccordionItem value="invoice-info" className="border rounded-lg bg-card flex-1 min-h-0 flex flex-col data-[state=closed]:flex-none overflow-hidden">
-            <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
+            <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0 cursor-pointer">
               <span className="text-sm font-semibold">Invoice Information</span>
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-3 flex-1 min-h-0 overflow-hidden data-[state=open]:flex data-[state=open]:flex-col h-full">
@@ -869,53 +899,47 @@ export default function InvoiceDetailsForm({
           {/* Section 2: Line Items - 50% height when expanded */}
           <AccordionItem value="line-items" className="border rounded-lg bg-card flex-1 min-h-0 flex flex-col data-[state=closed]:flex-none overflow-hidden">
             <div className="relative">
-              <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0">
+              <AccordionTrigger className="px-4 py-2 hover:no-underline border-b flex-shrink-0 cursor-pointer">
                 <div className="flex items-center gap-2 flex-1">
-                  <span className="text-sm font-semibold">Line Items ({lineItems.length})</span>
-                  {/* Single/Expand Toggle */}
-                  <div className="flex items-center gap-2 ml-4">
-                    <span className="text-xs text-muted-foreground">View:</span>
-                    <div className="flex items-center bg-muted rounded-md p-1">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setLineItemsViewMode('single');
-                        }}
-                        className={`px-2 py-1 text-xs rounded transition-colors ${lineItemsViewMode === 'single'
-                          ? 'bg-background text-foreground shadow-sm'
-                          : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                      >
-                        Single
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setLineItemsViewMode('expand');
-                        }}
-                        className={`px-2 py-1 text-xs rounded transition-colors ${lineItemsViewMode === 'expand'
-                          ? 'bg-background text-foreground shadow-sm'
-                          : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                      >
-                        Expand
-                      </button>
-                    </div>
-                  </div>
+                  <span className="text-sm font-semibold">Line Items {lineItemsViewMode === 'expand' && `(${lineItems.length})`}</span>
                 </div>
                 {isLoadingLineItems && (
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 )}
               </AccordionTrigger>
+              {/* View toggle moved outside AccordionTrigger to avoid nested buttons */}
+              <div className="absolute left-[140px] top-1/2 -translate-y-1/2 flex items-center gap-2 z-10">
+                <span className="text-xs text-muted-foreground">View:</span>
+                <div className="flex items-center bg-muted rounded-md p-1">
+                  <button
+                    type="button"
+                    onClick={() => setLineItemsViewMode('single')}
+                    className={`px-2 py-1 text-xs rounded transition-colors cursor-pointer ${lineItemsViewMode === 'single'
+                      ? 'bg-background text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                  >
+                    Single
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLineItemsViewMode('expand')}
+                    className={`px-2 py-1 text-xs rounded transition-colors cursor-pointer ${lineItemsViewMode === 'expand'
+                      ? 'bg-background text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                  >
+                    Expand
+                  </button>
+                </div>
+              </div>
               {/* Move buttons outside of AccordionTrigger */}
               {selectedLineItems.size > 0 && (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10 bg-card px-2 py-1 rounded">
                   <span className="text-xs text-muted-foreground">({selectedLineItems.size} selected)</span>
                   <Button
                     size="sm"
-                    className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
+                    className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowDeleteDialog(true);
@@ -925,7 +949,7 @@ export default function InvoiceDetailsForm({
                   </Button>
                   <Button
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-7 text-xs cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowChangeTypeDialog(true);
@@ -937,34 +961,33 @@ export default function InvoiceDetailsForm({
               )}
             </div>
             <AccordionContent className="px-2 pb-3 flex-1 min-h-0 overflow-hidden data-[state=open]:flex data-[state=open]:flex-col h-full">
-              <div className="flex flex-col flex-1 min-h-0 h-full">
-                <ScrollArea className="flex-1">
-                  {isLoadingLineItems ? (
-                    <div className="text-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
-                    </div>
-                  ) : (
-                    <LineItemsTable
-                      key={lineItems.map(item => `${item.id}-${item.itemType}-${item.resourceId}`).join(',')}
-                      lineItems={lineItems}
-                      onUpdate={handleLineItemUpdate}
-                      onChange={handleLineItemChange}
-                      onDelete={handleLineItemDelete}
-                      isEditing={!isInvoiceFinalized}
-                      isQuickBooksConnected={isQuickBooksConnected}
-                      selectedItems={selectedLineItems}
-                      onSelectionChange={setSelectedLineItems}
-                      viewMode={lineItemsViewMode}
-                      invoiceDetails={invoiceDetails}
-                      onLineItemsRefresh={() => fetchLineItems(lineItemsViewMode)}
-                      onSingleModeSaveRef={singleModeSaveRef}
-                    />
-                  )}
-                </ScrollArea>
+              <div className="flex flex-col flex-1 min-h-0 h-full gap-2">
+                {isLoadingLineItems ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                  </div>
+                ) : (
+                  <LineItemsTable
+                    key={lineItems.map(item => item.id).join(',')}
+                    lineItems={lineItems}
+                    onUpdate={handleLineItemUpdate}
+                    onChange={handleLineItemChange}
+                    onDelete={handleLineItemDelete}
+                    isEditing={!isInvoiceFinalized}
+                    isQuickBooksConnected={isQuickBooksConnected}
+                    selectedItems={selectedLineItems}
+                    onSelectionChange={setSelectedLineItems}
+                    viewMode={lineItemsViewMode}
+                    invoiceDetails={invoiceDetails}
+                    onLineItemsRefresh={() => fetchLineItems(lineItemsViewMode)}
+                    onSingleModeSaveRef={singleModeSaveRef}
+                    onSingleModeAmountChange={handleSingleModeAmountChange}
+                  />
+                )}
 
                 {/* Add Line Item Button - Only show in expand mode */}
                 {invoiceDetails?.id && lineItemsViewMode === 'expand' && (
-                  <div className="mt-2 flex-shrink-0">
+                  <div className="flex-shrink-0">
                     <AddLineItemDialog
                       invoiceId={invoiceDetails.id}
                       onLineItemAdded={handleLineItemAdded}
@@ -1153,12 +1176,14 @@ export default function InvoiceDetailsForm({
                 setBulkCustomerId(null);
               }}
               disabled={isApplyingBulkChange}
+              className="cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               onClick={handleApplyBulkChange}
               disabled={!bulkItemType || isApplyingBulkChange}
+              className="cursor-pointer"
             >
               {isApplyingBulkChange ? (
                 <>

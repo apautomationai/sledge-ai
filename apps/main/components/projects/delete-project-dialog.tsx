@@ -30,12 +30,12 @@ export function DeleteProjectDialog({
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                    <AlertDialogTitle>Delete Project Bill</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Are you sure you want to delete this project? This action cannot be undone.
+                        Are you sure you want to delete this project bill? This action cannot be undone.
                         {projectAddress && (
                             <div className="mt-2 text-sm font-medium text-foreground">
-                                Project: {projectAddress}
+                                Project Bill: {projectAddress}
                             </div>
                         )}
                     </AlertDialogDescription>

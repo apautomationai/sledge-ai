@@ -67,12 +67,12 @@ export interface Job {
   created_at: string;
   invoiceCount: number;
   jobStatus:
-    | "pending"
-    | "processing"
-    | "processed"
-    | "approved"
-    | "rejected"
-    | "failed";
+  | "pending"
+  | "processing"
+  | "processed"
+  | "approved"
+  | "rejected"
+  | "failed";
   invoiceStatusCounts?: {
     approved: number;
     rejected: number;
@@ -138,14 +138,14 @@ export function JobsTable({
         setLoadingInvoices((prev) => new Set(prev).add(jobId));
         try {
           const response = await client.get(
-            `/api/v1/invoice/invoices?attachmentId=${jobId}`,
+            `/api/v1/invoice/invoices-list?attachmentId=${jobId}`,
           );
           const invoiceData =
             response.data?.data?.invoices || response.data?.invoices || [];
           setInvoicesCache((prev) => ({ ...prev, [jobId]: invoiceData }));
         } catch (error) {
           console.error("Failed to fetch invoices:", error);
-          toast.error("Failed to load invoices");
+          toast.error("Failed to load bills");
         } finally {
           setLoadingInvoices((prev) => {
             const newSet = new Set(prev);
@@ -301,7 +301,7 @@ export function JobsTable({
                 <TableHead className="w-[120px] max-w-[120px] p-0">
                   <button
                     onClick={() => onSort("job")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Job
                     {sortBy === "job" ? (
@@ -318,7 +318,7 @@ export function JobsTable({
                 <TableHead className="min-w-[180px] p-0">
                   <button
                     onClick={() => onSort("received")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Received
                     {sortBy === "received" ? (
@@ -335,7 +335,7 @@ export function JobsTable({
                 <TableHead className="min-w-[150px] p-0">
                   <button
                     onClick={() => onSort("vendor")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Vendor
                     {sortBy === "vendor" ? (
@@ -352,7 +352,7 @@ export function JobsTable({
                 <TableHead className="min-w-[100px] p-0">
                   <button
                     onClick={() => onSort("source")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Source
                     {sortBy === "source" ? (
@@ -369,7 +369,7 @@ export function JobsTable({
                 <TableHead className="min-w-[200px] p-0">
                   <button
                     onClick={() => onSort("email")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Email
                     {sortBy === "email" ? (
@@ -386,9 +386,9 @@ export function JobsTable({
                 <TableHead className="min-w-[80px] p-0">
                   <button
                     onClick={() => onSort("invoices")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
-                    Invoices
+                    Bills
                     {sortBy === "invoices" ? (
                       sortOrder === "asc" ? (
                         <ArrowUp className="h-4 w-4" />
@@ -400,11 +400,11 @@ export function JobsTable({
                     )}
                   </button>
                 </TableHead>
-                <TableHead className="min-w-[150px]">Invoice Status</TableHead>
+                <TableHead className="min-w-[150px]">Bill Status</TableHead>
                 <TableHead className="min-w-[120px] p-0">
                   <button
                     onClick={() => onSort("status")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Status
                     {sortBy === "status" ? (
@@ -538,7 +538,7 @@ export function JobsTable({
                                       job.jobStatus === "processing" ||
                                       job.jobStatus === "pending"
                                     }
-                                    className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                   >
                                     Open Job
                                   </Button>
@@ -546,16 +546,16 @@ export function JobsTable({
                               </TooltipTrigger>
                               {(job.jobStatus === "processing" ||
                                 job.jobStatus === "pending") && (
-                                <TooltipContent side="top" className="z-50">
-                                  Job is still {job.jobStatus}. Please wait for
-                                  it to complete.
-                                </TooltipContent>
-                              )}
+                                  <TooltipContent side="top" className="z-50">
+                                    Job is still {job.jobStatus}. Please wait for
+                                    it to complete.
+                                  </TooltipContent>
+                                )}
                               {job.invoiceCount === 0 &&
                                 job.jobStatus !== "processing" &&
                                 job.jobStatus !== "pending" && (
                                   <TooltipContent side="top" className="z-50">
-                                    No invoices available for this job
+                                    No bills available for this job
                                   </TooltipContent>
                                 )}
                             </Tooltip>
@@ -566,7 +566,7 @@ export function JobsTable({
                                 size="sm"
                                 variant="ghost"
                                 onClick={(e) => e.stopPropagation()}
-                                className="h-8 w-8 p-0"
+                                className="h-8 w-8 p-0 cursor-pointer"
                               >
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
@@ -617,25 +617,24 @@ export function JobsTable({
                               <div className="flex items-center justify-center py-4">
                                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mr-2" />
                                 <span className="text-sm text-muted-foreground">
-                                  Loading invoices...
+                                  Loading bills...
                                 </span>
                               </div>
                             ) : (invoicesCache[job.id]?.length ?? 0) > 0 ? (
                               <div className="space-y-2">
                                 <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                                   <FileText className="h-4 w-4" />
-                                  Invoices ({invoicesCache[job.id]?.length || 0}
+                                  Bills ({invoicesCache[job.id]?.length || 0}
                                   )
                                 </h4>
                                 <div className="grid gap-2">
                                   {invoicesCache[job.id]?.map((invoice) => (
                                     <div
                                       key={invoice.id}
-                                      className={`flex items-center justify-between p-3 bg-background rounded-lg border transition-colors cursor-pointer ${
-                                        invoice.isDuplicate
-                                          ? "border-orange-500/50 bg-orange-500/5 hover:border-orange-500"
-                                          : "hover:border-primary/50"
-                                      }`}
+                                      className={`flex items-center justify-between p-3 bg-background rounded-lg border transition-colors cursor-pointer ${invoice.isDuplicate
+                                        ? "border-orange-500/50 bg-orange-500/5 hover:border-orange-500"
+                                        : "hover:border-primary/50"
+                                        }`}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         onReviewJob(job.id, invoice.id);
@@ -647,7 +646,7 @@ export function JobsTable({
                                           <div className="flex items-center gap-2">
                                             <span className="text-sm font-medium truncate">
                                               {invoice.invoiceNumber ||
-                                                `Invoice #${invoice.id}`}
+                                                `Bill #${invoice.id}`}
                                             </span>
                                             {invoice.status && (
                                               <Badge
@@ -656,7 +655,7 @@ export function JobsTable({
                                                   invoice.status === "approved"
                                                     ? "bg-green-500/10 text-green-500 border-green-500/20"
                                                     : invoice.status ===
-                                                        "rejected"
+                                                      "rejected"
                                                       ? "bg-red-500/10 text-red-500 border-red-500/20"
                                                       : "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
                                                 }
@@ -673,7 +672,7 @@ export function JobsTable({
                                               <span className="truncate">
                                                 {invoice.vendorData
                                                   ? (invoice?.vendorData
-                                                      ?.displayName ?? "")
+                                                    ?.displayName ?? "")
                                                   : ""}
                                               </span>
                                             )}
@@ -685,8 +684,8 @@ export function JobsTable({
                                           </div>
                                           {invoice.isDuplicate && (
                                             <div className="mt-2 text-xs text-orange-600 font-medium flex items-center gap-1">
-                                              <AlertTriangle className="h-4 w-4 text-orange-500 flex-shrink-0" /> 
-                                              <span>Change invoice number to remove duplicate warning</span>
+                                              <AlertTriangle className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                                              <span>Change bill number to remove duplicate warning</span>
                                             </div>
                                           )}
                                         </div>
@@ -694,7 +693,7 @@ export function JobsTable({
                                       <Button
                                         size="sm"
                                         variant="ghost"
-                                        className="flex-shrink-0"
+                                        className="flex-shrink-0 cursor-pointer"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           onReviewJob(job.id, invoice.id);
@@ -708,7 +707,7 @@ export function JobsTable({
                               </div>
                             ) : (
                               <div className="text-center py-4 text-sm text-muted-foreground">
-                                No invoices found for this job
+                                No bills found for this job
                               </div>
                             )}
                           </div>
@@ -733,7 +732,7 @@ export function JobsTable({
             <AlertDialogTitle>Delete Job</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this job? This will also delete
-              all associated invoices and cannot be undone.
+              all associated bills and cannot be undone.
               {deleteDialog.filename && (
                 <div className="mt-2 text-sm font-medium">
                   <strong>Job:</strong> {deleteDialog.filename}
@@ -742,11 +741,11 @@ export function JobsTable({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting} className="cursor-pointer">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
-              className="bg-destructive text-white hover:bg-destructive/90"
+              className="bg-destructive text-white hover:bg-destructive/90 cursor-pointer"
             >
               {isDeleting ? (
                 <>

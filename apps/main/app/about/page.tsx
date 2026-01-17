@@ -6,17 +6,20 @@ import Image from "next/image";
 export default function AboutPage() {
   const founders = [
     {
-      name: "DAVIS CANNON",
+      firstName: "DAVIS",
+      lastName: "CANNON",
       title: "Co-Founder",
       image: "/images/founders/Davis.jpg",
     },
     {
-      name: "MARTIN MIRALAIE",
+      firstName: "MATTEO",
+      lastName: "MIRALAIE",
       title: "Co-Founder",
       image: "/images/founders/Matteo.jpg",
     },
     {
-      name: "RAZ DANOUKH",
+      firstName: "RAZ",
+      lastName: "DANOUKH",
       title: "Co-Founder",
       image: "/images/founders/Raz.jpg",
     },
@@ -27,7 +30,7 @@ export default function AboutPage() {
       icon: Lightbulb,
       title: "AI-Native From the Ground Up",
       description:
-        "Sledge is AI-construction management software built with AI at its core — not added later. AI runs the workflows so builders don't have to.",
+        "Sledge is AI construction management software built with AI at its core — not added later. AI runs the workflows so builders don't have to.",
     },
     {
       icon: Shield,
@@ -37,7 +40,7 @@ export default function AboutPage() {
     },
     {
       icon: Target,
-      title: "One Platform. End to End",
+      title: "One Platform. End to End.",
       description:
         "Run your entire construction business — from company setup to projects, accounting, operations, and scale — in one platform.",
     },
@@ -57,7 +60,7 @@ export default function AboutPage() {
       icon: Eye,
       title: "Scales With You",
       description:
-        "Start small or run an enterprise scale. Sledge grows with your business without forcing migrations or complexity.",
+        "Start small or run at enterprise scale. Sledge grows with your business without forcing migrations or complexity.",
     },
   ];
 
@@ -100,21 +103,17 @@ export default function AboutPage() {
                 ABOUT US
               </h1>
               <p className="text-2xl md:text-3xl text-[#e3b02f] font-bold uppercase font-['League_Spartan']">
-                The Builder's AI Office.
+                SLEDGE: THE BUILDER'S AI OFFICE
               </p>
-              <div className="text-lg text-zinc-300 max-w-4xl mx-auto mt-6 leading-relaxed space-y-4">
-                <p>
-                  Sledge is{" "}
-                  <strong className="text-white">
-                    modern construction management software
-                  </strong>{" "}
-                  built to automate the construction back office.
+              <div className="text-lg text-white max-w-4xl mx-auto mt-6 leading-relaxed space-y-4">
+                <p className="font-semibold">
+                  Sledge is AI construction management software that automates the construction back office.
                 </p>
                 <p>
-                  We help construction companies replace manual workflows with{" "}
-                  <strong className="text-white">AI-powered systems</strong> —
-                  so builders can run their business smarter, faster, and with
-                  less overhead.
+                  We replace manual, outdated workflows with AI-powered systems — so builders can run their businesses faster, with fewer tools and less overhead.
+                </p>
+                <p className="text-white font-bold">
+                  Built by builders. For builders.
                 </p>
               </div>
             </div>
@@ -125,48 +124,32 @@ export default function AboutPage() {
                 <Target className="w-8 h-8" />
                 Why We Exist
               </h2>
-              <div className="space-y-4 text-zinc-200 text-base md:text-lg leading-relaxed">
-                <p className="flex items-start gap-3">
-                  <span className="text-[#e3b02f] font-bold mt-1">•</span>
-                  <span>
-                    <strong>
-                      Construction has the worst — but the software serving
-                      construction is even worse.
-                    </strong>{" "}
-                    Vendors rush to add features but ignore what contractors
-                    actually need.
-                  </span>
+              <div className="space-y-4 text-white text-base md:text-lg leading-relaxed">
+                <p className="font-bold">
+                  Construction runs the real world — but the software running construction is broken.
                 </p>
-                <p className="flex items-start gap-3">
-                  <span className="text-[#e3b02f] font-bold mt-1">•</span>
-                  <span>
-                    Most AP software is clunky, requires too much setup, or
-                    forces you to abandon workflows you've spent years building.
-                  </span>
+                <p>
+                  Most construction management and accounting tools today are:
                 </p>
-                <p className="flex items-start gap-3">
-                  <span className="text-[#e3b02f] font-bold mt-1">•</span>
-                  <span>
-                    <strong>Overhyped and bloated.</strong>
-                  </span>
+                <div className="space-y-2 pl-4">
+                  <p className="flex items-center gap-3">
+                    <span className="text-[#e3b02f] font-bold">•</span>
+                    <span>Overpriced</span>
+                  </p>
+                  <p className="flex items-center gap-3">
+                    <span className="text-[#e3b02f] font-bold">•</span>
+                    <span>Bloated</span>
+                  </p>
+                  <p className="flex items-center gap-3">
+                    <span className="text-[#e3b02f] font-bold">•</span>
+                    <span>Built for executives, not builders.</span>
+                  </p>
+                </div>
+                <p>
+                  Builders shouldn't need enterprise contracts, long implementations, or complicated systems just to run their business.
                 </p>
-                <p className="flex items-start gap-3">
-                  <span className="text-[#e3b02f] font-bold mt-1">•</span>
-                  <span>
-                    Demos promise magic, but construction operations are still
-                    broken and slow. Invoices still arrive through email or
-                    paper — and companies are stuck cleaning up the chaos of bad
-                    integrations.
-                  </span>
-                </p>
-                <p className="flex items-start gap-3">
-                  <span className="text-[#e3b02f] font-bold mt-1">•</span>
-                  <span>
-                    <strong>We built Sledge</strong> because construction
-                    deserves a tool that's actually easy to use, truly
-                    integrates with your existing setup, and actually delivers
-                    on the promise of improving efficiency.
-                  </span>
+                <p className="font-bold">
+                  Sledge exists to automate the construction back office — and give builders tools that actually meet their real needs.
                 </p>
               </div>
             </div>
@@ -183,14 +166,11 @@ export default function AboutPage() {
                     Vision
                   </h2>
                 </div>
-                <p className="text-zinc-200 text-base leading-relaxed">
-                  Our vision is to democratize construction management software
-                  and bring the industry into a new era — one where back-office
-                  work is fully automated, efficient, and painless. We want
-                  every contractor, large or small, to have tools that run in
-                  the background and just work. No hassle, no downtime, no
-                  missed opportunities because of software that couldn't keep
-                  up.
+                <p className="text-white text-base leading-relaxed font-bold">
+                  Our vision is to make modern construction management software accessible to every builder.
+                </p>
+                <p className="text-white text-base leading-relaxed mt-4">
+                  From first-time contractors to large firms, anyone should be able to start, run, and scale a construction business without expensive, overcomplicated tools.
                 </p>
               </div>
 
@@ -204,14 +184,11 @@ export default function AboutPage() {
                     Mission
                   </h2>
                 </div>
-                <p className="text-zinc-200 text-base leading-relaxed">
-                  We take the headache out of accounts payable by giving
-                  builders, contractors, and small businesses the tools to
-                  manage invoices effortlessly, pay vendors on time, and keep
-                  every project moving forward. We're here to make construction
-                  back-office operations so smooth, you'll forget they're even
-                  happening. That's Sledge — an AI that actually works for
-                  construction.
+                <p className="text-white text-base leading-relaxed font-bold">
+                  Our mission is to eliminate construction back-office work using AI.
+                </p>
+                <p className="text-white text-base leading-relaxed mt-4">
+                  We put the power of running a construction company back where it belongs — in the hands of the builder.
                 </p>
               </div>
             </div>
@@ -224,20 +201,26 @@ export default function AboutPage() {
               <div className="grid grid-cols-3 md:grid-cols-3 gap-4 md:gap-6">
                 {founders.map((founder) => (
                   <div
-                    key={founder.name}
+                    key={founder.firstName}
                     className="bg-[#1b1a17] border border-[#4a4a4a] rounded-lg p-4 md:p-8 text-center"
                   >
                     <div className="w-20 h-20 md:w-32 md:h-32 mx-auto mb-3 md:mb-4 rounded-full overflow-hidden border-2 md:border-4 border-[#e3b02f] bg-zinc-800">
                       <Image
                         src={founder.image}
-                        alt={founder.name}
+                        alt={`${founder.firstName} ${founder.lastName}`}
                         width={128}
                         height={128}
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <h3 className="text-xs md:text-xl font-bold text-white uppercase font-['League_Spartan'] mb-1 md:mb-2 leading-tight">
-                      {founder.name}
+                      <span className="block md:inline">
+                        {founder.firstName}
+                      </span>
+                      <span className="hidden md:inline"> </span>
+                      <span className="block md:inline">
+                        {founder.lastName}
+                      </span>
                     </h3>
                     <p className="text-[#e3b02f] text-[10px] md:text-sm uppercase font-semibold">
                       {founder.title}

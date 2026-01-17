@@ -129,16 +129,7 @@ export class EmailIntegrationController {
         return res.redirect(redirectUrl);
       }
 
-      // Check if email already exists in another integration
-      if (userInfo.email) {
-        const emailExists = await integrationsService.checkEmailExists(userInfo.email, userId);
-        if (emailExists) {
-          const frontendUrl = process.env.FRONTEND_URL || process.env.OAUTH_REDIRECT_URI || 'http://localhost:3000';
-          const errorMessage = "This email is already connected to another sledge account. Please disconnect it from that account then try again.";
-          const redirectUrl = `${frontendUrl}/integrations?message=${encodeURIComponent(errorMessage)}&type=error`;
-          return res.redirect(redirectUrl);
-        }
-      }
+      // Removed duplicate email check - allow same email across multiple accounts
 
       let integration;
 
@@ -286,16 +277,7 @@ export class EmailIntegrationController {
         return res.redirect(redirectUrl);
       }
 
-      // Check if email already exists in another integration
-      if (userInfo.email) {
-        const emailExists = await integrationsService.checkEmailExists(userInfo.email, userId);
-        if (emailExists) {
-          const frontendUrl = process.env.FRONTEND_URL || process.env.OAUTH_REDIRECT_URI || 'http://localhost:3000';
-          const errorMessage = "This email is already connected to another sledge account. Please disconnect it from that account then try again.";
-          const redirectUrl = `${frontendUrl}/integrations?message=${encodeURIComponent(errorMessage)}&type=error`;
-          return res.redirect(redirectUrl);
-        }
-      }
+      // Removed duplicate email check - allow same email across multiple accounts
 
       let integration;
 
@@ -814,24 +796,28 @@ export class EmailIntegrationController {
         );
       }
 
-      const associatedInvoice =
-        await attachmentServices.getAssociatedInvoice(attachmentId);
+      // Get ALL associated invoices (not just one)
+      const associatedInvoices =
+        await invoiceServices.getInvoicesByAttachmentId(attachmentId);
 
       await attachmentServices.softDeleteAttachment(attachmentId);
 
-      if (associatedInvoice) {
-        await invoiceServices.softDeleteInvoice(associatedInvoice.id);
+      // Delete all associated invoices
+      if (associatedInvoices && associatedInvoices.length > 0) {
+        await Promise.all(
+          associatedInvoices.map((invoice) =>
+            invoiceServices.softDeleteInvoice(invoice.id)
+          )
+        );
       }
 
       return res.status(200).json({
         success: true,
         message: "Attachment deleted successfully",
-        deletedInvoice: associatedInvoice
-          ? {
-            id: associatedInvoice.id,
-            invoiceNumber: associatedInvoice.invoiceNumber,
-          }
-          : null,
+        deletedInvoices: associatedInvoices.map((invoice) => ({
+          id: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+        })),
       });
     } catch (error: any) {
       console.error("Error deleting attachment:", error);

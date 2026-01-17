@@ -4,7 +4,7 @@ import { attachmentsModel } from "@/models/attachments.model";
 import { invoiceModel, lineItemsModel } from "@/models/invoice.model";
 import { quickbooksVendorsModel } from "@/models/quickbooks-vendors.model";
 import { quickbooksCustomersModel } from "@/models/quickbooks-customers.model";
-import { count, desc, eq, getTableColumns, and, sql, gte, lt, lte, inArray, ne } from "drizzle-orm";
+import { count, desc, asc, eq, getTableColumns, and, sql, gte, lt, lte, inArray, ne } from "drizzle-orm";
 import { quickbooksProductsModel } from "@/models/quickbooks-products.model";
 import { PDFDocument } from "pdf-lib";
 import { s3Client, uploadBufferToS3 } from "@/helpers/s3upload";
@@ -18,6 +18,12 @@ import { usersModel } from "@/models/users.model";
 const { v4: uuidv4 } = require("uuid");
 
 const quickbooksService = new QuickBooksService();
+
+interface InvoiceDuplicateCheckData {
+  userId: number;
+  vendorId: number;
+  invoiceNumber: string;
+}
 
 export class InvoiceServices {
   async insertInvoice(data: typeof invoiceModel.$inferInsert) {
@@ -33,6 +39,7 @@ export class InvoiceServices {
     invoiceData: Omit<typeof invoiceModel.$inferInsert, 'id' | 'createdAt' | 'updatedAt'>,
     lineItemsData: Array<{
       item_name: string;
+      item_description?: string;
       quantity: number;
       rate: number;
       amount: number;
@@ -41,7 +48,7 @@ export class InvoiceServices {
     try {
       return await db.transaction(async (tx) => {
         // Check if invoice already exists with same invoice_number and attachment_id
-        const [existingInvoice] = await tx
+        const existingInvoices = await tx
           .select()
           .from(invoiceModel)
           .where(
@@ -50,7 +57,10 @@ export class InvoiceServices {
               eq(invoiceModel.attachmentId, invoiceData.attachmentId),
               eq(invoiceModel.isDeleted, false)
             )
-          );
+          )
+          .limit(1);
+
+        const existingInvoice = existingInvoices[0];
 
         let invoice: typeof invoiceModel.$inferSelect;
         let isUpdate = false;
@@ -101,23 +111,13 @@ export class InvoiceServices {
           }
         } else {
           // Check for duplicates: same invoice number + same vendor + same user
-          let isDuplicate = false;
-          if (invoiceData.vendorId && invoiceData.invoiceNumber) {
-            const duplicates = await tx
-              .select()
-              .from(invoiceModel)
-              .where(
-                and(
-                  eq(invoiceModel.userId, invoiceData.userId),
-                  eq(invoiceModel.vendorId, invoiceData.vendorId),
-                  eq(invoiceModel.invoiceNumber, invoiceData.invoiceNumber),
-                  eq(invoiceModel.isDeleted, false),
-                  ne(invoiceModel.status, "rejected")
-                )
-              );
-
-            isDuplicate = duplicates.length > 0;
+          const invoiceDuplicateCheckPayload: InvoiceDuplicateCheckData = {
+            userId: invoiceData.userId,
+            vendorId: invoiceData.vendorId!,
+            invoiceNumber: invoiceData.invoiceNumber!,
           }
+          const isDuplicate = await this.isInvoiceDuplicate(invoiceDuplicateCheckPayload);
+
 
           // Create new invoice with duplicate flag if needed
           const [newInvoice] = await tx
@@ -134,8 +134,19 @@ export class InvoiceServices {
           invoice = newInvoice;
         }
 
-        // Handle line items - always add new line items to existing invoice
+        // Handle line items
         if (lineItemsData && lineItemsData.length > 0) {
+          // If updating an existing invoice, delete old line items first to avoid duplicates
+          if (existingInvoice) {
+            await tx
+              .update(lineItemsModel)
+              .set({ 
+                isDeleted: true, 
+                deletedAt: new Date() 
+              })
+              .where(eq(lineItemsModel.invoiceId, invoice.id));
+          }
+
           // Search for each line item in QuickBooks products to get quickbooks_id
           const lineItemsToInsert = await Promise.all(
             lineItemsData.map(async (item) => {
@@ -167,6 +178,7 @@ export class InvoiceServices {
               return {
                 invoiceId: invoice.id,
                 item_name: item.item_name,
+                description: item.item_description || null,
                 quantity: item.quantity.toString(),
                 rate: item.rate.toString(),
                 amount: item.amount.toString(),
@@ -244,7 +256,7 @@ export class InvoiceServices {
         eq(invoiceModel.vendorId, quickbooksVendorsModel.id),
       )
       .where(and(...whereConditions))
-      .orderBy(desc(invoiceModel.createdAt))
+      .orderBy(asc(invoiceModel.createdAt))
       .limit(limit)
       .offset(offset);
 
@@ -277,7 +289,7 @@ export class InvoiceServices {
           eq(invoiceModel.isDeleted, false)
         )
       )
-      .orderBy(desc(invoiceModel.createdAt));
+      .orderBy(asc(invoiceModel.createdAt));
 
     return invoicesList;
   }
@@ -826,20 +838,33 @@ export class InvoiceServices {
         throw new BadRequestError("Invoice has already been deleted");
       }
 
-      // Perform soft delete
-      const [result] = await db
-        .update(invoiceModel)
-        .set({
-          isDeleted: true,
-          deletedAt: new Date(),
-          updatedAt: new Date()
-        })
-        .where(eq(invoiceModel.id, invoiceId))
-        .returning();
+      // Perform soft delete on invoice and line items in a transaction
+      await db.transaction(async (tx) => {
+        // Soft delete the invoice
+        const [result] = await tx
+          .update(invoiceModel)
+          .set({
+            isDeleted: true,
+            deletedAt: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(invoiceModel.id, invoiceId))
+          .returning();
 
-      if (!result) {
-        throw new BadRequestError("Failed to delete invoice");
-      }
+        if (!result) {
+          throw new BadRequestError("Failed to delete invoice");
+        }
+
+        // Soft delete all associated line items
+        await tx
+          .update(lineItemsModel)
+          .set({
+            isDeleted: true,
+            deletedAt: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(lineItemsModel.invoiceId, invoiceId));
+      });
     } catch (error) {
       console.error("Error soft deleting invoice:", error);
       throw error;
@@ -1189,7 +1214,8 @@ export class InvoiceServices {
       const lineItems = await db
         .select()
         .from(lineItemsModel)
-        .where(and(...whereConditions));
+        .where(and(...whereConditions))
+        .orderBy(asc(lineItemsModel.id));
 
       return lineItems;
     } catch (error) {
@@ -1341,6 +1367,13 @@ export class InvoiceServices {
         newInvoiceNumber = `${originalNumber}-001`;
       }
 
+      const invoiceDuplicateCheckPayload: InvoiceDuplicateCheckData = {
+        userId: userId,
+        vendorId: originalInvoice.vendorId!,
+        invoiceNumber: newInvoiceNumber,
+      };
+      const isDuplicate = await this.isInvoiceDuplicate(invoiceDuplicateCheckPayload);
+
       // Create new invoice
       const [newInvoice] = await db
         .insert(invoiceModel)
@@ -1361,6 +1394,7 @@ export class InvoiceServices {
           s3JsonKey: originalInvoice.s3JsonKey,
           status: "pending",
           isDeleted: false,
+          isDuplicate: isDuplicate,
         })
         .returning();
 
@@ -2147,5 +2181,23 @@ export class InvoiceServices {
       throw error;
     }
   }
+
+  private async isInvoiceDuplicate(data: InvoiceDuplicateCheckData): Promise<boolean> {
+    const duplicates = await db
+      .select()
+      .from(invoiceModel)
+      .where(
+        and(
+          eq(invoiceModel.userId, data.userId),
+          eq(invoiceModel.vendorId, data.vendorId),
+          eq(invoiceModel.invoiceNumber, data.invoiceNumber),
+          eq(invoiceModel.isDeleted, false),
+          ne(invoiceModel.status, "rejected")
+        )
+      );
+
+    return duplicates.length > 0;
+  }
+
 }
 export const invoiceServices = new InvoiceServices();

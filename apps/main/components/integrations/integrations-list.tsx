@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import type { Integration } from "./types";
 import type { ActionState } from "@/app/(dashboard)/integrations/actions";
 import { IntegrationCard } from "./integration-card";
 import { BACKEND_NAMES_MAP } from "./integration-constants";
+import { QuickBooksLoginWarningDialog } from "./quickbooks-login-warning-dialog";
 
 const INITIAL_INTEGRATIONS: Omit<
   Integration,
@@ -64,6 +65,9 @@ export default function IntegrationsList({
   shouldOpenOutlookConfig,
   onOutlookConfigClose,
 }: IntegrationsListProps) {
+  const [showQBWarning, setShowQBWarning] = useState(false);
+  const [pendingQBConnect, setPendingQBConnect] = useState<(() => void) | null>(null);
+
   const integrations: Integration[] = INITIAL_INTEGRATIONS.map((integration) => {
     const backendName =
       BACKEND_NAMES_MAP[integration.name as keyof typeof BACKEND_NAMES_MAP];
@@ -82,6 +86,19 @@ export default function IntegrationsList({
     } as Integration;
   });
 
+  const handleQBConnect = (connectFn: () => void) => {
+    setPendingQBConnect(() => connectFn);
+    setShowQBWarning(true);
+  };
+
+  const handleQBContinue = () => {
+    setShowQBWarning(false);
+    if (pendingQBConnect) {
+      pendingQBConnect();
+      setPendingQBConnect(null);
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
@@ -97,11 +114,18 @@ export default function IntegrationsList({
             }
             onConfigDialogClose={
               integration.backendName === "gmail" ? onGmailConfigClose :
-              integration.backendName === "outlook" ? onOutlookConfigClose : undefined
+                integration.backendName === "outlook" ? onOutlookConfigClose : undefined
             }
+            onQuickBooksConnect={integration.backendName === "quickbooks" ? handleQBConnect : undefined}
           />
         ))}
       </div>
+
+      <QuickBooksLoginWarningDialog
+        open={showQBWarning}
+        onOpenChange={setShowQBWarning}
+        onContinue={handleQBContinue}
+      />
     </div>
   );
 }

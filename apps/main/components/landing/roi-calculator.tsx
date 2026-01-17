@@ -30,7 +30,7 @@ export default function RoiCalculator() {
         {/* Header */}
         <div className="text-center">
           <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
-            Save Hours Every Week with AI Accounts Payable.
+            Save Hours Every Week with Finance Management.
           </h2>
           <p className="mt-2 text-lg md:text-2xl text-white">
             This calculator estimates how much time and money your team can save
@@ -71,13 +71,15 @@ export default function RoiCalculator() {
                 <input
                   type="text"
                   value={timePerInvoice}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const cleaned = e.target.value
+                      .replace(/[^0-9]/g, "")
+                      .replace(/^0+/, "") || "";
+                    const numValue = Number(cleaned);
                     setTimePerInvoice(
-                      e.target.value
-                        .replace(/[^0-9]/g, "")
-                        .replace(/^0+/, "") || "",
-                    )
-                  }
+                      numValue > 300 ? "300" : cleaned
+                    );
+                  }}
                   className="w-full h-full px-4 bg-transparent text-neutral-100 text-sm md:text-base font-medium font-sans outline-none"
                 />
               </div>

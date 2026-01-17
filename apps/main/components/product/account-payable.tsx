@@ -6,7 +6,7 @@ export function AiAccount() {
       <div className="relative mx-auto max-w-[1381px] w-full flex flex-col gap-12 items-center">
         <div className="flex flex-col gap-6 items-center text-center w-full">
           <h1 className="text-4xl md:text-5xl lg:text-[64px] font-bold tracking-tight text-white uppercase font-['League_Spartan'] leading-normal">
-            AI Accounts payable. done for you.
+            Finance Management. done for you.
           </h1>
 
           <p className="text-lg lg:text-2xl text-white leading-normal">

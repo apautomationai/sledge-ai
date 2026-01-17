@@ -63,8 +63,8 @@ export const useRealtimeInvoices = ({
                     description = 'A new invoice has been processed';
                     break;
                 case 'INVOICE_UPDATED':
-                    message = 'Invoice updated';
-                    description = 'An invoice has been updated';
+                    message = 'Bill updated';
+                    description = 'A bill has been updated';
                     break;
                 case 'INVOICE_STATUS_UPDATED':
                     const statusText = data.status?.charAt(0).toUpperCase() + data.status?.slice(1);
@@ -185,7 +185,10 @@ export const useRealtimeInvoices = ({
             connect();
         }
 
-    }, [autoConnect, connect]);
+        return () => {
+            disconnect();
+        };
+    }, [autoConnect, connect, disconnect]);
 
     return {
         connect,

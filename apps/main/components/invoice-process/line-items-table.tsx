@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
     Table,
@@ -54,6 +54,7 @@ interface LineItemsTableProps {
     invoiceDetails?: any;
     onLineItemsRefresh?: () => void;
     onSingleModeSaveRef?: React.MutableRefObject<(() => Promise<void>) | null>;
+    onSingleModeAmountChange?: (amount: string) => void;
 }
 
 export function LineItemsTable({
@@ -67,7 +68,8 @@ export function LineItemsTable({
     viewMode = 'single',
     invoiceDetails,
     onLineItemsRefresh,
-    onSingleModeSaveRef
+    onSingleModeSaveRef,
+    onSingleModeAmountChange
 }: LineItemsTableProps) {
     const router = useRouter();
     const [accounts, setAccounts] = useState<DBQuickBooksAccount[]>([]);
@@ -488,6 +490,11 @@ export function LineItemsTable({
             ...prev,
             amount: value,
         }));
+
+        // Notify parent component of amount change
+        if (onSingleModeAmountChange) {
+            onSingleModeAmountChange(value);
+        }
     };
 
     const handleSingleModeResourceSelect = (resourceId: string, type: 'account' | 'product') => {
@@ -577,88 +584,104 @@ export function LineItemsTable({
         return (
             <>
                 <TooltipProvider>
-                    <div className="rounded-lg">
-                        <div className="overflow-x-auto">
-                            <Table className="table-fixed">
-                                <TableHeader>
+                    <div
+                        className="rounded-lg border overflow-hidden"
+                        role="region"
+                        aria-label="Line item details in single view mode"
+                    >
+                        <div className="overflow-auto">
+                            <Table className="min-w-full" aria-label="Line items table">
+                                <TableHeader className="bg-background border-b">
                                     <TableRow>
-                                        <TableHead className="w-[16%] min-w-[120px] px-2 py-2">
+                                        <TableHead className="min-w-[180px] px-3 py-3" scope="col">
                                             <span className="truncate block">Description</span>
                                         </TableHead>
-                                        <TableHead className="w-[8%] min-w-[60px] px-2 py-2">
-                                            <span className="truncate block">Qty</span>
+                                        <TableHead className="min-w-[100px] px-3 py-3" scope="col">
+                                            <span className="truncate block">Quantity</span>
                                         </TableHead>
-                                        <TableHead className="w-[8%] min-w-[60px] px-2 py-2">
+                                        <TableHead className="min-w-[100px] px-3 py-3" scope="col">
                                             <span className="truncate block">Rate</span>
                                         </TableHead>
-                                        <TableHead className="w-[8%] min-w-[70px] px-2 py-2">
+                                        <TableHead className="min-w-[110px] px-3 py-3" scope="col">
                                             <span className="truncate block">Amount</span>
                                         </TableHead>
-                                        <TableHead className="w-[12%] min-w-[90px] px-2 py-2">
+                                        <TableHead className="min-w-[130px] px-3 py-3" scope="col">
                                             <span className="truncate block">Cost Type</span>
                                         </TableHead>
-                                        <TableHead className="w-[20%] min-w-[150px] px-2 py-2">
+                                        <TableHead className="min-w-[200px] px-3 py-3" scope="col">
                                             <span className="truncate block">{getCategoryHeaderText()}</span>
                                         </TableHead>
-                                        <TableHead className="w-[20%] min-w-[120px] px-2 py-2">
+                                        <TableHead className="min-w-[180px] px-3 py-3" scope="col">
                                             <span className="truncate block">Job</span>
                                         </TableHead>
-                                        {isEditing && <TableHead className="w-[8%] min-w-[50px] px-2 py-2"></TableHead>}
+                                        {isEditing && <TableHead className="min-w-[60px] w-[60px] px-3 py-3" scope="col"><span className="sr-only">Actions</span></TableHead>}
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    <TableRow>
-                                        <TableCell className="font-medium max-w-0 px-2 py-2">
+                                    <TableRow className="hover:bg-muted/50">
+                                        <TableCell className="font-medium px-3 py-3">
                                             <Input
                                                 type="text"
                                                 value={singleModeState.description}
                                                 onChange={(e) => handleSingleModeChange('description', e.target.value)}
-                                                className="h-8 px-2"
-                                                placeholder="Description"
+                                                className="h-9 px-3"
+                                                placeholder="Enter item description"
                                                 disabled={!isEditing}
+                                                aria-label="Item description"
+                                                aria-required="true"
                                             />
                                         </TableCell>
-                                        <TableCell className="px-2 py-2">
+                                        <TableCell className="px-3 py-3">
                                             <Input
                                                 type="number"
                                                 step="0.01"
                                                 value={singleModeState.quantity}
                                                 onChange={(e) => handleSingleModeQuantityChange(e.target.value)}
-                                                className="h-8 px-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                className="h-9 px-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                 disabled={!isEditing}
-                                                placeholder="Quantity"
+                                                placeholder="Enter quantity"
+                                                aria-label="Item quantity"
+                                                aria-required="true"
+                                                inputMode="decimal"
                                             />
                                         </TableCell>
-                                        <TableCell className="px-2 py-2">
+                                        <TableCell className="px-3 py-3">
                                             <Input
                                                 type="number"
                                                 step="0.01"
                                                 value={singleModeState.rate}
                                                 onChange={(e) => handleSingleModeRateChange(e.target.value)}
-                                                className="h-8 px-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                className="h-9 px-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                 disabled={!isEditing}
-                                                placeholder="Rate"
+                                                placeholder="Enter rate"
+                                                aria-label="Item rate per unit"
+                                                aria-required="true"
+                                                inputMode="decimal"
                                             />
                                         </TableCell>
-                                        <TableCell className="px-2 py-2">
+                                        <TableCell className="px-3 py-3">
                                             <Input
                                                 type="number"
                                                 step="0.01"
                                                 value={singleModeState.amount}
                                                 onChange={(e) => handleSingleModeAmountChange(e.target.value)}
-                                                className="h-8 px-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                className="h-9 px-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                 disabled={!isEditing}
-                                                placeholder="Amount"
+                                                placeholder="Enter amount"
+                                                aria-label="Total amount"
+                                                aria-required="true"
+                                                inputMode="decimal"
                                             />
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="px-3 py-3">
                                             <Select
                                                 value={singleModeState.itemType || undefined}
                                                 onValueChange={(value) => handleSingleModeChange('itemType', value)}
                                                 disabled={!isEditing}
+                                                aria-label="Cost type selection"
                                             >
-                                                <SelectTrigger className="h-8">
-                                                    <SelectValue placeholder="Select..." />
+                                                <SelectTrigger className="h-9 text-left" aria-label="Select cost type">
+                                                    <SelectValue placeholder="Select cost type" className="truncate" />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="account">Indirect</SelectItem>
@@ -666,7 +689,7 @@ export function LineItemsTable({
                                                 </SelectContent>
                                             </Select>
                                         </TableCell>
-                                        <TableCell className="px-2 py-2">
+                                        <TableCell className="px-3 py-3">
                                             <div className="relative">
                                                 {singleModeState.itemType === 'account' ? (
                                                     <EnhancedLineItemAutocomplete
@@ -693,21 +716,21 @@ export function LineItemsTable({
                                                         onAddClick={() => setAddProductModalOpen(true)}
                                                     />
                                                 ) : (
-                                                    <div className="text-xs text-muted-foreground">Select type first</div>
+                                                    <div className="text-xs text-muted-foreground px-3">Select type first</div>
                                                 )}
                                             </div>
                                         </TableCell>
-                                        <TableCell className="px-2 py-2">
+                                        <TableCell className="px-3 py-3">
                                             <div className="relative">
                                                 {isQuickBooksConnected === false ? (
                                                     <div
-                                                        className="h-8 px-2 border border-input bg-background rounded-md text-xs text-muted-foreground cursor-pointer hover:bg-accent flex items-center"
+                                                        className="h-9 px-3 border border-input bg-background rounded-md text-xs text-muted-foreground cursor-pointer hover:bg-accent flex items-center"
                                                         onClick={() => setIsQuickBooksErrorOpen(true)}
                                                     >
                                                         Connect QB
                                                     </div>
                                                 ) : isQuickBooksConnected === null ? (
-                                                    <div className="h-8 px-2 border border-input bg-background rounded-md text-xs text-muted-foreground flex items-center">
+                                                    <div className="h-9 px-3 border border-input bg-background rounded-md text-xs text-muted-foreground flex items-center">
                                                         <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                                                         Loading...
                                                     </div>
@@ -726,7 +749,7 @@ export function LineItemsTable({
                                                 )}
                                             </div>
                                         </TableCell>
-                                        {isEditing && <TableCell className="px-2 py-2"></TableCell>}
+                                        {isEditing && <TableCell className="px-3 py-3"></TableCell>}
                                     </TableRow>
                                 </TableBody>
                             </Table>
@@ -818,39 +841,44 @@ export function LineItemsTable({
     return (
         <>
             <TooltipProvider>
-                <div className="rounded-lg">
-                    <div className="overflow-x-auto">
-                        <Table className="table-fixed">
-                            <TableHeader>
+                <div
+                    className="rounded-lg border overflow-hidden flex flex-col"
+                    role="region"
+                    aria-label="Line items in expanded view mode"
+                >
+                    <div className="overflow-auto flex-1" role="group" aria-label="Scrollable line items list">
+                        <Table className="min-w-full" aria-label="Line items table">
+                            <TableHeader className="sticky top-0 bg-background z-10 border-b shadow-sm">
                                 <TableRow>
-                                    <TableHead className="w-[4%] px-2 py-2">
+                                    <TableHead className="min-w-[50px] w-[50px] px-3 py-3 bg-background" scope="col">
                                         <Checkbox
                                             checked={selectedItems.size === lineItems.length && lineItems.length > 0}
                                             onCheckedChange={handleSelectAll}
+                                            aria-label={`Select all ${lineItems.length} line items`}
                                         />
                                     </TableHead>
-                                    <TableHead className="w-[14%] min-w-[120px] px-2 py-2">
+                                    <TableHead className="min-w-[180px] px-3 py-3 bg-background" scope="col">
                                         <span className="truncate block">Description</span>
                                     </TableHead>
-                                    <TableHead className="w-[8%] min-w-[60px] px-2 py-2">
-                                        <span className="truncate block">Qty</span>
+                                    <TableHead className="min-w-[100px] px-3 py-3 bg-background" scope="col">
+                                        <span className="truncate block">Quantity</span>
                                     </TableHead>
-                                    <TableHead className="w-[8%] min-w-[60px] px-2 py-2">
+                                    <TableHead className="min-w-[100px] px-3 py-3 bg-background" scope="col">
                                         <span className="truncate block">Rate</span>
                                     </TableHead>
-                                    <TableHead className="w-[8%] min-w-[70px] px-2 py-2">
+                                    <TableHead className="min-w-[110px] px-3 py-3 bg-background" scope="col">
                                         <span className="truncate block">Amount</span>
                                     </TableHead>
-                                    <TableHead className="w-[12%] min-w-[90px] px-2 py-2">
+                                    <TableHead className="min-w-[130px] px-3 py-3 bg-background" scope="col">
                                         <span className="truncate block">Cost Type</span>
                                     </TableHead>
-                                    <TableHead className="w-[18%] min-w-[150px] px-2 py-2">
+                                    <TableHead className="min-w-[200px] px-3 py-3 bg-background" scope="col">
                                         <span className="truncate block">{getCategoryHeaderText()}</span>
                                     </TableHead>
-                                    <TableHead className="w-[18%] min-w-[120px] px-2 py-2">
+                                    <TableHead className="min-w-[180px] px-3 py-3 bg-background" scope="col">
                                         <span className="truncate block">Job</span>
                                     </TableHead>
-                                    {isEditing && <TableHead className="w-[6%] min-w-[50px] px-2 py-2"></TableHead>}
+                                    {isEditing && <TableHead className="min-w-[60px] w-[60px] px-3 py-3 bg-background" scope="col"><span className="sr-only">Actions</span></TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -866,14 +894,15 @@ export function LineItemsTable({
                                     };
 
                                     return (
-                                        <TableRow key={lineItem.id}>
-                                            <TableCell className="px-2 py-2">
+                                        <TableRow key={lineItem.id} className="hover:bg-muted/50" aria-label={`Line item: ${lineItem.item_name || `Item ${lineItem.id}`}`}>
+                                            <TableCell className="px-3 py-3">
                                                 <Checkbox
                                                     checked={selectedItems.has(lineItem.id)}
                                                     onCheckedChange={(checked) => handleSelectItem(lineItem.id, checked as boolean)}
+                                                    aria-label={`Select line item ${lineItem.item_name || lineItem.id}`}
                                                 />
                                             </TableCell>
-                                            <TableCell className="font-medium max-w-0 px-2 py-2">
+                                            <TableCell className="font-medium px-3 py-3">
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         {isEditing ? (
@@ -882,12 +911,14 @@ export function LineItemsTable({
                                                                     type="text"
                                                                     value={state.item_name}
                                                                     onChange={(e) => handleItemNameChange(lineItem.id, e.target.value)}
-                                                                    className="h-8 px-2"
-                                                                    placeholder="Item name"
+                                                                    className="h-9 px-3"
+                                                                    placeholder="Enter item description"
+                                                                    aria-label={`Description for line item ${lineItem.id}`}
+                                                                    aria-required="true"
                                                                 />
                                                             </div>
                                                         ) : (
-                                                            <div className="truncate cursor-default">
+                                                            <div className="truncate cursor-default min-w-[160px]">
                                                                 {lineItem.item_name || `Item ${lineItem.id}`}
                                                             </div>
                                                         )}
@@ -897,7 +928,7 @@ export function LineItemsTable({
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TableCell>
-                                            <TableCell className="px-2 py-2">
+                                            <TableCell className="px-3 py-3">
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <div>
@@ -906,8 +937,11 @@ export function LineItemsTable({
                                                                 step="0.01"
                                                                 value={state.quantity}
                                                                 onChange={(e) => handleQuantityChange(lineItem.id, e.target.value)}
-                                                                className="h-8 px-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                className="h-9 px-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                                 disabled={!isEditing}
+                                                                aria-label={`Quantity for ${lineItem.item_name || `item ${lineItem.id}`}`}
+                                                                aria-required="true"
+                                                                inputMode="decimal"
                                                             />
                                                         </div>
                                                     </TooltipTrigger>
@@ -916,7 +950,7 @@ export function LineItemsTable({
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TableCell>
-                                            <TableCell className="px-2 py-2">
+                                            <TableCell className="px-3 py-3">
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <div>
@@ -925,8 +959,11 @@ export function LineItemsTable({
                                                                 step="0.01"
                                                                 value={state.rate}
                                                                 onChange={(e) => handleRateChange(lineItem.id, e.target.value)}
-                                                                className="h-8 px-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                className="h-9 px-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                                 disabled={!isEditing}
+                                                                aria-label={`Rate for ${lineItem.item_name || `item ${lineItem.id}`}`}
+                                                                aria-required="true"
+                                                                inputMode="decimal"
                                                             />
                                                         </div>
                                                     </TooltipTrigger>
@@ -935,7 +972,7 @@ export function LineItemsTable({
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TableCell>
-                                            <TableCell className="px-2 py-2">
+                                            <TableCell className="px-3 py-3">
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <div>
@@ -944,8 +981,11 @@ export function LineItemsTable({
                                                                 step="0.01"
                                                                 value={state.amount}
                                                                 onChange={(e) => handleAmountChange(lineItem.id, e.target.value)}
-                                                                className="h-8 px-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                className="h-9 px-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                                 disabled={!isEditing}
+                                                                aria-label={`Amount for ${lineItem.item_name || `item ${lineItem.id}`}`}
+                                                                aria-required="true"
+                                                                inputMode="decimal"
                                                             />
                                                         </div>
                                                     </TooltipTrigger>
@@ -954,19 +994,19 @@ export function LineItemsTable({
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="px-3 py-3">
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <div>
                                                             {isQuickBooksConnected === false ? (
                                                                 <div
-                                                                    className="h-8 px-2 border border-input bg-background rounded-md text-xs text-muted-foreground cursor-pointer hover:bg-accent flex items-center"
+                                                                    className="h-9 px-3 border border-input bg-background rounded-md text-xs text-muted-foreground cursor-pointer hover:bg-accent flex items-center"
                                                                     onClick={() => setIsQuickBooksErrorOpen(true)}
                                                                 >
                                                                     Connect QB
                                                                 </div>
                                                             ) : isQuickBooksConnected === null ? (
-                                                                <div className="h-8 px-2 border border-input bg-background rounded-md text-xs text-muted-foreground flex items-center">
+                                                                <div className="h-9 px-3 border border-input bg-background rounded-md text-xs text-muted-foreground flex items-center">
                                                                     <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                                                                     Loading...
                                                                 </div>
@@ -976,8 +1016,8 @@ export function LineItemsTable({
                                                                     onValueChange={(value) => handleItemTypeChange(lineItem.id, value as 'account' | 'product')}
                                                                     disabled={!isEditing}
                                                                 >
-                                                                    <SelectTrigger className="h-8">
-                                                                        <SelectValue placeholder="Select..." />
+                                                                    <SelectTrigger className="h-9 text-left">
+                                                                        <SelectValue placeholder="Select..." className="truncate" />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         <SelectItem value="account">Indirect</SelectItem>
@@ -992,7 +1032,7 @@ export function LineItemsTable({
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TableCell>
-                                            <TableCell className="px-2 py-2">
+                                            <TableCell className="px-3 py-3">
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <div className="relative">
@@ -1021,7 +1061,7 @@ export function LineItemsTable({
                                                                     onAddClick={() => setAddProductModalOpen(true)}
                                                                 />
                                                             ) : (
-                                                                <div className="text-xs text-muted-foreground">Select type first</div>
+                                                                <div className="text-xs text-muted-foreground px-3">Select type first</div>
                                                             )}
                                                         </div>
                                                     </TooltipTrigger>
@@ -1034,19 +1074,19 @@ export function LineItemsTable({
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TableCell>
-                                            <TableCell className="px-2 py-2">
+                                            <TableCell className="px-3 py-3">
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <div className="relative">
                                                             {isQuickBooksConnected === false ? (
                                                                 <div
-                                                                    className="h-8 px-2 border border-input bg-background rounded-md text-xs text-muted-foreground cursor-pointer hover:bg-accent flex items-center"
+                                                                    className="h-9 px-3 border border-input bg-background rounded-md text-xs text-muted-foreground cursor-pointer hover:bg-accent flex items-center"
                                                                     onClick={() => setIsQuickBooksErrorOpen(true)}
                                                                 >
                                                                     Connect QB
                                                                 </div>
                                                             ) : isQuickBooksConnected === null ? (
-                                                                <div className="h-8 px-2 border border-input bg-background rounded-md text-xs text-muted-foreground flex items-center">
+                                                                <div className="h-9 px-3 border border-input bg-background rounded-md text-xs text-muted-foreground flex items-center">
                                                                     <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                                                                     Loading...
                                                                 </div>
@@ -1073,12 +1113,13 @@ export function LineItemsTable({
                                                 </Tooltip>
                                             </TableCell>
                                             {isEditing && (
-                                                <TableCell className="px-2 py-2">
+                                                <TableCell className="px-3 py-3">
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => setDeleteDialog({ open: true, lineItem })}
-                                                        className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                                                        className="text-destructive hover:text-destructive hover:bg-destructive/10 h-9 w-9 p-0"
+                                                        aria-label={`Delete ${lineItem.item_name || 'line item'}`}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>

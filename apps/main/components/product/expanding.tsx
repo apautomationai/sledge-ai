@@ -12,8 +12,8 @@ export function Expanding() {
       "Accounting system integration",
     ],
     link: {
-      text: "View AI Accounts Payable",
-      href: "product/ai-accounts-payable",
+      text: "View Finance Management",
+      href: "product/finance-management",
     },
   };
 

@@ -90,7 +90,7 @@ export class EmailService {
         `;
         const textBody = `Hello,\n\nCopy and paste this link to reset your password: ${resetLink}`;
 
-        return this.sendEmail({ to, subject, htmlBody, textBody });
+        return this.sendEmail({ to, subject, htmlBody, textBody, from: this.notificationFrom });
     };
 
     // send invoice rejection email to one or multiple recipients
@@ -175,6 +175,115 @@ export class EmailService {
         return this.sendEmail({ to, subject, htmlBody, textBody, from, attachments });
     };
 
+    // send email verification email
+    sendVerificationEmail = async (params: {
+        to: string;
+        firstName: string;
+        verificationLink: string;
+    }) => {
+        const { to, firstName, verificationLink } = params;
+        const subject = "Verify your Sledge account";
+
+        const htmlBody = this.generateVerificationEmailHTML({ firstName, verificationLink });
+
+        const textBody = `Hey ${firstName},
+
+Welcome to Sledge! 👋
+
+To get started, please verify your email address by clicking the link below:
+
+${verificationLink}
+
+This link will expire in 24 hours.
+
+If you didn't create an account with Sledge, you can safely ignore this email.
+
+— The Sledge Team
+
+Sledge
+The Builder's AI Office`;
+
+        return this.sendEmail({ to, subject, htmlBody, textBody, from: this.notificationFrom });
+    };
+
+    // Generate verification email HTML
+    generateVerificationEmailHTML = (params: {
+        firstName: string;
+        verificationLink: string;
+    }) => {
+        const { firstName, verificationLink } = params;
+
+        return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 20px; font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333333; background-color: #f5f5f5;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 700px; margin: 0 auto;">
+                <tr>
+                    <td>
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                            <!-- Header -->
+                            <tr>
+                                <td style="background-color: #1a1a1a; padding: 24px 30px; text-align: center;">
+                                    <h1 style="margin: 0; font-size: 24px; color: #ffffff; font-weight: 700;">Verify Your Email</h1>
+                                </td>
+                            </tr>
+
+                            <!-- Body Content -->
+                            <tr>
+                                <td style="padding: 30px; background-color: #ffffff;">
+                                    <p style="margin: 0 0 16px 0; font-size: 18px; color: #333333;">
+                                        Hey <strong>${firstName}</strong>, 👋
+                                    </p>
+
+                                    <p style="margin: 0 0 24px 0; font-size: 15px; color: #555555; line-height: 1.7;">
+                                        Welcome to Sledge! To get started, please verify your email address by clicking the button below.
+                                    </p>
+
+                                    <!-- CTA Button -->
+                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+                                        <tr>
+                                            <td align="center">
+                                                <a href="${verificationLink}" target="_blank" style="display: inline-block; background-color: #fbbf24; color: #1a1a1a; padding: 14px 32px; font-size: 16px; font-weight: 700; text-decoration: none; border-radius: 8px;">
+                                                    Verify Email Address
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <p style="margin: 24px 0 16px 0; font-size: 14px; color: #6c757d;">
+                                        This link will expire in 24 hours.
+                                    </p>
+
+                                    <p style="margin: 0; font-size: 14px; color: #6c757d;">
+                                        If you didn't create an account with Sledge, you can safely ignore this email.
+                                    </p>
+                                </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background-color: #1a1a1a; padding: 20px 30px; text-align: center;">
+                                    <p style="margin: 0 0 4px 0; font-size: 14px; color: #ffffff; font-weight: 700;">
+                                        Sledge
+                                    </p>
+                                    <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+                                        The Builder's AI Office
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
+    `;
+    };
+
     // send welcome email to new user
     sendWelcomeEmail = async (params: {
         to: string;
@@ -227,7 +336,7 @@ The Builder's AI Office
 
 This is an automated message. Replies are monitored by our support team.`;
 
-        return this.sendEmail({ to, subject, htmlBody, textBody });
+        return this.sendEmail({ to, subject, htmlBody, textBody, from: this.notificationFrom });
     };
 
     // Generate welcome email HTML for preview (without sending)

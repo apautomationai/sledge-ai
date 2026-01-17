@@ -56,7 +56,7 @@ export function JobsFilters({
                                     variant={statusFilter === status.value ? "default" : "outline"}
                                     size="sm"
                                     onClick={() => onStatusFilterChange(status.value)}
-                                    className="rounded-full whitespace-nowrap"
+                                    className="rounded-full whitespace-nowrap cursor-pointer"
                                 >
                                     {status.label}
                                     {statusCounts && (
@@ -91,7 +91,7 @@ export function JobsFilters({
                             </>
                         )}
                     </Button>
-                    <Button onClick={onCreateJob}>
+                    <Button onClick={onCreateJob} className="cursor-pointer">
                         <Plus className="w-4 h-4 sm:mr-2" />
                         <span className="hidden sm:inline">Create Job</span>
                     </Button>
@@ -102,7 +102,7 @@ export function JobsFilters({
             <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                    placeholder="Search vendor, invoice, email..."
+                    placeholder="Search vendor, bill, email..."
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     className="pl-9"

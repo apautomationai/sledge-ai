@@ -19,7 +19,7 @@ export function ProjectPopup({ project, position, onClose, onActivate }: Project
         if (project.status === 'pending' && onActivate) {
             onActivate(project);
         } else {
-            router.push(`/projects/${project.id}`);
+            router.push(`/project-bills/${project.id}`);
         }
         onClose();
     };

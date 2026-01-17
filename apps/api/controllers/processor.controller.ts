@@ -427,6 +427,7 @@ class ProcessorController {
     // Prepare line items data
     const lineItemsData = line_items?.map((item: any) => ({
       item_name: item.item_name || "",
+      item_description: item.item_description || null,
       quantity: item.quantity || 0,
       rate: item.unit_price || 0,
       amount: item.total_price || 0,
