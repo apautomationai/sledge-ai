@@ -65,12 +65,18 @@ export default function JobsPage() {
             const response = await client.get(endpoint);
             return { success: true, name, response };
           } catch (error: any) {
-            // Check if it's a "not connected" error
-            const errorMessage = error?.response?.data?.error || error?.message || "";
+            // Check if it's a "not connected" error - check multiple possible error locations
+            const errorMessage =
+              error?.response?.data?.error ||
+              error?.response?.data?.message ||
+              error?.message ||
+              String(error);
+
             if (errorMessage.includes("not found") || errorMessage.includes("not connected")) {
               return { success: false, name, notConnected: true };
             }
-            throw error;
+            // For any other error, return it as a failure
+            return { success: false, name, error: errorMessage };
           }
         })
       );
@@ -81,11 +87,19 @@ export default function JobsPage() {
       const notConnected = results.filter(
         (r) => r.status === "fulfilled" && r.value.notConnected
       );
-      const failed = results.filter((r) => r.status === "rejected");
+      const failed = results.filter(
+        (r) => r.status === "fulfilled" && r.value.error
+      );
 
-      // If both are not connected, show error
+      // If both are not connected, show specific message
       if (notConnected.length === 2) {
-        toast.error("No email provider connected. Please connect Gmail or Outlook in the integrations page.");
+        toast.error("Please connect Gmail or Outlook from the integrations page to sync emails.");
+        return;
+      }
+
+      // If no successful syncs at all (both not connected or failed)
+      if (successfulSyncs.length === 0) {
+        toast.error("Please connect Gmail or Outlook from the integrations page to sync emails.");
         return;
       }
 
@@ -95,10 +109,6 @@ export default function JobsPage() {
         toast.success(`Emails synced successfully from ${syncedProviders}`);
         refetch();
         router.refresh();
-      } else if (failed.length > 0) {
-        // Only show error if there was an actual failure (not just "not connected")
-        toast.error("Failed to sync emails");
-        console.error(failed);
       }
     } catch (error) {
       toast.error("Failed to sync emails");
