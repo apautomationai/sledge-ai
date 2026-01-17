@@ -5,10 +5,10 @@ import client from "@/lib/fetch-client";
 
 export type ActionState =
   | {
-      success?: boolean;
-      error?: string;
-      message?: string;
-    }
+    success?: boolean;
+    error?: string;
+    message?: string;
+  }
   | undefined;
 
 interface UpdatePayload {
@@ -36,6 +36,7 @@ export async function updateIntegrationStatusAction(
       // Use unified disconnect endpoint for all integrations
       await client.delete(`api/v1/settings/integration?name=${name}`);
       revalidatePath("/integrations");
+
       return {
         success: true,
         message: "Integration disconnected successfully.",

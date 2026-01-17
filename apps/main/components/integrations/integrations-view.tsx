@@ -101,6 +101,11 @@ export default function IntegrationsView({
       toast.error("An error occurred", { description: state.error });
     } else if (state.success) {
       toast.success(state.message || "Action successful!");
+
+      // Clear URL params after showing toast for disconnect action
+      if (state.message?.includes("disconnected")) {
+        window.history.replaceState({}, '', '/integrations');
+      }
     }
   }, [state]);
 
