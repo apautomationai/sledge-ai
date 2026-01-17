@@ -11,6 +11,7 @@ import Image from "next/image";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog";
 import { Calendar } from "@workspace/ui/components/calendar";
 import { Label } from "@workspace/ui/components/label";
+import { QuickBooksLoginWarningDialog } from "@/components/integrations/quickbooks-login-warning-dialog";
 
 interface OnboardingFlowProps {
     integrations: Array<{
@@ -30,6 +31,7 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [isSavingDate, setIsSavingDate] = useState(false);
     const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+    const [showQBWarning, setShowQBWarning] = useState(false);
     const hasShownToast = useRef(false);
     const completionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -159,24 +161,18 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
             toast.error("Please connect an email provider first");
             return;
         }
+        setShowQBWarning(true);
+    };
+
+    const handleQBContinue = async () => {
+        setShowQBWarning(false);
         try {
-            // First, open QuickBooks logout in a hidden iframe to clear session
-            const logoutFrame = document.createElement('iframe');
-            logoutFrame.style.display = 'none';
-            logoutFrame.src = 'https://accounts.intuit.com/app/sign-out';
-            document.body.appendChild(logoutFrame);
-
-            // Wait a moment for logout to process, then connect
-            setTimeout(async () => {
-                document.body.removeChild(logoutFrame);
-
-                localStorage.setItem("onboarding_mode", "true");
-                const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/quickbooks/auth`;
-                const res: any = await client.get(url);
-                if (res.url) {
-                    window.location.href = res.url;
-                }
-            }, 1000);
+            localStorage.setItem("onboarding_mode", "true");
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/quickbooks/auth`;
+            const res: any = await client.get(url);
+            if (res.url) {
+                window.location.href = res.url;
+            }
         } catch (error) {
             toast.error("Failed to connect QuickBooks");
         }
@@ -410,6 +406,13 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* QuickBooks Login Warning Dialog */}
+            <QuickBooksLoginWarningDialog
+                open={showQBWarning}
+                onOpenChange={setShowQBWarning}
+                onContinue={handleQBContinue}
+            />
         </div>
     );
 }
