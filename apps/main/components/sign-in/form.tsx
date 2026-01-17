@@ -159,6 +159,13 @@ function SignInFormComponent() {
             requiresTwoFactor: true,
             success: false,
           });
+        } else if (error.response.status === 401 && data.requiresEmailVerification) {
+          // User needs to verify their email
+          toast.info("Email Verification Required", {
+            description: "Please verify your email to continue.",
+          });
+          router.push(`/verify-email?email=${encodeURIComponent(data.email || formData.email)}`);
+          return;
         } else if (error.response.status === 423) {
           setState({
             message: data.message || "Account is locked.",

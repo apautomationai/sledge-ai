@@ -320,9 +320,7 @@ export default function JobDetailPage() {
       ) {
         await lineItemChangesRef.current.saveLineItemChanges();
         toast.success("Bill and line items saved successfully");
-      } else {
-        toast.success("Bill saved successfully");
-      }
+      } 
 
       setInvoiceDetails(updatedData);
       setOriginalInvoiceDetails(updatedData);

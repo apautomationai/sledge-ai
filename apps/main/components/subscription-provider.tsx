@@ -65,6 +65,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     "/sign-up",
     "/forget-password",
     "/reset-password",
+    "/verify-email",
     "/about",
     "/contact-us",
     "/privacy-policy",

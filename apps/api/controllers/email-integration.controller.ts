@@ -129,16 +129,7 @@ export class EmailIntegrationController {
         return res.redirect(redirectUrl);
       }
 
-      // Check if email already exists in another integration
-      if (userInfo.email) {
-        const emailExists = await integrationsService.checkEmailExists(userInfo.email, userId);
-        if (emailExists) {
-          const frontendUrl = process.env.FRONTEND_URL || process.env.OAUTH_REDIRECT_URI || 'http://localhost:3000';
-          const errorMessage = "This email is already connected to another sledge account. Please disconnect it from that account then try again.";
-          const redirectUrl = `${frontendUrl}/integrations?message=${encodeURIComponent(errorMessage)}&type=error`;
-          return res.redirect(redirectUrl);
-        }
-      }
+      // Removed duplicate email check - allow same email across multiple accounts
 
       let integration;
 
@@ -286,16 +277,7 @@ export class EmailIntegrationController {
         return res.redirect(redirectUrl);
       }
 
-      // Check if email already exists in another integration
-      if (userInfo.email) {
-        const emailExists = await integrationsService.checkEmailExists(userInfo.email, userId);
-        if (emailExists) {
-          const frontendUrl = process.env.FRONTEND_URL || process.env.OAUTH_REDIRECT_URI || 'http://localhost:3000';
-          const errorMessage = "This email is already connected to another sledge account. Please disconnect it from that account then try again.";
-          const redirectUrl = `${frontendUrl}/integrations?message=${encodeURIComponent(errorMessage)}&type=error`;
-          return res.redirect(redirectUrl);
-        }
-      }
+      // Removed duplicate email check - allow same email across multiple accounts
 
       let integration;
 

@@ -20,7 +20,7 @@ export class GoogleServices {
   generateAuthUrl = (state?: string): string => {
     return oAuth2Client.generateAuthUrl({
       access_type: "offline",
-      prompt: "consent",
+      prompt: "select_account consent", // Force account selection and consent every time
       scope: [
         "https://www.googleapis.com/auth/gmail.readonly",
         "https://www.googleapis.com/auth/gmail.modify",
