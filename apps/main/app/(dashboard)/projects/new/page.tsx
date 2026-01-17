@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
 import { Card } from "@workspace/ui/components/card";
 import { Label } from "@workspace/ui/components/label";
 import { ArrowLeft, Plus, ImagePlus, X, FileText } from "lucide-react";
@@ -51,13 +50,15 @@ interface VendorSummary {
 export default function NewProjectPage() {
     const router = useRouter();
     const [projectName, setProjectName] = useState("");
-    const [projectAddress, setProjectAddress] = useState("");
-    const [projectCity, setProjectCity] = useState("");
-    const [projectState, setProjectState] = useState("");
-    const [projectPostalCode, setProjectPostalCode] = useState("");
-    const [projectCountry, setProjectCountry] = useState("");
-    const [projectLatitude, setProjectLatitude] = useState<number | null>(null);
-    const [projectLongitude, setProjectLongitude] = useState<number | null>(null);
+    const placeDetailsRef = useRef<{
+        address: string;
+        city: string;
+        state: string;
+        postalCode: string;
+        country: string;
+        latitude: number;
+        longitude: number;
+    } | null>(null);
     const [projectStartDate, setProjectStartDate] = useState<string | undefined>(undefined);
     const [billingCycleStartDate, setBillingCycleStartDate] = useState<string | undefined>(undefined);
     const [billingCycleEndDate, setBillingCycleEndDate] = useState<string | undefined>(undefined);
@@ -193,7 +194,7 @@ export default function NewProjectPage() {
         toast.success(`${selectedInvoices.length} invoice(s) added to project`);
     };
 
-    const handlePlaceSelect = useCallback((place: {
+    const handlePlaceSelect = (place: {
         formattedAddress: string;
         address: string;
         city: string;
@@ -203,15 +204,17 @@ export default function NewProjectPage() {
         latitude: number;
         longitude: number;
     }) => {
-        // Set the street address (not the full formatted address)
-        setProjectAddress(place.address || place.formattedAddress);
-        setProjectCity(place.city);
-        setProjectState(place.state);
-        setProjectPostalCode(place.postalCode);
-        setProjectCountry(place.country);
-        setProjectLatitude(place.latitude);
-        setProjectLongitude(place.longitude);
-    }, []);
+        // Store place details in ref for later use when saving
+        placeDetailsRef.current = {
+            address: place.address || place.formattedAddress,
+            city: place.city,
+            state: place.state,
+            postalCode: place.postalCode,
+            country: place.country,
+            latitude: place.latitude,
+            longitude: place.longitude,
+        };
+    };
 
     const handleSave = async () => {
         if (!projectName.trim()) {
@@ -254,19 +257,15 @@ export default function NewProjectPage() {
                 }
             }
 
-            // If address is empty but name has a value (Google Places didn't trigger properly),
-            // use the name as the address
-            const finalAddress = projectAddress || projectName;
-
             const response: any = await client.post('/api/v1/projects', {
                 name: projectName,
-                address: finalAddress,
-                city: projectCity,
-                state: projectState,
-                postalCode: projectPostalCode,
-                country: projectCountry,
-                latitude: projectLatitude,
-                longitude: projectLongitude,
+                address: placeDetailsRef.current?.address || projectName,
+                city: placeDetailsRef.current?.city || null,
+                state: placeDetailsRef.current?.state || null,
+                postalCode: placeDetailsRef.current?.postalCode || null,
+                country: placeDetailsRef.current?.country || null,
+                latitude: placeDetailsRef.current?.latitude || null,
+                longitude: placeDetailsRef.current?.longitude || null,
                 projectStartDate,
                 billingCycleStartDate,
                 billingCycleEndDate,
@@ -357,9 +356,11 @@ export default function NewProjectPage() {
                         onChange={(value) => {
                             setProjectName(value);
                         }}
-                        onPlaceSelect={handlePlaceSelect}
+                        onPlaceSelect={e => {
+                            handlePlaceSelect(e)
+                        }}
                         placeholder="Add Project Name / Address"
-                        className="text-2xl font-semibold !bg-transparent border-gray-300 dark:border-gray-600 placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:border-gray-300 dark:focus:border-gray-600 px-4 py-2 rounded-md"
+                        className="text-2xl font-semibold bg-transparent! border-gray-300 dark:border-gray-600 placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:border-gray-300 dark:focus:border-gray-600 px-4 py-2 rounded-md"
                     />
                 </div>
 

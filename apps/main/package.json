@@ -41,6 +41,7 @@
     "pdfjs-dist": "^3.11.174",
     "react": "19.1.2",
     "react-dom": "19.1.2",
+    "react-google-autocomplete": "^2.7.5",
     "react-hook-form": "^7.63.0",
     "react-pdf": "^7.7.3",
     "react-phone-number-input": "^3.4.12",
