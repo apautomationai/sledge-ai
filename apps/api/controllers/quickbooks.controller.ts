@@ -93,16 +93,7 @@ export class QuickBooksController {
         // Continue without company info
       }
 
-      // Check for duplicate email if available
-      if (companyInfo?.email) {
-        const emailExists = await integrationsService.checkEmailExists(companyInfo.email, userId);
-        if (emailExists) {
-          const frontendUrl = process.env.FRONTEND_URL || process.env.OAUTH_REDIRECT_URI || 'http://localhost:3000';
-          const errorMessage = "This email is already connected to another sledge account. Please disconnect it from that account then try again.";
-          const redirectUrl = `${frontendUrl}/integrations?message=${encodeURIComponent(errorMessage)}&type=error`;
-          return res.redirect(redirectUrl);
-        }
-      }
+      // Removed duplicate email check - allow same email across multiple accounts
 
       await quickbooksService.saveIntegration(
         userId,
