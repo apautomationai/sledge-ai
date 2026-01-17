@@ -55,6 +55,7 @@ export class OutlookServices {
     const authCodeUrlParameters = {
       scopes,
       redirectUri,
+      prompt: "select_account", // Force account selection every time
       ...(state && { state }),
     };
 
