@@ -133,12 +133,15 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const handleConnectGmail = async () => {
         try {
             localStorage.setItem("onboarding_mode", "true");
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/gmail`;
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/gmail?onboarding=true`;
             const res: any = await client.get(url);
             if (res.url) {
+                // Clear the flag immediately since backend will handle redirect
+                localStorage.removeItem("onboarding_mode");
                 window.location.href = res.url;
             }
         } catch (error) {
+            localStorage.removeItem("onboarding_mode");
             toast.error("Failed to connect Gmail");
         }
     };
@@ -146,12 +149,15 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
     const handleConnectMicrosoft = async () => {
         try {
             localStorage.setItem("onboarding_mode", "true");
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/outlook`;
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/outlook?onboarding=true`;
             const res: any = await client.get(url);
             if (res.url) {
+                // Clear the flag immediately since backend will handle redirect
+                localStorage.removeItem("onboarding_mode");
                 window.location.href = res.url;
             }
         } catch (error) {
+            localStorage.removeItem("onboarding_mode");
             toast.error("Failed to connect Microsoft");
         }
     };
@@ -168,12 +174,15 @@ export default function OnboardingFlow({ integrations }: OnboardingFlowProps) {
         setShowQBWarning(false);
         try {
             localStorage.setItem("onboarding_mode", "true");
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/quickbooks/auth`;
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/quickbooks/auth?onboarding=true`;
             const res: any = await client.get(url);
             if (res.url) {
+                // Clear the flag immediately since backend will handle redirect
+                localStorage.removeItem("onboarding_mode");
                 window.location.href = res.url;
             }
         } catch (error) {
+            localStorage.removeItem("onboarding_mode");
             toast.error("Failed to connect QuickBooks");
         }
     };
