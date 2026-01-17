@@ -49,9 +49,9 @@ export function AddProjectDialog({ open, onOpenChange, onAdd }: AddProjectDialog
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Add New Project</DialogTitle>
+                    <DialogTitle>Add New Project Bill</DialogTitle>
                     <DialogDescription>
-                        Enter the project details below. Click save when you're done.
+                        Enter the project bill details below. Click save when you're done.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
@@ -109,7 +109,7 @@ export function AddProjectDialog({ open, onOpenChange, onAdd }: AddProjectDialog
                                     Adding...
                                 </>
                             ) : (
-                                "Add Project"
+                                "Add Project Bill"
                             )}
                         </Button>
                     </DialogFooter>

@@ -18,7 +18,7 @@ export function ProjectCard({ project, onDelete, onActivate }: ProjectCardProps)
         if (project.status === 'pending' && onActivate) {
             onActivate(project);
         } else {
-            router.push(`/projects/${project.id}`);
+            router.push(`/project-bills/${project.id}`);
         }
     };
 

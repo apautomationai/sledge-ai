@@ -68,8 +68,8 @@ export default function JobDetailPage() {
     page: 1,
   });
 
-  // Get invoice ID from URL query params
-  const invoiceIdFromUrl = searchParams.get("invoiceId");
+  // Get bill ID from URL query params
+  const billIdFromUrl = searchParams.get("billId");
 
   const [activeTab, setActiveTab] = useState<"invoice" | "attachment">(
     "invoice",
@@ -211,15 +211,15 @@ export default function JobDetailPage() {
 
         // Load details for specific invoice from URL or first invoice
         if (invoiceData.length > 0) {
-          if (invoiceIdFromUrl) {
-            const targetInvoiceId = parseInt(invoiceIdFromUrl);
+          if (billIdFromUrl) {
+            const targetBillId = parseInt(billIdFromUrl);
             const invoiceIndex = invoiceData.findIndex(
-              (inv: InvoiceListItem) => inv.id === targetInvoiceId,
+              (inv: InvoiceListItem) => inv.id === targetBillId,
             );
 
             if (invoiceIndex !== -1) {
               setCurrentInvoiceIndex(invoiceIndex);
-              await fetchInvoiceDetails(targetInvoiceId);
+              await fetchInvoiceDetails(targetBillId);
             } else {
               // Invoice not found, load first one
               await fetchInvoiceDetails(invoiceData[0].id);
@@ -237,7 +237,7 @@ export default function JobDetailPage() {
     };
 
     fetchData();
-  }, [jobId, invoiceIdFromUrl]);
+  }, [jobId, billIdFromUrl]);
 
   // Fetch full invoice details
   const fetchInvoiceDetails = async (invoiceId: number) => {
@@ -493,7 +493,7 @@ export default function JobDetailPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={handleBack}>
+          <Button variant="ghost" size="icon" onClick={handleBack} className="cursor-pointer">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
@@ -531,7 +531,7 @@ export default function JobDetailPage() {
             variant="secondary"
             size="icon"
             onClick={handleBack}
-            className="h-9 w-9"
+            className="h-9 w-9 cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -598,7 +598,7 @@ export default function JobDetailPage() {
                     size="icon"
                     onClick={handlePreviousInvoice}
                     disabled={currentInvoiceIndex === 0}
-                    className="h-9 w-9 bg-primary/10 hover:bg-primary/20"
+                    className="h-9 w-9 bg-primary/10 hover:bg-primary/20 cursor-pointer"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </Button>
@@ -648,7 +648,7 @@ export default function JobDetailPage() {
                     size="icon"
                     onClick={handleNextInvoice}
                     disabled={currentInvoiceIndex === invoicesList.length - 1}
-                    className="h-9 w-9 bg-primary/10 hover:bg-primary/20"
+                    className="h-9 w-9 bg-primary/10 hover:bg-primary/20 cursor-pointer"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </Button>
@@ -682,18 +682,18 @@ export default function JobDetailPage() {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-9">
+                    <Button variant="outline" size="sm" className="h-9 cursor-pointer">
                       <MoreVertical className="h-4 w-4 mr-2" />
                       Actions
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setShowCloneDialog(true)}>
+                    <DropdownMenuItem onClick={() => setShowCloneDialog(true)} className="cursor-pointer">
                       <Copy className="h-4 w-4 mr-2" />
                       Clone Bill
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className="text-destructive"
+                      className="text-destructive cursor-pointer"
                       onClick={() => setShowDeleteDialog(true)}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
@@ -803,11 +803,11 @@ export default function JobDetailPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting} className="cursor-pointer">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteInvoice}
               disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
             >
               {isDeleting ? (
                 <>
@@ -838,10 +838,11 @@ export default function JobDetailPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isCloning}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isCloning} className="cursor-pointer">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCloneInvoice}
               disabled={isCloning}
+              className="cursor-pointer"
             >
               {isCloning ? (
                 <>

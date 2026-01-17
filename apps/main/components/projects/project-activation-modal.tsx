@@ -59,13 +59,13 @@ export function ProjectActivationModal({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <CalendarDays className="h-5 w-5" />
-                        Activate Project: {project?.name}
+                        Activate Project Bill: {project?.name}
                     </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="projectStartDate">Project Start Date</Label>
+                        <Label htmlFor="projectStartDate">Project Bill Start Date</Label>
                         <Input
                             id="projectStartDate"
                             type="date"
@@ -124,7 +124,7 @@ export function ProjectActivationModal({
                             type="submit"
                             disabled={!isFormValid || isLoading}
                         >
-                            {isLoading ? "Activating..." : "Activate Project"}
+                            {isLoading ? "Activating..." : "Activate Project Bill"}
                         </Button>
                     </div>
                 </form>

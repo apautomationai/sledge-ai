@@ -306,12 +306,12 @@ export default function SideMenuBar({
                 {!isFeatureDisabled("projects") && (
                   <>
                     <NavLink
-                      href="/projects"
+                      href="/project-bills"
                       icon={Package2}
-                      isActive={pathname.startsWith("/projects")}
+                      isActive={pathname.startsWith("/project-bills")}
                       isCollapsed={isCol}
                     >
-                      Projects
+                      Project Bills
                     </NavLink>
                     {!isFeatureDisabled("jobs") && (
                       <IndentedNavLink
@@ -377,7 +377,7 @@ export default function SideMenuBar({
               <>
                 {!isFeatureDisabled("projects") && (
                   <DisabledNavItem icon={Package2} isCollapsed={isCol}>
-                    Projects
+                    Project Bills
                   </DisabledNavItem>
                 )}
                 <DisabledNavItem icon={Unplug} isCollapsed={isCol}>

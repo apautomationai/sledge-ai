@@ -4,7 +4,7 @@ export default function ImportantTask() {
       <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start">
         <div>
           <h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-white uppercase font-['League_Spartan']">
-            AI ACCOUNTS PAYABLE SAVINGS
+            FINANCE MANAGEMENT SAVINGS
             <br className="hidden lg:block" />
             FOR CONSTRUCTION TEAMS
           </h2>

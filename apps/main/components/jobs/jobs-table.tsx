@@ -301,7 +301,7 @@ export function JobsTable({
                 <TableHead className="w-[120px] max-w-[120px] p-0">
                   <button
                     onClick={() => onSort("job")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Job
                     {sortBy === "job" ? (
@@ -318,7 +318,7 @@ export function JobsTable({
                 <TableHead className="min-w-[180px] p-0">
                   <button
                     onClick={() => onSort("received")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Received
                     {sortBy === "received" ? (
@@ -335,7 +335,7 @@ export function JobsTable({
                 <TableHead className="min-w-[150px] p-0">
                   <button
                     onClick={() => onSort("vendor")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Vendor
                     {sortBy === "vendor" ? (
@@ -352,7 +352,7 @@ export function JobsTable({
                 <TableHead className="min-w-[100px] p-0">
                   <button
                     onClick={() => onSort("source")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Source
                     {sortBy === "source" ? (
@@ -369,7 +369,7 @@ export function JobsTable({
                 <TableHead className="min-w-[200px] p-0">
                   <button
                     onClick={() => onSort("email")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Email
                     {sortBy === "email" ? (
@@ -386,7 +386,7 @@ export function JobsTable({
                 <TableHead className="min-w-[80px] p-0">
                   <button
                     onClick={() => onSort("invoices")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Bills
                     {sortBy === "invoices" ? (
@@ -404,7 +404,7 @@ export function JobsTable({
                 <TableHead className="min-w-[120px] p-0">
                   <button
                     onClick={() => onSort("status")}
-                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3"
+                    className="flex items-center gap-1 hover:text-foreground w-full h-full px-4 py-3 cursor-pointer"
                   >
                     Status
                     {sortBy === "status" ? (
@@ -538,7 +538,7 @@ export function JobsTable({
                                       job.jobStatus === "processing" ||
                                       job.jobStatus === "pending"
                                     }
-                                    className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                   >
                                     Open Job
                                   </Button>
@@ -566,7 +566,7 @@ export function JobsTable({
                                 size="sm"
                                 variant="ghost"
                                 onClick={(e) => e.stopPropagation()}
-                                className="h-8 w-8 p-0"
+                                className="h-8 w-8 p-0 cursor-pointer"
                               >
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
@@ -693,7 +693,7 @@ export function JobsTable({
                                       <Button
                                         size="sm"
                                         variant="ghost"
-                                        className="flex-shrink-0"
+                                        className="flex-shrink-0 cursor-pointer"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           onReviewJob(job.id, invoice.id);
@@ -741,11 +741,11 @@ export function JobsTable({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting} className="cursor-pointer">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
-              className="bg-destructive text-white hover:bg-destructive/90"
+              className="bg-destructive text-white hover:bg-destructive/90 cursor-pointer"
             >
               {isDeleting ? (
                 <>

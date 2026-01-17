@@ -218,7 +218,7 @@ export default function NewProjectPage() {
 
     const handleSave = async () => {
         if (!projectName.trim()) {
-            toast.error("Please enter a project name");
+            toast.error("Please enter a project bill name");
             return;
         }
 
@@ -297,10 +297,10 @@ export default function NewProjectPage() {
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => router.push("/projects")}
+                        onClick={() => router.push("/project-bills")}
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Projects
+                        Back to Project Bills
                     </Button>
                     <Button onClick={handleSave} disabled={isSaving}>
                         {isSaving ? "Saving..." : "Save Project"}
@@ -335,7 +335,7 @@ export default function NewProjectPage() {
                                     <ImagePlus className="h-10 w-10 text-muted-foreground" />
                                 </div>
                                 <span className="text-muted-foreground text-sm">
-                                    Click to upload project image
+                                    Click to upload project bill image
                                 </span>
                                 <input
                                     type="file"

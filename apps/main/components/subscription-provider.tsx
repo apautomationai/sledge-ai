@@ -71,7 +71,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     "/privacy-policy",
     "/terms-conditions",
     "/product",
-    "/product/ai-accounts-payable",
+    "/product/finance-management",
     "/integration",
     "/pricing",
     "/industries/construction",

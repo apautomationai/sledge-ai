@@ -84,7 +84,7 @@ export default function ProjectDetailsPage() {
                 }
             }
         } catch (error: any) {
-            toast.error("Failed to load project details");
+            toast.error("Failed to load project bill details");
             console.error("Error fetching project:", error);
         } finally {
             if (isInitial) {
@@ -125,7 +125,7 @@ export default function ProjectDetailsPage() {
     if (isInitialLoading) {
         return (
             <div className="flex flex-col items-center justify-center h-[calc(100vh-6rem)]">
-                <p className="text-muted-foreground">Loading project details...</p>
+                <p className="text-muted-foreground">Loading project bill details...</p>
             </div>
         );
     }
@@ -133,10 +133,10 @@ export default function ProjectDetailsPage() {
     if (!project) {
         return (
             <div className="flex flex-col items-center justify-center h-[calc(100vh-6rem)]">
-                <h1 className="text-2xl font-bold mb-4">Project Not Found</h1>
-                <Button onClick={() => router.push("/projects")}>
+                <h1 className="text-2xl font-bold mb-4">Project Bill Not Found</h1>
+                <Button onClick={() => router.push("/project-bills")}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Projects
+                    Back to Project Bills
                 </Button>
             </div>
         );
@@ -149,9 +149,9 @@ export default function ProjectDetailsPage() {
     return (
         <div className="space-y-6 h-[calc(100vh-100px)]">
             {/* Back Button */}
-            <Button variant="ghost" size="sm" onClick={() => router.push("/projects")}>
+            <Button variant="ghost" size="sm" onClick={() => router.push("/project-bills")}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Projects
+                Back to Project Bills
             </Button>
 
             {/* Hero Section */}
@@ -222,7 +222,7 @@ export default function ProjectDetailsPage() {
                             </div>
                             <div className="text-white text-right text-sm space-y-1">
                                 <div>
-                                    <span className="text-gray-300">Project ID:</span> #{project.id}
+                                    <span className="text-gray-300">Project Bill ID:</span> #{project.id}
                                 </div>
 
                                 {project.projectStartDate && (
@@ -286,9 +286,9 @@ export default function ProjectDetailsPage() {
                                 <>
                                     <span className="font-medium">Status:</span>
                                     {!project?.billingCycleStartDate ? (
-                                        <span className="ml-1">Project not activated</span>
+                                        <span className="ml-1">Project bill not activated</span>
                                     ) : (
-                                        <span className="ml-1">No invoices found after project start date</span>
+                                        <span className="ml-1">No invoices found after project bill start date</span>
                                     )}
                                 </>
                             ) : (
@@ -302,7 +302,7 @@ export default function ProjectDetailsPage() {
                     {project?.billingCycleStartDate && project?.billingCycleEndDate && (
                         <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                             <p className="text-sm text-muted-foreground">
-                                <span className="font-medium">Project Billing Cycle:</span> {" "}
+                                <span className="font-medium">Project Bill Billing Cycle:</span> {" "}
                                 {(() => {
                                     const startDate = new Date(project.billingCycleStartDate);
                                     const endDate = new Date(project.billingCycleEndDate);
@@ -330,7 +330,7 @@ export default function ProjectDetailsPage() {
                             </p>
                             {availableCycles.length === 0 && (
                                 <p className="text-xs text-muted-foreground mt-1">
-                                    No invoices found after project start date ({project.projectStartDate ? new Date(project.projectStartDate).toLocaleDateString() : 'not set'})
+                                    No invoices found after project bill start date ({project.projectStartDate ? new Date(project.projectStartDate).toLocaleDateString() : 'not set'})
                                 </p>
                             )}
                         </div>
@@ -456,7 +456,7 @@ export default function ProjectDetailsPage() {
                         </div>
                     ) : vendors.length === 0 ? (
                         <div className="text-center py-12 text-muted-foreground">
-                            <p>No vendors found for this project</p>
+                            <p>No vendors found for this project bill</p>
                         </div>
                     ) : (
                         <Table>
