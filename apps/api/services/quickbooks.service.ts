@@ -57,6 +57,7 @@ export class QuickBooksService {
       redirect_uri: this.redirectUri,
       response_type: "code",
       access_type: "offline",
+      prompt: "login", // Force login screen every time
       ...(state && { state }),
     });
 
