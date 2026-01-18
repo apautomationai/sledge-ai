@@ -24,6 +24,7 @@ import {
   Scale,
   UserCog,
   Unplug,
+  X,
 } from "lucide-react";
 import {
   Avatar,
@@ -60,57 +61,92 @@ const NavLink = ({
   children,
   isActive,
   isCollapsed,
-}: any) => (
-  <TooltipProvider delayDuration={0}>
-    {isCollapsed ? (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            href={href}
-            className={cn(
-              "group flex justify-center rounded-xl p-3 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-              isActive &&
-              "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
-            )}
+  onClick,
+  hasSubmenu,
+  isExpanded,
+  onToggleSubmenu,
+}: any) => {
+  const handleLinkClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      onClick();
+    }
+  };
+
+  const handleChevronClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onToggleSubmenu) {
+      onToggleSubmenu();
+    }
+  };
+
+  return (
+    <TooltipProvider delayDuration={0}>
+      {isCollapsed ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href={href}
+              onClick={handleLinkClick}
+              className={cn(
+                "group flex justify-center rounded-xl p-3 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                isActive &&
+                "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
+              )}
+            >
+              <Icon className="h-5 w-5" />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            sideOffset={10}
+            className="bg-popover text-popover-foreground border shadow-lg"
           >
-            <Icon className="h-5 w-5" />
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent
-          side="right"
-          sideOffset={10}
-          className="bg-popover text-popover-foreground border shadow-lg"
-        >
-          <div className="flex items-center gap-2">
-            <Icon className="h-4 w-4" />
-            {children}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    ) : (
-      <Link
-        href={href}
-        className={cn(
-          "group flex items-center gap-3 rounded-xl px-4 py-3 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-          isActive &&
-          "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
-        )}
-      >
-        <Icon
+            <div className="flex items-center gap-2">
+              <Icon className="h-4 w-4" />
+              {children}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <Link
+          href={href}
+          onClick={handleLinkClick}
           className={cn(
-            "h-5 w-5",
-            isActive && "scale-110",
-            "group-hover:scale-105",
+            "group flex items-center gap-3 rounded-xl px-4 py-3 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+            isActive &&
+            "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold shadow-sm",
           )}
-        />
-        <span className="truncate">{children}</span>
-        {!isActive && (
-          <ChevronRight className="ml-auto h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-        )}
-      </Link>
-    )}
-  </TooltipProvider>
-);
+        >
+          <Icon
+            className={cn(
+              "h-5 w-5",
+              isActive && "scale-110",
+              "group-hover:scale-105",
+            )}
+          />
+          <span className="truncate">{children}</span>
+          {hasSubmenu ? (
+            <button
+              onClick={handleChevronClick}
+              className="ml-auto p-1 hover:bg-accent/50 rounded transition-colors"
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4 transition-transform" />
+              ) : (
+                <ChevronRight className="h-4 w-4 transition-transform" />
+              )}
+            </button>
+          ) : (
+            !isActive && (
+              <ChevronRight className="ml-auto h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+            )
+          )}
+        </Link>
+      )}
+    </TooltipProvider>
+  );
+};
 
 const IndentedNavLink = ({
   href,
@@ -118,6 +154,7 @@ const IndentedNavLink = ({
   children,
   isActive,
   isCollapsed,
+  onClick,
 }: any) => (
   <TooltipProvider delayDuration={0}>
     {isCollapsed ? (
@@ -125,6 +162,7 @@ const IndentedNavLink = ({
         <TooltipTrigger asChild>
           <Link
             href={href}
+            onClick={onClick}
             className={cn(
               "group flex justify-center rounded-xl p-3 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
               isActive &&
@@ -148,6 +186,7 @@ const IndentedNavLink = ({
     ) : (
       <Link
         href={href}
+        onClick={onClick}
         className={cn(
           "group flex items-center gap-3 rounded-xl px-4 py-3 pl-8 text-muted-foreground hover:bg-accent hover:text-primary hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
           isActive &&
@@ -205,16 +244,21 @@ export default function SideMenuBar({
   isCollapsed = false,
   onToggleCollapse,
   isOnboardingComplete = false,
+  isMobileMenuOpen = false,
+  onCloseMobileMenu,
 }: {
   userName: string;
   userEmail: string;
   isCollapsed?: boolean;
   onToggleCollapse: () => void;
   isOnboardingComplete?: boolean;
+  isMobileMenuOpen?: boolean;
+  onCloseMobileMenu?: () => void;
 }) {
   const pathname = usePathname();
   const { setTheme, theme } = useTheme();
   const [isCol, setIsCol] = useState(isCollapsed);
+  const [isProjectBillsExpanded, setIsProjectBillsExpanded] = useState(true);
 
   // Check if certain features should be disabled based on environment variable
   const disabledFeaturesString =
@@ -245,8 +289,10 @@ export default function SideMenuBar({
   return (
     <div
       className={cn(
-        "fixed md:relative inset-y-0 left-0 z-40 bg-gradient-to-b from-background to-muted/20 backdrop-blur-sm border-r border-border/40 transition-all duration-300 ease-in-out shadow-lg md:shadow-none",
+        "fixed md:relative inset-y-0 left-0 z-40 bg-background border-r border-border/40 transition-all duration-300 ease-in-out shadow-lg md:shadow-none",
         isCol ? "w-16" : "w-72",
+        // Hide on mobile by default, show when menu is open
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
       )}
     >
       <div className="flex h-full max-h-screen flex-col">
@@ -261,6 +307,7 @@ export default function SideMenuBar({
             <Link
               href="/dashboard"
               className="flex items-center gap-2 font-bold text-xl transition-all duration-300 hover:opacity-80 active:scale-95"
+              onClick={onCloseMobileMenu}
             >
               <Image
                 src={"/images/logos/logo-sledge-symbol-custom.svg"}
@@ -274,6 +321,17 @@ export default function SideMenuBar({
             </Link>
           )}
 
+          {/* Close button for mobile */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onCloseMobileMenu}
+            className="h-8 w-8 transition-all duration-300 hover:bg-accent hover:scale-105 md:hidden"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+
+          {/* Collapse button for desktop */}
           <Button
             variant="ghost"
             size="icon"
@@ -288,114 +346,131 @@ export default function SideMenuBar({
           </Button>
         </div>
 
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto py-4">
-          <nav className="grid items-start gap-1 px-3 text-sm font-medium">
-            {/* Always show Overview, disable others during onboarding */}
-            <NavLink
-              href="/dashboard"
-              icon={LayoutDashboard}
-              isActive={pathname === "/dashboard"}
-              isCollapsed={isCol}
-            >
-              Overview
-            </NavLink>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          {/* Navigation */}
+          <div className="py-4">
+            <nav className="grid items-start gap-1 px-3 text-sm font-medium">
+              {/* Always show Overview, disable others during onboarding */}
+              <NavLink
+                href="/dashboard"
+                icon={LayoutDashboard}
+                isActive={pathname === "/dashboard"}
+                isCollapsed={isCol}
+                onClick={onCloseMobileMenu}
+              >
+                Overview
+              </NavLink>
 
-            {isOnboardingComplete && !pathname.startsWith("/onboarding") ? (
-              <>
-                {!isFeatureDisabled("projects") && (
-                  <>
+              {isOnboardingComplete && !pathname.startsWith("/onboarding") ? (
+                <>
+                  {!isFeatureDisabled("projects") && (
+                    <>
+                      <NavLink
+                        href="/project-bills"
+                        icon={Package2}
+                        isActive={pathname.startsWith("/project-bills")}
+                        isCollapsed={isCol}
+                        onClick={onCloseMobileMenu}
+                        hasSubmenu={true}
+                        isExpanded={isProjectBillsExpanded}
+                        onToggleSubmenu={() => setIsProjectBillsExpanded(!isProjectBillsExpanded)}
+                      >
+                        Project Bills
+                      </NavLink>
+                      {isProjectBillsExpanded && (
+                        <>
+                          {!isFeatureDisabled("jobs") && (
+                            <IndentedNavLink
+                              href="/bills"
+                              icon={FileText}
+                              isActive={pathname.startsWith("/bills")}
+                              isCollapsed={isCol}
+                              onClick={onCloseMobileMenu}
+                            >
+                              Bills
+                            </IndentedNavLink>
+                          )}
+                          {!isFeatureDisabled("lienwaivers") && (
+                            <IndentedNavLink
+                              href="/lien-waiver"
+                              icon={FileCheck}
+                              isActive={pathname.startsWith("/lien-waiver")}
+                              isCollapsed={isCol}
+                              onClick={onCloseMobileMenu}
+                            >
+                              Lien Waivers
+                            </IndentedNavLink>
+                          )}
+                          {!isFeatureDisabled("vendors") && (
+                            <IndentedNavLink
+                              href="/vendors"
+                              icon={Users}
+                              isActive={pathname.startsWith("/vendors")}
+                              isCollapsed={isCol}
+                              onClick={onCloseMobileMenu}
+                            >
+                              Vendors
+                            </IndentedNavLink>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
+                  {!isFeatureDisabled("integrations") && (
                     <NavLink
-                      href="/project-bills"
-                      icon={Package2}
-                      isActive={pathname.startsWith("/project-bills")}
+                      href="/integrations"
+                      icon={Unplug}
+                      isActive={pathname.startsWith("/integrations")}
                       isCollapsed={isCol}
+                      onClick={onCloseMobileMenu}
                     >
-                      Project Bills
+                      Integrations
                     </NavLink>
-                    {!isFeatureDisabled("jobs") && (
-                      <IndentedNavLink
-                        href="/bills"
-                        icon={FileText}
-                        isActive={pathname.startsWith("/bills")}
-                        isCollapsed={isCol}
-                      >
-                        Bills
-                      </IndentedNavLink>
-                    )}
-                    {!isFeatureDisabled("lienwaivers") && (
-                      <IndentedNavLink
-                        href="/lien-waiver"
-                        icon={FileCheck}
-                        isActive={pathname.startsWith("/lien-waiver")}
-                        isCollapsed={isCol}
-                      >
-                        Lien Waivers
-                      </IndentedNavLink>
-                    )}
-                    {!isFeatureDisabled("vendors") && (
-                      <IndentedNavLink
-                        href="/vendors"
-                        icon={Users}
-                        isActive={pathname.startsWith("/vendors")}
-                        isCollapsed={isCol}
-                      >
-                        Vendors
-                      </IndentedNavLink>
-                    )}
-                  </>
-                )}
-                {!isFeatureDisabled("integrations") && (
+                  )}
                   <NavLink
-                    href="/integrations"
-                    icon={Unplug}
-                    isActive={pathname.startsWith("/integrations")}
+                    href="/legal"
+                    icon={Scale}
+                    isActive={pathname.startsWith("/legal")}
                     isCollapsed={isCol}
+                    onClick={onCloseMobileMenu}
                   >
-                    Integrations
+                    Legal
                   </NavLink>
-                )}
-                <NavLink
-                  href="/legal"
-                  icon={Scale}
-                  isActive={pathname.startsWith("/legal")}
-                  isCollapsed={isCol}
-                >
-                  Legal
-                </NavLink>
-                <NavLink
-                  href="/hr"
-                  icon={UserCog}
-                  isActive={pathname.startsWith("/hr")}
-                  isCollapsed={isCol}
-                >
-                  HR
-                </NavLink>
-              </>
-            ) : (
-              /* Show disabled state for other items during onboarding */
-              <>
-                {!isFeatureDisabled("projects") && (
-                  <DisabledNavItem icon={Package2} isCollapsed={isCol}>
-                    Project Bills
+                  <NavLink
+                    href="/hr"
+                    icon={UserCog}
+                    isActive={pathname.startsWith("/hr")}
+                    isCollapsed={isCol}
+                    onClick={onCloseMobileMenu}
+                  >
+                    HR
+                  </NavLink>
+                </>
+              ) : (
+                /* Show disabled state for other items during onboarding */
+                <>
+                  {!isFeatureDisabled("projects") && (
+                    <DisabledNavItem icon={Package2} isCollapsed={isCol}>
+                      Project Bills
+                    </DisabledNavItem>
+                  )}
+                  <DisabledNavItem icon={Unplug} isCollapsed={isCol}>
+                    Integrations
                   </DisabledNavItem>
-                )}
-                <DisabledNavItem icon={Unplug} isCollapsed={isCol}>
-                  Integrations
-                </DisabledNavItem>
-                <DisabledNavItem icon={Scale} isCollapsed={isCol}>
-                  Legal
-                </DisabledNavItem>
-                <DisabledNavItem icon={UserCog} isCollapsed={isCol}>
-                  HR
-                </DisabledNavItem>
-              </>
-            )}
-          </nav>
-        </div>
+                  <DisabledNavItem icon={Scale} isCollapsed={isCol}>
+                    Legal
+                  </DisabledNavItem>
+                  <DisabledNavItem icon={UserCog} isCollapsed={isCol}>
+                    HR
+                  </DisabledNavItem>
+                </>
+              )}
+            </nav>
+          </div>
 
-        {/* Footer */}
-        <div className="flex flex-col border-t border-border/40 p-3">
+          {/* Footer */}
+          <div className="flex flex-col border-t border-border/40 p-3">
           {/* Footer: Report + Support */}
           <div className="mt-4 flex flex-col gap-2">
             {/* Report a Bug */}
@@ -537,9 +612,10 @@ export default function SideMenuBar({
             </DropdownMenu>
           </div>
         </div>
+        </div>
       </div>
 
       <form id="logout-form" action={logoutAction} className="hidden" />
-    </div >
+    </div>
   );
 }
