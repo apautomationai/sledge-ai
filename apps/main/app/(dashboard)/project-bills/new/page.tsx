@@ -277,7 +277,7 @@ export default function NewProjectPage() {
             // Axios interceptor returns response.data directly
             if (response.success) {
                 toast.success("Project created successfully");
-                router.push("/projects");
+                router.push("/project-bills");
             } else {
                 toast.error(response.error || "Failed to create project");
             }
