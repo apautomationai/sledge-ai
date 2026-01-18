@@ -141,19 +141,22 @@ export default function PrivacyPolicy() {
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
                       Introduction
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
-                      This Privacy Notice describes how Sledge ("Sledge," "we," "us," or "our") collects, uses, discloses, and safeguards information in connection with your access to and use of the Sledge software-as-a-service platform, websites, applications, integrations, and related services (collectively, the "Services").
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      This Privacy Notice explains how Sledge handles your information.
                     </p>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
-                      This Privacy Notice is intended to reflect enterprise SaaS best practices and is modeled on industry-standard privacy disclosures used by leading construction software platforms, while accurately reflecting Sledge's current operations.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      We'll cover what data we collect, how we use it, and how we keep it safe. This applies to our software platform, websites, apps, and integrations (we call these the "Services").
+                    </p>
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-6">
+                      We follow best practices used by leading enterprise software companies to protect your privacy.
                     </p>
                     <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30">
                       <h4 className="font-semibold text-white mb-3 flex items-center font-['League_Spartan']">
                         <AlertTriangle className="w-5 h-5 mr-2 text-amber-400" />
                         Important Notice
                       </h4>
-                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                        By accessing or using the Services, you acknowledge that you have read and understood this Privacy Notice.
+                      <p className="text-white font-['Inter'] text-base leading-relaxed">
+                        By using our Services, you agree to the terms in this Privacy Notice.
                       </p>
                     </div>
                   </section>
@@ -161,19 +164,21 @@ export default function PrivacyPolicy() {
                   {/* Section 1 */}
                   <section id="scope" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      1. Scope
+                      1. What This Policy Covers
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      This Privacy Notice applies to information collected:
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      This policy applies to information we collect from:
                     </p>
-                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
-                      <li>Through the Services and any related websites or applications</li>
-                      <li>Through communications between you and Sledge (including support and service communications)</li>
-                      <li>Through third-party services and integrations that you authorize</li>
+                    <ul className="text-white font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-3 ml-4">
+                      <li>Our Services, websites, and apps</li>
+                      <li>Your communications with us (like support requests)</li>
+                      <li>Third-party services you connect to Sledge</li>
                     </ul>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      This Privacy Notice does not apply to information collected by third parties outside of Sledge's control, except as expressly described herein.
-                    </p>
+                    <div className="bg-zinc-800/50 rounded-lg p-4 mt-4">
+                      <p className="text-white font-['Inter'] text-base leading-relaxed">
+                        <strong className="text-white">Note:</strong> This policy doesn't cover third-party services outside our control.
+                      </p>
+                    </div>
                   </section>
 
                   {/* Section 2 */}
@@ -181,87 +186,115 @@ export default function PrivacyPolicy() {
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
                       2. Information We Collect
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
-                      We collect information in the following categories.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-6">
+                      We collect different types of information to provide and improve our Services.
                     </p>
 
                     <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
-                      2.1 Information You Provide
+                      2.1 Information You Give Us
                     </h3>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      You may provide information directly to us, including:
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      When you use Sledge, you may provide:
                     </p>
-                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6 list-disc list-inside space-y-2">
-                      <li>Contact and account information (such as name, email address, phone number, business name, role)</li>
-                      <li>Login and authentication information (stored in hashed or encrypted form)</li>
-                      <li>Billing and payment information (processed by third-party payment processors)</li>
-                      <li>Business and operational data you upload or submit through the Services (including invoices, documents, files, and related metadata)</li>
-                      <li>Communications with Sledge, such as support requests, feedback, or inquiries</li>
+                    <ul className="text-white font-['Inter'] text-base leading-relaxed mb-6 list-disc space-y-3 ml-6">
+                      <li><strong className="text-white">Account details:</strong> Name, email, phone number, business name, and role</li>
+                      <li><strong className="text-white">Login credentials:</strong> Stored securely using encryption</li>
+                      <li><strong className="text-white">Payment information:</strong> Handled by secure third-party payment processors</li>
+                      <li><strong className="text-white">Business documents:</strong> Invoices, files, and related data you upload</li>
+                      <li><strong className="text-white">Support messages:</strong> Requests, feedback, and questions you send us</li>
                     </ul>
 
                     <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
-                      2.2 Information Collected Automatically
+                      2.2 Information We Collect Automatically
                     </h3>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      When you access or use the Services, we may automatically collect:
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      When you use our Services, we automatically collect:
                     </p>
-                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6 list-disc list-inside space-y-2">
-                      <li>IP address, device identifiers, and approximate location information</li>
-                      <li>Browser type, operating system, and device characteristics</li>
-                      <li>Usage data, logs, timestamps, and interaction data</li>
-                      <li>Diagnostic, performance, and error data</li>
-                      <li>Cookies, local storage, session storage, and similar technologies</li>
+                    <ul className="text-white font-['Inter'] text-base leading-relaxed mb-6 list-disc space-y-3 ml-6">
+                      <li><strong className="text-white">Device information:</strong> IP address, device type, and approximate location</li>
+                      <li><strong className="text-white">Browser details:</strong> Browser type and operating system</li>
+                      <li><strong className="text-white">Usage data:</strong> How you interact with our Services</li>
+                      <li><strong className="text-white">Performance data:</strong> Logs, errors, and diagnostic information</li>
+                      <li><strong className="text-white">Cookies:</strong> Small files stored on your device (see Section 9)</li>
                     </ul>
 
                     <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
-                      2.3 Information from Third-Party Integrations
+                      2.3 Information from Connected Services
                     </h3>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      If you choose to connect third-party services to the Services, we may collect and process information made available by those services, including:
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      If you connect third-party services (like email or accounting software), we may access:
                     </p>
-                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
-                      <li>Email content, attachments, and metadata from email providers (such as sender, recipient, subject, and timestamps)</li>
-                      <li>Accounting and financial data from accounting platforms (such as company profile information, vendors, customers, products/items, accounts, and transaction records)</li>
-                      <li>Integration configuration data and synchronization metadata (such as processing start dates, last-read or last-synced timestamps, and integration status)</li>
-                      <li>OAuth and connection data necessary to maintain integrations (such as access tokens, refresh tokens, scopes, token expiry, and provider identifiers)</li>
+                    <ul className="text-white font-['Inter'] text-base leading-relaxed mb-4 list-disc space-y-3 ml-6">
+                      <li><strong className="text-white">Email data:</strong> Messages, attachments, sender/recipient info, and timestamps</li>
+                      <li><strong className="text-white">Accounting data:</strong> Company info, vendors, customers, and transactions</li>
+                      <li><strong className="text-white">Sync settings:</strong> Integration status and last sync times</li>
+                      <li><strong className="text-white">Connection tokens:</strong> Required to maintain integrations securely</li>
                     </ul>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      We access and process third-party data only as authorized by you through the applicable integration.
-                    </p>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
-                      You are responsible for ensuring that you have all necessary rights, permissions, and consents to connect third-party services and to share related data with Sledge, including where such data relates to your employees, contractors, vendors, or other third parties.
-                    </p>
+                    <div className="bg-amber-900/20 border border-amber-400/30 rounded-lg p-5 mb-4">
+                      <p className="text-white font-['Inter'] text-base leading-relaxed mb-3">
+                        <strong className="text-white">We only access data you authorize.</strong> You control which services connect to Sledge.
+                      </p>
+                      <p className="text-white font-['Inter'] text-base leading-relaxed">
+                        <strong className="text-white">Your responsibility:</strong> Make sure you have permission to share data with us, especially if it includes information about employees, contractors, or vendors.
+                      </p>
+                    </div>
 
                     <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
-                      2.4 Onboarding and Configuration Information
+                      2.4 Setup Information
                     </h3>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      We may collect and store onboarding and configuration information required to enable the Services, including integration status, setup preferences, and onboarding completion indicators.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed">
+                      We store your onboarding progress, integration settings, and preferences to make the Services work properly.
                     </p>
                   </section>
 
                   {/* Section 3 */}
                   <section id="how-we-use" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      3. How We Use Information
+                      3. How We Use Your Information
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      We use information for legitimate business purposes, including to:
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      We use your information to:
                     </p>
-                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
-                      <li>Provide, operate, maintain, and secure the Services</li>
-                      <li>Create and manage user accounts and authenticate users</li>
-                      <li>Enable, maintain, and manage authorized integrations</li>
-                      <li>Process, transform, and analyze data to provide automation features (such as invoice detection, document processing, and accounting synchronization)</li>
-                      <li>Process payments and manage billing</li>
-                      <li>Communicate with you about the Services, updates, and support matters</li>
-                      <li>Improve functionality, performance, and user experience</li>
-                      <li>Monitor usage, prevent misuse, and protect the security and integrity of the Services</li>
-                      <li>Comply with legal obligations and enforce our agreements</li>
-                    </ul>
-                    <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30 mt-6">
-                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed font-semibold uppercase">
-                        We do not sell personal information.
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div className="bg-zinc-800/50 rounded-lg p-4">
+                        <h4 className="text-white font-semibold mb-2 font-['Inter']">Run the Services</h4>
+                        <ul className="text-white font-['Inter'] text-sm leading-relaxed space-y-1.5">
+                          <li>• Keep your account running</li>
+                          <li>• Manage logins and security</li>
+                          <li>• Connect your integrations</li>
+                        </ul>
+                      </div>
+                      <div className="bg-zinc-800/50 rounded-lg p-4">
+                        <h4 className="text-white font-semibold mb-2 font-['Inter']">Provide Features</h4>
+                        <ul className="text-white font-['Inter'] text-sm leading-relaxed space-y-1.5">
+                          <li>• Process invoices and documents</li>
+                          <li>• Sync with accounting software</li>
+                          <li>• Automate workflows</li>
+                        </ul>
+                      </div>
+                      <div className="bg-zinc-800/50 rounded-lg p-4">
+                        <h4 className="text-white font-semibold mb-2 font-['Inter']">Handle Billing</h4>
+                        <ul className="text-white font-['Inter'] text-sm leading-relaxed space-y-1.5">
+                          <li>• Process payments</li>
+                          <li>• Send invoices</li>
+                          <li>• Manage subscriptions</li>
+                        </ul>
+                      </div>
+                      <div className="bg-zinc-800/50 rounded-lg p-4">
+                        <h4 className="text-white font-semibold mb-2 font-['Inter']">Improve & Protect</h4>
+                        <ul className="text-white font-['Inter'] text-sm leading-relaxed space-y-1.5">
+                          <li>• Make the Services better</li>
+                          <li>• Fix bugs and issues</li>
+                          <li>• Prevent misuse</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-6">
+                      We also use information to communicate with you about updates, answer support questions, and meet legal requirements.
+                    </p>
+                    <div className="bg-green-900/20 border-2 border-green-400/40 rounded-lg p-6">
+                      <p className="text-white font-['Inter'] text-lg leading-relaxed font-bold text-center">
+                        We never sell your personal information.
                       </p>
                     </div>
                   </section>
@@ -269,37 +302,53 @@ export default function PrivacyPolicy() {
                   {/* Section 4 */}
                   <section id="roles" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      4. Roles and Responsibilities (Controller and Processor)
+                      4. Our Role with Your Data
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      Depending on the context, Sledge may act as either a data controller or a data processor.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-6">
+                      Sledge plays different roles depending on the type of data:
                     </p>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      As a controller, Sledge determines the purposes and means of processing information relating to account administration, billing, marketing communications, and operation of the Services.
-                    </p>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      As a processor, Sledge processes data on behalf of its customers when customer content is submitted to the Services or accessed through authorized integrations (such as email or accounting systems), in accordance with customer instructions and applicable agreements.
-                    </p>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      Customers remain responsible for determining the purposes for which customer content is processed through the Services.
-                    </p>
+
+                    <div className="space-y-4">
+                      <div className="bg-zinc-800/50 rounded-lg p-5 border-l-4 border-amber-400">
+                        <h4 className="text-white font-semibold mb-2 font-['Inter'] text-lg">When We Control Data</h4>
+                        <p className="text-white font-['Inter'] text-base leading-relaxed">
+                          For account management, billing, and Service operations, we decide how to handle your information.
+                        </p>
+                      </div>
+
+                      <div className="bg-zinc-800/50 rounded-lg p-5 border-l-4 border-blue-400">
+                        <h4 className="text-white font-semibold mb-2 font-['Inter'] text-lg">When We Process for You</h4>
+                        <p className="text-white font-['Inter'] text-base leading-relaxed mb-3">
+                          For data you upload or connect (like emails and accounting data), we process it on your behalf based on your instructions.
+                        </p>
+                        <p className="text-white font-['Inter'] text-base leading-relaxed">
+                          <strong className="text-white">You're in charge:</strong> You determine how your business data is used through the Services.
+                        </p>
+                      </div>
+                    </div>
                   </section>
 
                   {/* Section 5 */}
                   <section id="ai-features" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      5. Automated Processing and AI-Assisted Features
+                      5. AI and Automation
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      The Services rely on automated systems and machine-assisted processing to analyze documents, extract information, and generate structured outputs. These processes may produce derived data such as classifications, metadata, and extracted records.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      Sledge uses AI and automated systems to:
                     </p>
-                    <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30">
-                      <h4 className="font-semibold text-white mb-3 flex items-center font-['League_Spartan']">
-                        <AlertTriangle className="w-5 h-5 mr-2 text-amber-400" />
-                        AI Output Disclaimer
+                    <ul className="text-white font-['Inter'] text-base leading-relaxed mb-6 list-disc space-y-2 ml-6">
+                      <li>Analyze your documents</li>
+                      <li>Extract information from invoices and files</li>
+                      <li>Generate organized records</li>
+                      <li>Classify and categorize data</li>
+                    </ul>
+                    <div className="bg-amber-900/20 border-2 border-amber-400/40 rounded-lg p-6">
+                      <h4 className="font-semibold text-white mb-3 flex items-center font-['League_Spartan'] text-lg">
+                        <AlertTriangle className="w-6 h-6 mr-2 text-amber-400" />
+                        Important: Review AI Outputs
                       </h4>
-                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                        Automated outputs may contain errors or omissions and are provided to support your workflows. You remain responsible for reviewing and validating outputs before relying on them for business, financial, legal, or accounting purposes.
+                      <p className="text-white font-['Inter'] text-base leading-relaxed">
+                        AI can make mistakes. Always review and verify automated results before using them for business, financial, or legal decisions.
                       </p>
                     </div>
                   </section>
@@ -307,79 +356,106 @@ export default function PrivacyPolicy() {
                   {/* Section 6 */}
                   <section id="sharing" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      6. Sharing and Disclosure of Information
+                      6. When We Share Information
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
-                      We may share information in the following circumstances.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-6">
+                      We only share your information in specific situations:
                     </p>
 
                     <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
-                      6.1 Service Providers and Subprocessors
+                      6.1 Trusted Service Partners
                     </h3>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      We engage trusted third-party service providers (sometimes referred to as "subprocessors") to support our operations. These providers process information on our behalf under contractual confidentiality and security obligations. Depending on your use of the Services, these providers may include:
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      We work with trusted companies that help us run the Services. They must follow strict security and privacy rules.
                     </p>
-                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
-                      <li>Hosting, compute, storage, and infrastructure providers</li>
-                      <li>Database and platform service providers</li>
-                      <li>AI and machine-assisted processing providers</li>
-                      <li>Payment processing and billing providers</li>
-                      <li>Email, accounting, and productivity service providers you choose to integrate</li>
-                      <li>Communications and email delivery providers</li>
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-3">
+                      These partners may include:
+                    </p>
+                    <ul className="text-white font-['Inter'] text-base leading-relaxed mb-6 list-disc space-y-2 ml-6">
+                      <li>Cloud hosting and storage providers</li>
+                      <li>Database services</li>
+                      <li>AI processing providers</li>
+                      <li>Payment processors</li>
+                      <li>Email delivery services</li>
+                      <li>Integration partners you authorize (email, accounting software, etc.)</li>
                     </ul>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
-                      We share information with service providers only as necessary to provide the Services or enable the integrations you authorize.
+                    <div className="bg-zinc-800/50 rounded-lg p-4 mb-6">
+                      <p className="text-white font-['Inter'] text-base leading-relaxed">
+                        We only share what's necessary to provide the Services you use.
+                      </p>
+                    </div>
+
+                    <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
+                      6.2 Business Changes
+                    </h3>
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-6">
+                      If Sledge merges with another company or is acquired, your information may be transferred. It will remain protected under privacy agreements.
                     </p>
 
                     <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
-                      6.2 Business Transfers
+                      6.3 Legal Requirements
                     </h3>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-6">
-                      If Sledge is involved in a merger, acquisition, financing, reorganization, bankruptcy, or sale of assets, information may be transferred as part of that transaction, subject to applicable confidentiality protections.
-                    </p>
-
-                    <h3 className="text-lg font-semibold text-amber-400 font-['League_Spartan'] mb-3">
-                      6.3 Legal and Compliance Requirements
-                    </h3>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      We may disclose information where required to do so by law, regulation, or legal process, or where we reasonably believe disclosure is necessary to protect the rights, property, or safety of Sledge, our users, or others.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed">
+                      We may share information when required by law or to protect the safety and rights of Sledge, our users, or others.
                     </p>
                   </section>
 
                   {/* Section 7 */}
                   <section id="retention" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      7. Data Retention
+                      7. How Long We Keep Your Data
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      We retain information for as long as reasonably necessary to:
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      We keep your information as long as needed to:
                     </p>
-                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
-                      <li>Provide the Services</li>
-                      <li>Fulfill contractual and operational requirements</li>
-                      <li>Comply with legal, accounting, or regulatory obligations</li>
-                      <li>Resolve disputes and enforce agreements</li>
+                    <ul className="text-white font-['Inter'] text-base leading-relaxed mb-4 list-disc space-y-2 ml-6">
+                      <li>Run your account and provide Services</li>
+                      <li>Meet our contract with you</li>
+                      <li>Follow legal and tax requirements</li>
+                      <li>Resolve any disputes</li>
                     </ul>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      Retention periods may vary based on data type, usage, and legal requirements.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed">
+                      The exact time varies depending on the type of data and legal requirements. Some data may need to be kept longer for accounting or legal reasons.
                     </p>
                   </section>
 
                   {/* Section 8 */}
                   <section id="security" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      8. Security
+                      8. How We Protect Your Data
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      We implement administrative, technical, and organizational measures designed to protect information against unauthorized access, loss, misuse, or disclosure. These measures may include access controls, encryption technologies, network security controls, monitoring, and controlled deployment practices.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      We use multiple security measures to protect your information:
                     </p>
-                    <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30">
-                      <h4 className="font-semibold text-white mb-3 flex items-center font-['League_Spartan']">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div className="bg-zinc-800/50 rounded-lg p-4">
+                        <p className="text-white font-['Inter'] text-base leading-relaxed">
+                          <strong className="text-white">🔒 Encryption:</strong> Your data is encrypted in transit and at rest
+                        </p>
+                      </div>
+                      <div className="bg-zinc-800/50 rounded-lg p-4">
+                        <p className="text-white font-['Inter'] text-base leading-relaxed">
+                          <strong className="text-white">🔐 Access Controls:</strong> Limited access to authorized personnel only
+                        </p>
+                      </div>
+                      <div className="bg-zinc-800/50 rounded-lg p-4">
+                        <p className="text-white font-['Inter'] text-base leading-relaxed">
+                          <strong className="text-white">🛡️ Network Security:</strong> Firewalls and monitoring systems
+                        </p>
+                      </div>
+                      <div className="bg-zinc-800/50 rounded-lg p-4">
+                        <p className="text-white font-['Inter'] text-base leading-relaxed">
+                          <strong className="text-white">👁️ Monitoring:</strong> Continuous security monitoring
+                        </p>
+                      </div>
+                    </div>
+                    <div className="bg-amber-900/20 border border-amber-400/30 rounded-lg p-5">
+                      <h4 className="font-semibold text-white mb-2 flex items-center font-['Inter']">
                         <AlertTriangle className="w-5 h-5 mr-2 text-amber-400" />
-                        Security Disclaimer
+                        Please Note
                       </h4>
-                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                        No system can be guaranteed to be completely secure, and we cannot guarantee absolute security.
+                      <p className="text-white font-['Inter'] text-base leading-relaxed">
+                        While we use industry-standard security practices, no online system is 100% secure. We work hard to protect your data but cannot guarantee absolute security.
                       </p>
                     </div>
                   </section>
@@ -387,65 +463,104 @@ export default function PrivacyPolicy() {
                   {/* Section 9 */}
                   <section id="cookies" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      9. Cookies and Similar Technologies
+                      9. Cookies and Tracking
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      We use cookies and similar technologies (including local storage and session storage) to:
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      We use cookies (small files stored on your device) to:
                     </p>
-                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
-                      <li>Authenticate users and maintain sessions</li>
-                      <li>Enforce access controls and onboarding requirements</li>
-                      <li>Store user preferences and temporary state during setup and integrations</li>
-                      <li>Analyze usage and improve performance</li>
+                    <ul className="text-white font-['Inter'] text-base leading-relaxed mb-4 list-disc space-y-2 ml-6">
+                      <li>Keep you logged in</li>
+                      <li>Remember your preferences</li>
+                      <li>Maintain security</li>
+                      <li>Understand how you use the Services</li>
+                      <li>Improve performance</li>
                     </ul>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      You may control cookies through your browser settings, but disabling cookies may limit certain features of the Services.
-                    </p>
+                    <div className="bg-zinc-800/50 rounded-lg p-4">
+                      <p className="text-white font-['Inter'] text-base leading-relaxed">
+                        <strong className="text-white">You can control cookies</strong> through your browser settings. However, blocking cookies may prevent some features from working properly.
+                      </p>
+                    </div>
                   </section>
 
                   {/* Section 10 */}
                   <section id="international" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      10. International Data Transfers
+                      10. International Users
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      The Services are operated primarily in the United States. If you access the Services from outside the United States, your information may be transferred to, stored, and processed in jurisdictions that may have different data protection laws than your location.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-3">
+                      Our Services are based in the United States.
+                    </p>
+                    <p className="text-white font-['Inter'] text-base leading-relaxed">
+                      If you use Sledge from another country, your information will be transferred to and stored in the U.S. Data protection laws may differ from those in your location.
                     </p>
                   </section>
 
                   {/* Section 11 */}
                   <section id="customer-responsibilities" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      11. Customer Responsibilities
+                      11. Your Responsibilities
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      Customers are responsible for:
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      As a Sledge user, you're responsible for:
                     </p>
-                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
-                      <li>Ensuring they have appropriate rights, permissions, and consents to provide data to the Services and to authorize integrations</li>
-                      <li>Complying with applicable privacy, data protection, and employment laws with respect to data processed through the Services</li>
-                      <li>Reviewing and validating outputs generated by the Services before relying on them</li>
-                    </ul>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      Sledge does not control the content of customer data processed through authorized integrations.
+                    <div className="space-y-4 mb-4">
+                      <div className="bg-zinc-800/50 rounded-lg p-4 border-l-4 border-amber-400">
+                        <h4 className="text-white font-semibold mb-2 font-['Inter']">✓ Getting Permission</h4>
+                        <p className="text-white font-['Inter'] text-base leading-relaxed">
+                          Make sure you have the right to share data with Sledge, especially if it includes employee, contractor, or vendor information.
+                        </p>
+                      </div>
+                      <div className="bg-zinc-800/50 rounded-lg p-4 border-l-4 border-amber-400">
+                        <h4 className="text-white font-semibold mb-2 font-['Inter']">✓ Following Laws</h4>
+                        <p className="text-white font-['Inter'] text-base leading-relaxed">
+                          Comply with privacy and data protection laws that apply to your business.
+                        </p>
+                      </div>
+                      <div className="bg-zinc-800/50 rounded-lg p-4 border-l-4 border-amber-400">
+                        <h4 className="text-white font-semibold mb-2 font-['Inter']">✓ Reviewing AI Results</h4>
+                        <p className="text-white font-['Inter'] text-base leading-relaxed">
+                          Always check automated outputs before using them for important decisions.
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-white font-['Inter'] text-sm leading-relaxed italic">
+                      Note: We don't control the content you upload or connect through integrations - you do.
                     </p>
                   </section>
 
                   {/* Section 12 */}
                   <section id="your-choices" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      12. Your Choices
+                      12. Your Privacy Rights
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      You may:
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      You have control over your information. You can:
                     </p>
-                    <ul className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4 list-disc list-inside space-y-2">
-                      <li>Update certain account information through the Services</li>
-                      <li>Disconnect integrations you have authorized</li>
-                      <li>Request account deletion, subject to legal and operational requirements</li>
-                    </ul>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      Certain information may be retained as required by law or for legitimate business purposes.
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div className="bg-zinc-800/50 rounded-lg p-4 text-center">
+                        <div className="text-3xl mb-2">✏️</div>
+                        <h4 className="text-white font-semibold mb-2 font-['Inter']">Update Info</h4>
+                        <p className="text-white font-['Inter'] text-sm leading-relaxed">
+                          Change your account details anytime
+                        </p>
+                      </div>
+                      <div className="bg-zinc-800/50 rounded-lg p-4 text-center">
+                        <div className="text-3xl mb-2">🔌</div>
+                        <h4 className="text-white font-semibold mb-2 font-['Inter']">Disconnect</h4>
+                        <p className="text-white font-['Inter'] text-sm leading-relaxed">
+                          Remove integrations you've connected
+                        </p>
+                      </div>
+                      <div className="bg-zinc-800/50 rounded-lg p-4 text-center">
+                        <div className="text-3xl mb-2">🗑️</div>
+                        <h4 className="text-white font-semibold mb-2 font-['Inter']">Delete Account</h4>
+                        <p className="text-white font-['Inter'] text-sm leading-relaxed">
+                          Request deletion of your data
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-white font-['Inter'] text-sm leading-relaxed italic">
+                      Some data may be kept longer if required by law or for legitimate business needs.
                     </p>
                   </section>
 
@@ -454,9 +569,9 @@ export default function PrivacyPolicy() {
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
                       13. Children's Privacy
                     </h2>
-                    <div className="bg-zinc-800 rounded-lg p-6 border border-amber-400/30">
-                      <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                        The Services are not intended for use by individuals under the age of 18. We do not knowingly collect personal information from children.
+                    <div className="bg-red-900/20 border-2 border-red-400/40 rounded-lg p-6">
+                      <p className="text-white font-['Inter'] text-base leading-relaxed">
+                        <strong className="text-white">Age restriction:</strong> Sledge is for business use only. Our Services are not intended for anyone under 18 years old. We don't knowingly collect information from children.
                       </p>
                     </div>
                   </section>
@@ -466,51 +581,61 @@ export default function PrivacyPolicy() {
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
                       14. Third-Party Services
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      The Services may contain links to or integrations with third-party services not controlled by Sledge. This Privacy Notice does not apply to those third-party services, and we encourage you to review their privacy practices separately.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-3">
+                      Sledge may link to or integrate with other services (like email providers or accounting software).
                     </p>
+                    <div className="bg-zinc-800/50 rounded-lg p-4">
+                      <p className="text-white font-['Inter'] text-base leading-relaxed">
+                        <strong className="text-white">Important:</strong> We don't control these third-party services. They have their own privacy policies. Please review them separately.
+                      </p>
+                    </div>
                   </section>
 
                   {/* Section 15 */}
                   <section id="changes" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      15. Changes to This Privacy Notice
+                      15. Policy Updates
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      We may update this Privacy Notice from time to time. Changes will be effective when posted. Your continued use of the Services after changes are posted constitutes acceptance of the updated Privacy Notice.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-3">
+                      We may update this Privacy Notice occasionally to reflect changes in our practices or legal requirements.
+                    </p>
+                    <p className="text-white font-['Inter'] text-base leading-relaxed">
+                      When we make changes, we'll post the updated version here. By continuing to use Sledge after updates, you accept the new terms.
                     </p>
                   </section>
 
                   {/* Section 16 */}
                   <section id="supplemental" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      16. Supplemental Notices
+                      16. Additional Disclosures
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      Additional privacy disclosures may apply depending on your jurisdiction or your use of specific features. Any such supplemental notices will be provided separately and will apply only in the relevant context.
+                    <p className="text-white font-['Inter'] text-base leading-relaxed">
+                      Depending on where you live or which features you use, additional privacy terms may apply. We'll provide those separately when relevant.
                     </p>
                   </section>
 
                   {/* Section 17 */}
                   <section id="contact" className="scroll-mt-24 mb-10">
                     <h2 className="text-xl font-bold text-white uppercase font-['League_Spartan'] mb-4">
-                      17. Contact Us
+                      17. Questions?
                     </h2>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-4">
-                      If you have questions or concerns about this Privacy Notice or our data practices, please contact:
+                    <p className="text-white font-['Inter'] text-base leading-relaxed mb-4">
+                      If you have questions about this Privacy Notice or how we handle your data, we're here to help.
                     </p>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed mb-2">
-                      <span className="text-white font-semibold">Sledge</span>
-                    </p>
-                    <p className="text-zinc-300 font-['Inter'] text-base leading-relaxed">
-                      Email: <a href="mailto:support@getsledge.com" className="text-amber-400 hover:text-amber-300 transition-colors">support@getsledge.com</a>
-                    </p>
+                    <div className="bg-zinc-800/50 rounded-lg p-6 border-l-4 border-amber-400">
+                      <p className="text-white font-['Inter'] text-base leading-relaxed mb-3">
+                        <span className="text-white font-semibold text-lg">Contact Sledge</span>
+                      </p>
+                      <p className="text-white font-['Inter'] text-base leading-relaxed">
+                        Email: <a href="mailto:support@getsledge.com" className="text-amber-400 hover:text-amber-300 transition-colors font-semibold underline">support@getsledge.com</a>
+                      </p>
+                    </div>
                   </section>
 
                   {/* Disclaimer */}
-                  <div className="border-t border-zinc-700 pt-8 mt-8">
-                    <p className="text-zinc-500 font-['Inter'] text-sm italic">
-                      This Privacy Notice is provided for informational purposes and does not constitute legal advice.
+                  <div className="border-t-2 border-zinc-700 pt-8 mt-8">
+                    <p className="text-zinc-400 font-['Inter'] text-sm italic leading-relaxed">
+                      This Privacy Notice is for informational purposes only and does not constitute legal advice.
                     </p>
                   </div>
                 </div>

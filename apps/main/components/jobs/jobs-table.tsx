@@ -400,7 +400,6 @@ export function JobsTable({
                     )}
                   </button>
                 </TableHead>
-                <TableHead className="min-w-[150px]">Bill Status</TableHead>
                 <TableHead className="min-w-[120px] p-0">
                   <button
                     onClick={() => onSort("status")}
@@ -418,6 +417,7 @@ export function JobsTable({
                     )}
                   </button>
                 </TableHead>
+                <TableHead className="min-w-[150px]">Bill Status</TableHead>
                 <TableHead className="text-right min-w-[140px]">
                   Actions
                 </TableHead>
@@ -506,6 +506,7 @@ export function JobsTable({
                         {job.sender || "—"}
                       </TableCell>
                       <TableCell>{job.invoiceCount || 0}</TableCell>
+                      <TableCell>{getStatusBadge(job.jobStatus)}</TableCell>
                       <TableCell>
                         {job.invoiceStatusCounts ? (
                           <div className="flex items-center gap-2 text-sm">
@@ -523,7 +524,6 @@ export function JobsTable({
                           <span className="text-muted-foreground">—</span>
                         )}
                       </TableCell>
-                      <TableCell>{getStatusBadge(job.jobStatus)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <TooltipProvider delayDuration={300}>
