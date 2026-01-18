@@ -56,14 +56,60 @@ export default function JobsPage() {
   const handleSyncEmails = async () => {
     setIsSyncing(true);
     try {
-      await Promise.all(
-        ["/api/v1/email/gmail/my", "/api/v1/email/outlook/my"].map((endpoint) =>
-          client.get(endpoint)
-        )
+      const results = await Promise.allSettled(
+        [
+          { endpoint: "/api/v1/email/gmail/my", name: "Gmail" },
+          { endpoint: "/api/v1/email/outlook/my", name: "Outlook" }
+        ].map(async ({ endpoint, name }) => {
+          try {
+            const response = await client.get(endpoint);
+            return { success: true, name, response };
+          } catch (error: any) {
+            // Check if it's a "not connected" error - check multiple possible error locations
+            const errorMessage =
+              error?.response?.data?.error ||
+              error?.response?.data?.message ||
+              error?.message ||
+              String(error);
+
+            if (errorMessage.includes("not found") || errorMessage.includes("not connected")) {
+              return { success: false, name, notConnected: true };
+            }
+            // For any other error, return it as a failure
+            return { success: false, name, error: errorMessage };
+          }
+        })
       );
-      toast.success("Emails synced successfully");
-      refetch();
-      router.refresh();
+
+      const successfulSyncs = results.filter(
+        (r) => r.status === "fulfilled" && r.value.success
+      );
+      const notConnected = results.filter(
+        (r) => r.status === "fulfilled" && r.value.notConnected
+      );
+      const failed = results.filter(
+        (r) => r.status === "fulfilled" && r.value.error
+      );
+
+      // If both are not connected, show specific message
+      if (notConnected.length === 2) {
+        toast.error("Please connect Gmail or Outlook from the integrations page to sync emails.");
+        return;
+      }
+
+      // If no successful syncs at all (both not connected or failed)
+      if (successfulSyncs.length === 0) {
+        toast.error("Please connect Gmail or Outlook from the integrations page to sync emails.");
+        return;
+      }
+
+      // If at least one succeeded, show success
+      if (successfulSyncs.length > 0) {
+        const syncedProviders = successfulSyncs.map((r: any) => r.value.name).join(" and ");
+        toast.success(`Emails synced successfully from ${syncedProviders}`);
+        refetch();
+        router.refresh();
+      }
     } catch (error) {
       toast.error("Failed to sync emails");
       console.error(error);
